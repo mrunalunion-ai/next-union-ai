@@ -1,0 +1,27 @@
+{
+  "name": "UnionAI",
+  "short_name": "UnionAI",
+  "description": "The intelligent Relationship Union Score and wellness app built to secure your lifetime bond.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDF7EB",
+  "theme_color": "#798DAF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": [""],
+  "lang": "en",
+  "dir": "ltr"
+}

@@ -1,0 +1,34 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+export const ActionTypes = {
+  SET_STORE_SOCKET_RESPONSE: "SET_STORE_SOCKET_RESPONSE",
+  USER_PROFILE: "USER_PROFILE",
+  SET_STORE_MODAL_CONFIRM: "SET_STORE_MODAL_CONFIRM",
+  SET_REQUEST_LOADER: "SET_REQUEST_LOADER",
+  SET_PAGE_LOADER: "SET_PAGE_LOADER",
+  SET_SHOW_MODAL_POPUP: "SET_SHOW_MODAL_POPUP",
+  SET_FULLSCREEN_POPUP: "SET_FULLSCREEN_POPUP",
+  SET_SHOW_UPLOAD_FILES: "SET_SHOW_UPLOAD_FILES",
+  SET_MODAL_LOADER: "SET_MODAL_LOADER",
+  RANDOM_NO: "RANDOM_NO",
+  SET_DOWNLOAD_PROGRESS: "SET_DOWNLOAD_PROGRESS",
+  SET_DEVICE: "SET_DEVICE",
+
+  CHAT_ADD_MESSAGE: "CHAT_ADD_MESSAGE",
+  CHAT_SET_LOADING: "CHAT_SET_LOADING",
+  CHAT_CLEAR: "CHAT_CLEAR",
+};
+
+export interface Action<T = any> {
+  type: string;
+  payload: T;
+}
+
+
+export const setStoreSocketResponse = (payload?: any) => ({
+  type: ActionTypes.SET_STORE_SOCKET_RESPONSE,
+  payload: payload,
+})
+
+
+
