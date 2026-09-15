@@ -47,7 +47,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const { user_data } = usePosterReducers();
   const accessToken = user_data?.access_token;
   const guestAccessToken = process.env.NEXT_PUBLIC_GUEST_ACCESS_TOKEN;
-
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<{
     event: string;
