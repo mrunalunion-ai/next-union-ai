@@ -1,3 +1,4 @@
+"use client";
 import { Heart, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import Link from "next/link";
 import { APP_URL } from "@/constant/static";
