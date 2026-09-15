@@ -90,7 +90,7 @@ export default function CodeCreate() {
                                 Union Connection
                             </h1>
                             <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                                Share this Union Code with your partner. Once they enter the code, you'll receive a connection request. Accept the request to link your accounts and start using the app together.
+                                 Share this Union Code with your partner. Once they enter the code, you&apos;ll receive a connection request. Accept the request to link your accounts and start using the app together.
                             </p>
                         </header>
                         <RegistrationStepIndicator
@@ -198,7 +198,7 @@ export default function CodeCreate() {
                                             className="auth-submit !mt-5"
                                             disabled={true}
                                         >
-                                            Let's Start
+                                             Let&apos;s Start
                                         </Button>
                                     </section>
                                     <Button

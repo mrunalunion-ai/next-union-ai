@@ -163,7 +163,7 @@ function JoinUnionContent() {
                           className="auth-submit !mt-5"
                           disabled={true}
                         >
-                          Let's Start
+                          Let&apos;s Start
                         </Button>
 
                       </section>
