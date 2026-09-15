@@ -110,11 +110,12 @@ function CreateUnionContent() {
     ) {
       if (lastEvent?.data?.request?.action === "createUnion") {
         router.push(APP_URL.LINKS.CODE_CREATED);
-      } else if (fullJoinCode && lastEvent?.data?.request?.action === "get") {
+      } else if (mode === 'join' && lastEvent?.data?.request?.action === "get") {
         router.push(APP_URL.LINKS.JOIN_UNION);
       }
     }
   }, [lastEvent]);
+
 
   const continueToJoinUnion = () => {
     // pendingAction.current = "partnerVerified";

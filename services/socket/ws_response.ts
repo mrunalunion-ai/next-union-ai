@@ -39,6 +39,7 @@ export const ws_response = (
           if (ws_onmessage?.status === true) {
             dispatch(updateUserData(ws_onmessage?.data));
           } else {
+            toast.error(ws_onmessage?.msg);
             dispatch(updateUserData(ws_onmessage?.data));
           }
         }
