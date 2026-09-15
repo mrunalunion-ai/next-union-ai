@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { ToastContainer } from "react-toastify";
@@ -17,7 +17,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <WebSocketProvider>
-            <Suspense>{children}</Suspense>
+            {children}
             <ToastContainer position="top-center" autoClose={3000} theme="light" />
           </WebSocketProvider>
         </ThemeProvider>

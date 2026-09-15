@@ -5,9 +5,9 @@ import { AppProviders } from "@/components/provider/provider";
 import { inter } from '@/lib/fonts';
 import { Metadata } from 'next';
 
-export const APP_NAME = 'UnionAI';
-export const APP_URL = 'https://unionai.org';
-export const APP_DESCRIPTION = 'The intelligent Relationship Union Score and wellness app built to secure your lifetime bond.'
+const APP_NAME = 'UnionAI';
+const APP_URL = 'https://unionai.org';
+const APP_DESCRIPTION = 'The intelligent Relationship Union Score and wellness app built to secure your lifetime bond.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL || 'http://localhost:3000'),

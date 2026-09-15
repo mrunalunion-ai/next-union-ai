@@ -1,7 +1,8 @@
 import { Heart, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import Link from "next/link";
-import { APP_NAME } from "@/app/layout";
 import { APP_URL } from "@/constant/static";
+
+const APP_NAME = "UnionAI";
 
 const socialLinks = [
   { label: "Instagram", href: "https://instagram.com", icon: Instagram },
