@@ -12,6 +12,15 @@ export const ActionTypes = {
   SET_TERMS_CONDITIONS: "SET_TERMS_CONDITIONS",
   SET_LOVE_LANGUAGE_LIST: "SET_LOVE_LANGUAGE_LIST",
   SET_RELATION_STATUS_LIST: "SET_RELATION_STATUS_LIST",
+  SET_CHECKIN_QUES_LIST: "SET_CHECKIN_QUES_LIST",
+
+};
+
+export const setCheckInQuesList = (payload: IRelationshipStatusResponse) => {
+  return {
+    type: ActionTypes.SET_CHECKIN_QUES_LIST,
+    payload,
+  };
 };
 
 export const setRelationStatusList = (payload: IRelationshipStatusResponse) => {

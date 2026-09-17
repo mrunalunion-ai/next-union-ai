@@ -8,6 +8,7 @@ const initialState: IMainResponse = {
   terms_conditions: null,
   loveLanguageList: null,
   relationStatusList: null,
+  checkInQuesList: null,
 };
 
 const mainReducer = (
@@ -15,6 +16,16 @@ const mainReducer = (
   action: any,
 ): IMainResponse => {
   switch (action.type) {
+
+    case ActionTypes.SET_CHECKIN_QUES_LIST: {
+      return {
+        ...state,
+        checkInQuesList: {
+          data: action?.payload?.data,
+          pagination: action?.payload?.pagination,
+        },
+      };
+    }
 
     case ActionTypes.SET_RELATION_STATUS_LIST: {
       return {

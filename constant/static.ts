@@ -18,6 +18,8 @@ export const APP_URL = {
     CONNECTED: "/connected",
     PROFILE: "/profile",
     DASHBOARD: "/dashboard",
+    WEEKLY_CHECK_IN: "/weekly-check-in",
+    CHECK_IN_COMPLETED: "/check-in-completed",
     SETTINGS: "/settings",
   },
   ENDPOINT_URL: {

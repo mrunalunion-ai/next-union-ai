@@ -49,4 +49,5 @@ export interface IMainResponse {
   loveLanguageList: ILoveLanguageResponse | null;
   privacy_policy: IPrivacyPolicy | null;
   terms_conditions: IPrivacyPolicy | null;
+  checkInQuesList: any;
 }

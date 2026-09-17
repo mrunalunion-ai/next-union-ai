@@ -40,7 +40,9 @@ interface InputFieldProps<T extends FieldValues> {
     rightLabel?: React.ReactNode;
     leftAdornment?: React.ReactNode;
 
-    onChange?: React.ChangeEventHandler<HTMLInputElement>;
+    onChange?:
+        | React.ChangeEventHandler<HTMLInputElement>
+        | React.ChangeEventHandler<HTMLTextAreaElement>;
     onBlur?: React.FocusEventHandler<HTMLInputElement>;
     onFocus?: React.FocusEventHandler<HTMLInputElement>;
     onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
@@ -263,6 +265,7 @@ export default function InputField<T extends FieldValues>({
                     id={inputId}
                     placeholder={placeholder}
                     rows={rows}
+                    value={value as string | undefined}
                     disabled={disabled}
                     readOnly={readOnly}
                     maxLength={maxLength}
@@ -274,6 +277,14 @@ export default function InputField<T extends FieldValues>({
                         resize-y
                     `}
                     {...registeredField}
+                    onChange={(event) => {
+                        registeredField?.onChange(event);
+                        (
+                            onChange as
+                                | React.ChangeEventHandler<HTMLTextAreaElement>
+                                | undefined
+                        )?.(event);
+                    }}
                 />
             ) : (
                 <div className="relative">
@@ -309,7 +320,11 @@ export default function InputField<T extends FieldValues>({
                         {...registeredField}
                         onChange={(event) => {
                             registeredField?.onChange(event);
-                            onChange?.(event);
+                            (
+                                onChange as
+                                    | React.ChangeEventHandler<HTMLInputElement>
+                                    | undefined
+                            )?.(event);
                         }}
                         onBlur={(event) => {
                             registeredField?.onBlur(event);

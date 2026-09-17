@@ -5,12 +5,14 @@ import posterReducer from "./modules/common/reducers/posterReducer";
 import uiReducer from "./modules/common/reducers/uiReducer";
 import { userDataReducers } from "./modules/common/user_data";
 import mainReducer from "./modules/main/reducer";
+import { checkinReducer } from "./modules/checkin";
 
 const combinedReducer = combineReducers({
   user_data: userDataReducers,
   usePosterReducers: posterReducer,
   uiReducer: uiReducer,
-  mainReducer: mainReducer
+  mainReducer: mainReducer,
+  checkin: checkinReducer,
 });
 
 const BUILD_ID =
