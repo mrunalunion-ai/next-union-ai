@@ -131,3 +131,23 @@ export const joinUnionSchema = z.object({
   unionCode: z.string().regex(/^\d{6,}$/, "Enter a valid union code"),
 });
 export type JoinUnionFormValues = z.infer<typeof joinUnionSchema>;
+
+export const taskSchema = z.object({
+  title: z.string().trim().min(1, "Task title is required"),
+  description: z.string().trim().min(1, "Description is required"),
+  assignedTo: z.enum(["me", "partner"], {
+    required_error: "Please select an assignee",
+  }),
+  priority: z.enum(["low", "medium", "high"], {
+    required_error: "Please select a priority",
+  }),
+  dueDate: z.preprocess(
+    (value) =>
+      value instanceof Date
+        ? `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`
+        : value,
+    z.string().min(1, "Due date is required"),
+  ),
+});
+
+export type TaskFormValues = z.infer<typeof taskSchema>;

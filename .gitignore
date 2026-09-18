@@ -42,3 +42,9 @@ agent-skills/
 
 # Agent working notes
 tasks/
+!app/tasks/
+!app/tasks/**
+!components/tasks/
+!components/tasks/**
+!redux/modules/tasks/
+!redux/modules/tasks/**

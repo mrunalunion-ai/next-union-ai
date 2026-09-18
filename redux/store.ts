@@ -6,6 +6,9 @@ import uiReducer from "./modules/common/reducers/uiReducer";
 import { userDataReducers } from "./modules/common/user_data";
 import mainReducer from "./modules/main/reducer";
 import { checkinReducer } from "./modules/checkin";
+import { tasksReducer } from "./modules/tasks";
+import { insightsReducer } from "./modules/insights";
+import { notificationsReducer } from "./modules/notifications";
 
 const combinedReducer = combineReducers({
   user_data: userDataReducers,
@@ -13,6 +16,9 @@ const combinedReducer = combineReducers({
   uiReducer: uiReducer,
   mainReducer: mainReducer,
   checkin: checkinReducer,
+  tasks: tasksReducer,
+  insights: insightsReducer,
+  notifications: notificationsReducer,
 });
 
 const BUILD_ID =

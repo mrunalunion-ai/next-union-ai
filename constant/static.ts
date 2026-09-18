@@ -20,6 +20,9 @@ export const APP_URL = {
     DASHBOARD: "/dashboard",
     WEEKLY_CHECK_IN: "/weekly-check-in",
     CHECK_IN_COMPLETED: "/check-in-completed",
+    TASKS: "/tasks",
+    INSIGHTS: "/insights",
+    NOTIFICATIONS: "/notifications",
     SETTINGS: "/settings",
   },
   ENDPOINT_URL: {

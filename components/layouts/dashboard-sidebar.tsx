@@ -13,8 +13,8 @@ import { APP_URL } from "@/constant/static";
 
 const dashboardNavItems = [
   { label: "Home", icon: Home, href: APP_URL.LINKS.DASHBOARD },
-  { label: "Tasks", icon: CheckSquare, href: "#tasks" },
-  { label: "Insights", icon: TrendingUp, href: "#insights" },
+  { label: "Tasks", icon: CheckSquare, href: APP_URL.LINKS.TASKS },
+  { label: "Insights", icon: TrendingUp, href: APP_URL.LINKS.INSIGHTS },
 ];
 
 interface DashboardSidebarProps {
@@ -40,7 +40,7 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
 
       <nav className="mt-12 space-y-2" aria-label="Dashboard navigation">
         {dashboardNavItems.map(({ label, icon: Icon, href }) => {
-          const isActive = pathname === href && href !== "#tasks" && href !== "#insights";
+          const isActive = pathname === href;
 
           return (
             <Link
@@ -80,7 +80,7 @@ export function DashboardMobileNav() {
     >
       <div className="mx-auto flex max-w-lg items-center justify-around">
         {dashboardNavItems.map(({ label, icon: Icon, href }) => {
-          const isActive = pathname === href && href !== "#tasks" && href !== "#insights";
+          const isActive = pathname === href;
 
           return (
             <Link

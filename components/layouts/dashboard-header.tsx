@@ -5,6 +5,8 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
+import { useAppSelector } from "@/redux/hooks";
+import { NotificationDrawer } from "./notification-drawer";
 
 function getInitials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "U";
@@ -22,7 +24,11 @@ export function DashboardHeader() {
   const { resolvedTheme, setTheme } = useTheme();
   const { user_data } = usePosterReducers();
   const [mounted, setMounted] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const user = user_data?.user;
+  const unreadCount = useAppSelector(
+    (state) => state.combinedReducer.notifications?.unreadCount ?? 0,
+  );
   const userInitials = getInitials(user?.firstName, user?.lastName);
   const isDark = mounted && resolvedTheme === "dark";
 
@@ -31,7 +37,8 @@ export function DashboardHeader() {
   }, []);
 
   return (
-    <header className="flex items-center justify-between border-b border-border/60 bg-surface/80 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-10">
+    <>
+      <header className="flex items-center justify-between border-b border-border/60 bg-surface/80 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-10">
       <div className="lg:hidden">
         <img
           src="/assets/images/logo.svg"
@@ -53,10 +60,16 @@ export function DashboardHeader() {
         <button
           type="button"
           aria-label="Notifications"
+          title="Notifications"
+          onClick={() => setNotificationsOpen(true)}
           className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-rose-500" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -79,6 +92,11 @@ export function DashboardHeader() {
           </span>
         </div>
       </div>
-    </header>
+      </header>
+      <NotificationDrawer
+        open={notificationsOpen}
+        onClose={() => setNotificationsOpen(false)}
+      />
+    </>
   );
 }
