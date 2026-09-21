@@ -104,10 +104,53 @@ export const registerSchema = z
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const relationshipDetailsSchema = z.object({
+  relationStatusId: z.string().optional(),
   summary: z.string().trim().min(1, "Short summary is required").refine((value) => value.split(/\s+/).length <= 100, "Summary must be 100 words or fewer"),
   loveLanguages: z.array(z.string()).min(1, "Select at least one love language").max(3, "You can select up to 3 love languages."),
 });
 export type RelationshipDetailsFormValues = z.infer<typeof relationshipDetailsSchema>;
+
+const accountDateSchema = z.preprocess(
+  (value) =>
+    value instanceof Date
+      ? `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`
+      : value,
+  z.string().min(1, "Date of birth is required"),
+);
+
+export const accountPersonalSchema = z
+  .object({
+    firstName: z.string().trim().min(1, "First name is required"),
+    lastName: z.string().trim().min(1, "Last name is required"),
+    gender: z.string().min(1, "Please select a gender"),
+    dob: accountDateSchema,
+    country: z.string().trim().min(1, "Country is required"),
+    phoneDialingCode: z.string().trim().min(1, "Dialing code is required"),
+    phoneCountry: z.string().trim().min(1, "Phone country is required"),
+    mobileNumber: z.string().trim().regex(/^\d+$/, "Enter a valid phone number"),
+    email: z.string().optional(),
+  })
+  .superRefine((data, context) => {
+    const dialingCode = data.phoneDialingCode.trim();
+    const mobileNumber = data.mobileNumber.trim().replace(/^0+/, "");
+    const parsedPhone = parsePhoneNumberFromString(`${dialingCode}${mobileNumber}`);
+    const isValidForSelectedCode = Boolean(
+      parsedPhone?.isValid() &&
+      parsedPhone.countryCallingCode === dialingCode.replace("+", ""),
+    );
+
+    if (!isValidForSelectedCode) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter a valid phone number for the selected country",
+        path: ["mobileNumber"],
+      });
+    }
+  });
+export type AccountPersonalFormValues = z.infer<typeof accountPersonalSchema>;
+
+export const accountRelationshipSchema = relationshipDetailsSchema;
+export type AccountRelationshipFormValues = z.infer<typeof accountRelationshipSchema>;
 
 export const createUnionSchema = z.object({
   relationStatusId: z.string().min(1, "Relationship type is required"),

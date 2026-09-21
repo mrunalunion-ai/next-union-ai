@@ -9,6 +9,7 @@ import { checkinReducer } from "./modules/checkin";
 import { tasksReducer } from "./modules/tasks";
 import { insightsReducer } from "./modules/insights";
 import { notificationsReducer } from "./modules/notifications";
+import { accountReducer } from "./modules/account";
 
 const combinedReducer = combineReducers({
   user_data: userDataReducers,
@@ -19,6 +20,7 @@ const combinedReducer = combineReducers({
   tasks: tasksReducer,
   insights: insightsReducer,
   notifications: notificationsReducer,
+  account: accountReducer,
 });
 
 const BUILD_ID =

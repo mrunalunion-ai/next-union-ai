@@ -52,7 +52,6 @@ export function Header() {
       {},
       user_data?.access_token
     );
-    console.log("response", response)
     toast.success(
       response.data.message || "Logged out successfully",
     );

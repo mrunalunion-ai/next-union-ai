@@ -69,7 +69,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 sm:pt-8 lg:px-10 lg:pb-10">
+      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <section className="mb-7 flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-muted-foreground">

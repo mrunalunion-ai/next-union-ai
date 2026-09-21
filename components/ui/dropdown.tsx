@@ -153,7 +153,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
     const classNames = {
         indicatorsContainer: (props: any) => `${themes?.[theme]?.indicator}`,
         control: (props: any) =>
-            ` overflow-auto bg-background transition-colors hover:bg-accent ${isLabelRight && 'h-[56px]'} ${themes?.[theme]?.control} ${errors ? '!border !border-red-600' : ''
+            ` overflow-auto transition-colors hover:bg-accent ${isLabelRight && 'h-[56px]'} ${themes?.[theme]?.control} ${errors ? '!border !border-red-600' : ''
             }`,
         dropdownIndicator: (props: any) => `${themes?.[theme]?.dropdownIndicator}`,
     };
@@ -328,7 +328,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                 </label>
             )}
             <div
-                className={`flex  ${inline ? 'items-center space-x-2' : 'flex flex-col'}  ${formClassName} border-[1px] ${isRounded ? 'rounded-full' : ' rounded-md'}   overflow-hidden ${errors ? 'border-red-600' : `focus-within:border-[#C8C9C9] border-[#C8C9C9]`}`}
+                className={`flex  ${inline ? 'items-center space-x-2' : 'flex flex-col'}  ${formClassName} mt-1 h-11 rounded-[10px] border-input border-[1px] ${isRounded ? 'rounded-full' : ' rounded-md'}   overflow-hidden ${errors ? 'border-red-600' : `focus-within:border-[#C8C9C9] border-[#C8C9C9]`}`}
             >
                 <Controller
                     name={name!}

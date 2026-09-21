@@ -48,7 +48,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <RouteGuard>
-      <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      <div className="flex h-screen overflow-hidden text-foreground">
         <div className="h-full shrink-0">
           <DashboardSidebar onLogout={() => setIsLogoutOpen(true)} />
         </div>

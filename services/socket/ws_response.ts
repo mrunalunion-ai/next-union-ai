@@ -29,6 +29,16 @@ import {
   setNotificationsError,
   setUnreadNotificationCount,
 } from "@/redux/modules/notifications";
+import {
+  setAccountError,
+  setAccountPartner,
+  setAccountPlans,
+  setAccountSaving,
+  setAccountTransactions,
+  setActiveSubscription,
+  setAccountLegal,
+  type LegalPageType,
+} from "@/redux/modules/account";
 import { toast } from "react-toastify";
 
 function getInsightPayload(message: Record<string, any>) {
@@ -151,14 +161,21 @@ export const ws_response = (
 
       case "userService":
         if (ws_onmessage?.request?.action === "update") {
+          dispatch(setAccountSaving(false));
           if (ws_onmessage?.status === true) {
+            const data = getInsightPayload(ws_onmessage);
+            dispatch(updateUserData(data?.user ?? data));
             toast.success(ws_onmessage?.msg)
           } else {
+            dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to update your profile."));
             toast.error(ws_onmessage?.msg)
           }
         }
 
         if (ws_onmessage?.request?.action === "get") {
+          const data = getInsightPayload(ws_onmessage);
+          const relationship = data?.user?.relationships?.[0] ?? data?.relationships?.[0];
+          if (relationship?.partner) dispatch(setAccountPartner(relationship.partner));
           if (ws_onmessage?.status === true) {
             dispatch(updateUserData(ws_onmessage?.data));
           } else {
@@ -196,7 +213,125 @@ export const ws_response = (
             dispatch(setCheckInQuesList(ws_onmessage?.data));
           }
         }
+        if (["deleteAccount", "deleteConnection"].includes(ws_onmessage?.request?.action)) {
+          dispatch(setAccountSaving(false));
+          if (ws_onmessage?.status === false) {
+            dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to complete account action."));
+          }
+        }
         break;
+
+      case "subscriptionPlanService": {
+        if (ws_onmessage?.status === false) {
+          dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to load plans."));
+          break;
+        }
+        const data = getInsightPayload(ws_onmessage);
+        if (ws_onmessage?.request?.action === "list") {
+          const plans = Array.isArray(data.data) ? data.data : [];
+          dispatch(
+            setAccountPlans(
+              plans.map((plan: Record<string, any>) => ({
+                id: String(plan.id ?? ""),
+                name: String(plan.name ?? ""),
+                code: String(plan.code ?? ""),
+                duration: toNumber(plan.duration),
+                durationUnit: String(plan.durationUnit ?? "MONTH"),
+                priceUSD: toNumber(plan.priceUSD),
+                priceGBP: toNumber(plan.priceGBP),
+                trialDays: toNumber(plan.trialDays),
+                isPopular: String(plan.tag ?? "").toLowerCase() === "most popular",
+                isBestValue: String(plan.tag ?? "").toLowerCase() === "best value",
+              })),
+            ),
+          );
+        }
+        break;
+      }
+
+      case "subscriptionService": {
+        if (ws_onmessage?.status === false) {
+          dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to load subscription."));
+          break;
+        }
+        if (ws_onmessage?.request?.action === "getActive") {
+          const data = getInsightPayload(ws_onmessage);
+          const subscription = data && typeof data === "object" ? data : null;
+          dispatch(
+            setActiveSubscription(
+              subscription && (subscription.id || subscription.planId)
+                ? {
+                    id: String(subscription.id ?? ""),
+                    planId: String(subscription.planId ?? ""),
+                    planName: String(subscription.planName ?? ""),
+                    planCode: String(subscription.planCode ?? ""),
+                    status: String(subscription.status ?? ""),
+                    ownerUserId: String(subscription.ownerUserId ?? ""),
+                    startDate: subscription.startDate,
+                    endDate: subscription.endDate,
+                    isTrial: subscription.isTrial === true,
+                    autoRenew: subscription.autoRenew !== false,
+                    isActive: subscription.isActive,
+                  }
+                : null,
+            ),
+          );
+        }
+        break;
+      }
+
+      case "paymentService": {
+        if (ws_onmessage?.status === false) {
+          dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to load transactions."));
+          break;
+        }
+        if (ws_onmessage?.request?.action === "getTransactions") {
+          const data = getInsightPayload(ws_onmessage);
+          const transactions = Array.isArray(data.data) ? data.data : [];
+          dispatch(
+            setAccountTransactions(
+              transactions.map((transaction: Record<string, any>) => ({
+                id: String(transaction.id ?? ""),
+                transactionId: String(transaction.transactionId ?? transaction.transaction_id ?? ""),
+                planName: String(transaction.planName ?? ""),
+                amount: toNumber(transaction.amount),
+                currency: String(transaction.currency ?? ""),
+                date: transaction.date,
+                status: String(transaction.status ?? ""),
+                paymentMethod: String(transaction.paymentMethod ?? ""),
+                platform: String(transaction.platform ?? transaction.Platform ?? ""),
+                paymentCreatedBy: String(transaction.paymentCreatedBy ?? ""),
+              })),
+            ),
+          );
+        }
+        break;
+      }
+
+      case "legalPageService": {
+        if (ws_onmessage?.status === false) {
+          dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to load legal page."));
+          break;
+        }
+        if (ws_onmessage?.request?.action === "get") {
+          const data = getInsightPayload(ws_onmessage);
+          const type = String(data.type ?? ws_onmessage?.request?.payload?.type) as LegalPageType;
+          if (["terms", "privacy", "subscription"].includes(type)) {
+            dispatch(
+              setAccountLegal({
+                type,
+                page: {
+                  id: String(data.id ?? ""),
+                  type,
+                  pageContent: String(data.pageContent ?? ""),
+                  active: data.active === true,
+                },
+              }),
+            );
+          }
+        }
+        break;
+      }
 
       case "checkinService":
         if (ws_onmessage?.request?.action === "list") {

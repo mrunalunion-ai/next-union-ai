@@ -95,7 +95,6 @@ export default function InputField<T extends FieldValues>({
         w-full
         rounded-md
         border
-        bg-background
         text-foreground
         outline-none
         transition-colors

@@ -13,3 +13,12 @@ export function truncate(text: string, maxLength: number): string {
 export function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
+
+export function formatDateDDMMYYYY(value?: string) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+}

@@ -109,7 +109,7 @@ export function Header() {
             <img
               src={isDark ? APP_URL.IMAGES.LIGHT_LOGO : APP_URL.IMAGES.LOGO}
               alt="UnionAI"
-              className="h-8 w-auto transition-transform duration-300 group-hover:scale-105 sm:h-9"
+              className="h-8 w-auto sm:h-9"
             />
           </Link>
 

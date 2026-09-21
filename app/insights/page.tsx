@@ -66,7 +66,7 @@ export default function InsightsPage() {
   return (
     <DashboardLayout>
       <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto">
           <header className="mb-8">
             <h1 className="text-xl font-extrabold tracking-tight">
               Insights &amp; Trends

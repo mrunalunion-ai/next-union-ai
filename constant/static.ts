@@ -24,6 +24,13 @@ export const APP_URL = {
     INSIGHTS: "/insights",
     NOTIFICATIONS: "/notifications",
     SETTINGS: "/settings",
+    ACCOUNT: "/account",
+    MY_ACCOUNT: "/account/my-account",
+    CONNECTED_PARTNER: "/account/connected-partner",
+    EXPLORE_PLANS: "/account/explore-plans",
+    TRANSACTIONS: "/account/transactions",
+    ACCOUNT_SETTINGS: "/account/settings",
+    LEGAL: "/account/legal",
   },
   ENDPOINT_URL: {
     LOGIN: '/api/auth/login',

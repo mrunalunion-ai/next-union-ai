@@ -25,7 +25,7 @@ import { toast } from "react-toastify";
 
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 
-const countryFlag = (country: CountryCode): ReactNode => {
+export const countryFlag = (country: CountryCode): ReactNode => {
   const Flag = CountryFlags[country] as
     | ComponentType<{ className?: string; title?: string }>
     | undefined;
@@ -37,7 +37,7 @@ const countryFlag = (country: CountryCode): ReactNode => {
   ) : null;
 };
 
-const countryOptions = getCountries().map((country) => ({
+export const countryOptions = getCountries().map((country) => ({
   value: regionNames.of(country) ?? country,
   label: (
     <span className="flex items-center gap-4">
@@ -49,7 +49,7 @@ const countryOptions = getCountries().map((country) => ({
   dialCode: `+${getCountryCallingCode(country)}`,
 }));
 
-const phoneCodeOptions = getCountries().map((country) => ({
+export const phoneCodeOptions = getCountries().map((country) => ({
   value: `+${getCountryCallingCode(country)}`,
   label: (
     <span className="flex items-center gap-3">
@@ -63,7 +63,7 @@ const phoneCodeOptions = getCountries().map((country) => ({
   key: country,
 }));
 
-const genderOptions = [
+export const genderOptions = [
   { value: "male", label: "Male", key: "male" },
   { value: "female", label: "Female", key: "female" },
   { value: "others", label: "Others", key: "others" },
@@ -256,7 +256,7 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:gap-5 sm:grid-cols-2">
                 <InputField<RegisterFormValues>
                   name="password"
                   label="Password"
@@ -284,7 +284,7 @@ export default function RegisterPage() {
                   leftAdornment={<LockKeyhole className="h-5 w-5" />}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:gap-5 sm:grid-cols-2">
                 <div>
                   <DropdownSelect
                     label="Gender"

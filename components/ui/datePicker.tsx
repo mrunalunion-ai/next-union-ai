@@ -352,7 +352,6 @@ function DatePickerCalendar({
           justify-between
           rounded-md
           border
-          bg-background
           px-3
           text-sm
           transition-colors

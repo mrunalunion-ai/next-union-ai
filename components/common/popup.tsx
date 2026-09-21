@@ -42,7 +42,7 @@ export const popupStyles: Record<PopupVariant, PopupStyle> = {
     cancelClassName: "border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive",
   },
   danger: {
-    icon: Trash2,
+    icon: AlertTriangle,
     iconClassName: "text-destructive",
     iconWrapperClassName: "bg-destructive/10",
     confirmVariant: "destructive",
