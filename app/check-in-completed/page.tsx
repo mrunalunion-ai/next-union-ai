@@ -83,7 +83,7 @@ export default function CheckInCompletedPage() {
       action: "submit",
       payload: {
         relationshipId: checkin.relationshipId,
-        answers: checkin.questions.map((question, index) => {
+        answers: checkin?.questions?.map((question: any, index: any) => {
           const answer = checkin.answers[index];
 
           return {
@@ -117,7 +117,7 @@ export default function CheckInCompletedPage() {
           </header>
           <Card className="mt-5 overflow-hidden rounded-xl border-border/70 bg-surface">
             <div className="max-h-[360px] overflow-y-auto">
-              {checkin.questions.map((question, index) => (
+              {checkin?.questions?.map((question: any, index: any) => (
                 <div
                   key={question.questionId}
                   className="flex items-center gap-4 border-b border-border/70 px-5 py-4 last:border-0"

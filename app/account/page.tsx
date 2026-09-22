@@ -19,6 +19,7 @@ import Image from "next/image";
 import { AccountPageHeader, AccountRow, AccountSection, SettingRow, Toggle } from "@/components/account/account-ui";
 import { Popup } from "@/components/common/popup";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
@@ -30,13 +31,21 @@ import { postData } from "@/services/rest/fetchData";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
+import { formatDate } from "@/utils/common";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user_data } = usePosterReducers();
+  const { user_data, account } = usePosterReducers();
   const user = user_data?.user;
   const relationship = user?.relationships?.[0];
   const partner = relationship?.partner;
+  const subscriptionCandidate = account?.activeSubscription ?? relationship?.subscription;
+  const activeSubscription = subscriptionCandidate?.planId &&
+    subscriptionCandidate?.status &&
+    subscriptionCandidate.status.toUpperCase() !== "EXPIRED" &&
+    subscriptionCandidate.isActive !== false
+    ? subscriptionCandidate
+    : null;
   const dispatch = useAppDispatch();
   const { theme, setTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -102,33 +111,81 @@ export default function AccountPage() {
         <div className="mx-auto">
           <AccountPageHeader title="Account" description="Manage your profile, relationship, plans, and preferences." />
 
+
           <Card className="mb-6 rounded-3xl border-border/70 bg-surface p-5 shadow-sm sm:p-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center overflow-hidden rounded-full justify-center bg-primary/10 text-3xl font-semibold text-primary">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-3xl font-semibold text-primary">
                 {user?.profileImage ? (
                   <Image
                     width={80}
                     height={80}
                     src={API_BASE_URL + user.profileImage}
-                    alt={`${user?.firstName ?? ""}${user?.lastName ?? ""}`.toUpperCase() || "U"}
+                    alt={
+                      `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() ||
+                      "User profile"
+                    }
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "U"
+                  `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() ||
+                  "U"
                 )}
               </div>
-              <div className="min-w-0">
-                <h2 className="truncate text-lg font-extrabold">{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "Your account"}</h2>
-                <p className="truncate text-sm text-muted-foreground">{user?.email || "Manage your account details"}</p>
-                {partner && <p className="mt-1 text-sm font-semibold text-primary">Connected with {`${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()}</p>}
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-lg font-extrabold">
+                  {`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() ||
+                    "Your account"}
+                </h2>
+
+                <p className="truncate text-sm text-muted-foreground">
+                  {user?.email || "Manage your account details"}
+                </p>
+
+                {partner && (
+                  <p className="mt-1 truncate text-sm font-semibold text-primary">
+                    Connected with{" "}
+                    {`${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()}
+                  </p>
+                )}
               </div>
             </div>
+
+            {activeSubscription && (
+              <div className="mt-5 border-t border-border/70 pt-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Current Subscription
+                    </p>
+
+                    <p className="mt-1 truncate text-base font-bold">
+                      {activeSubscription.planName || "Subscription"}
+                    </p>
+
+                    <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                      {activeSubscription.endDate
+                        ? `Active until ${formatDate(activeSubscription.endDate)}`
+                        : "Active plan"}
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    className="w-full shrink-0 sm:w-auto"
+                    onClick={() => router.push(APP_URL.LINKS.CURRENT_PLAN)}
+                  >
+                    View Plan
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
 
           <div className="space-y-6">
             <AccountSection title="Account">
               <AccountRow icon={UserRound} label="My Account" onClick={() => router.push(APP_URL.LINKS.MY_ACCOUNT)} />
               <AccountRow icon={HeartHandshake} label="Connected Partner" onClick={() => router.push(APP_URL.LINKS.CONNECTED_PARTNER)} />
+              {/* <AccountRow icon={CreditCard} label="Current Plan" onClick={() => router.push(APP_URL.LINKS.CURRENT_PLAN)} /> */}
               <AccountRow icon={CreditCard} label="Explore Plans" onClick={() => router.push(APP_URL.LINKS.EXPLORE_PLANS)} />
               <AccountRow icon={ReceiptText} label="Transaction History" onClick={() => router.push(APP_URL.LINKS.TRANSACTIONS)} />
             </AccountSection>

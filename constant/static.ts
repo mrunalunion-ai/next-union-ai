@@ -27,6 +27,7 @@ export const APP_URL = {
     MY_ACCOUNT: "/account/my-account",
     CONNECTED_PARTNER: "/account/connected-partner",
     EXPLORE_PLANS: "/account/explore-plans",
+    CURRENT_PLAN: "/account/current-plan",
     TRANSACTIONS: "/account/transactions",
     ACCOUNT_SETTINGS: "/account/settings",
     LEGAL: "/account/legal",

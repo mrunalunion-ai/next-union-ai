@@ -27,7 +27,6 @@ import {
   markNotificationRead,
   setNotifications,
   setNotificationsError,
-  setUnreadNotificationCount,
 } from "@/redux/modules/notifications";
 import {
   setAccountError,
@@ -60,6 +59,31 @@ function getInsightPayload(message: Record<string, any>) {
 function toNumber(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toAccountSubscription(value: unknown) {
+  if (!value || typeof value !== "object") return null;
+
+  const subscription = value as Record<string, any>;
+  if (!subscription.id && !subscription.planId) return null;
+
+  return {
+    id: String(subscription.id ?? ""),
+    planId: String(subscription.planId ?? ""),
+    planName: String(subscription.planName ?? ""),
+    planCode: String(subscription.planCode ?? ""),
+    status: String(subscription.status ?? ""),
+    ownerUserId: String(subscription.ownerUserId ?? ""),
+    startDate: subscription.startDate,
+    endDate: subscription.endDate,
+    isTrial: subscription.isTrial === true,
+    isShared: subscription.isShared === true,
+    autoRenew: subscription.autoRenew !== false,
+    transactionId: String(subscription.transactionId ?? subscription.transaction_id ?? ""),
+    platform: String(subscription.platform ?? ""),
+    trialDays: toNumber(subscription.trialDays),
+    isActive: subscription.isActive,
+  };
 }
 
 function toInsightText(value: unknown) {
@@ -175,12 +199,21 @@ export const ws_response = (
 
     const directType = ws_onmessage?.type;
     if (directNotificationType(directType)) {
-      const notification = toNotification(ws_onmessage?.data, directType);
+      const notificationData = ws_onmessage?.data;
+      const hasNotificationId = Boolean(
+        notificationData &&
+        typeof notificationData === "object" &&
+        ((notificationData as Record<string, any>).id ??
+          (notificationData as Record<string, any>)._id ??
+          (notificationData as Record<string, any>).notificationId),
+      );
+      const notification = hasNotificationId
+        ? toNotification(notificationData, directType)
+        : null;
 
       if (
         ws_onmessage?.status !== false &&
-        directType !== "connection_deleted" &&
-        directType !== "checkin_completed" &&
+        directType === "notification" &&
         notification
       ) {
         dispatch(addNotification(notification));
@@ -195,7 +228,13 @@ export const ws_response = (
           dispatch(setAccountSaving(false));
           if (ws_onmessage?.status === true) {
             const data = getInsightPayload(ws_onmessage);
-            dispatch(updateUserData(data?.user ?? data));
+            const user = data?.user ?? data;
+            dispatch(updateUserData(user));
+            dispatch(
+              setActiveSubscription(
+                toAccountSubscription(user?.relationships?.[0]?.subscription),
+              ),
+            );
             toast.success(ws_onmessage?.msg ?? "Profile updated successfully.");
           } else {
             const message = ws_onmessage?.msg ?? "Unable to update your profile.";
@@ -209,7 +248,13 @@ export const ws_response = (
           const relationship = data?.user?.relationships?.[0] ?? data?.relationships?.[0];
           if (relationship?.partner) dispatch(setAccountPartner(relationship.partner));
           if (ws_onmessage?.status === true) {
-            dispatch(updateUserData(data?.user ?? data));
+            const user = data?.user ?? data;
+            dispatch(updateUserData(user));
+            dispatch(
+              setActiveSubscription(
+                toAccountSubscription(user?.relationships?.[0]?.subscription),
+              ),
+            );
           } else {
             toast.error(ws_onmessage?.msg ?? "Unable to load your account.");
           }
@@ -333,7 +378,11 @@ export const ws_response = (
                   startDate: subscription.startDate,
                   endDate: subscription.endDate,
                   isTrial: subscription.isTrial === true,
+                  isShared: subscription.isShared === true,
                   autoRenew: subscription.autoRenew !== false,
+                  transactionId: String(subscription.transactionId ?? subscription.transaction_id ?? ""),
+                  platform: String(subscription.platform ?? ""),
+                  trialDays: toNumber(subscription.trialDays),
                   isActive: subscription.isActive,
                 }
                 : null,
@@ -361,6 +410,9 @@ export const ws_response = (
           );
         }
         if (ws_onmessage?.request?.action === "recordPayment" && ws_onmessage?.status === true) {
+          const data = getInsightPayload(ws_onmessage);
+          const subscription = toAccountSubscription(data);
+          if (subscription) dispatch(setActiveSubscription(subscription));
           toast.success(ws_onmessage?.msg ?? "Payment recorded successfully.");
         }
         break;
@@ -392,6 +444,9 @@ export const ws_response = (
           );
         }
         if (ws_onmessage?.request?.action === "recordPayment" && ws_onmessage?.status === true) {
+          const data = getInsightPayload(ws_onmessage);
+          const subscription = toAccountSubscription(data);
+          if (subscription) dispatch(setActiveSubscription(subscription));
           toast.success(ws_onmessage?.msg ?? "Payment recorded successfully.");
         }
         break;
@@ -579,14 +634,6 @@ export const ws_response = (
           const unreadCount =
             typeof data.unreadCount === "number" ? data.unreadCount : undefined;
           dispatch(setNotifications({ items, unreadCount }));
-        }
-
-        if (action === "unreadCount") {
-          dispatch(
-            setUnreadNotificationCount(
-              Number(data.count ?? data.unreadCount ?? 0),
-            ),
-          );
         }
 
         if (action === "markRead") {

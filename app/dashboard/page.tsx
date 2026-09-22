@@ -74,10 +74,21 @@ function getNextWeekStart() {
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user_data, insights } = usePosterReducers();
+  const { user_data, insights, account } = usePosterReducers();
   const user = user_data?.user;
   const relationship = user?.relationships?.[0];
   const partner = relationship?.partner;
+  const activeSubscription = account?.activeSubscription ?? relationship?.subscription;
+  const subscriptionIsActive = Boolean(
+    activeSubscription &&
+    activeSubscription.status &&
+    (typeof activeSubscription.isActive === "boolean"
+      ? activeSubscription.isActive
+      : activeSubscription.status.toUpperCase() !== "EXPIRED"),
+  );
+  const hasActiveSubscription = Boolean(
+    subscriptionIsActive,
+  );
   const { isConnected, sendMessage } = useWebSocket();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCheckinReminder, setShowCheckinReminder] = useState(false);
@@ -125,7 +136,8 @@ export default function DashboardPage() {
     dashboard &&
     typeof dashboard.overallScore === "number" &&
     userSubmitted &&
-    partnerSubmitted,
+    partnerSubmitted &&
+    hasActiveSubscription,
   );
   const dashboardRecommendations = dashboard?.recommendations?.slice(0, 3) ?? [];
   const dashboardUserName = mine?.name || userName;
@@ -246,13 +258,18 @@ export default function DashboardPage() {
                   <p className="mt-3 text-sm text-muted-foreground">Score shown here is out of 1000</p>
                 </>
               ) : (
-                <p className="mx-auto mt-7 max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
-                  {!userSubmitted
-                    ? "Once you both complete your check-ins, your Union Score will appear"
-                    : !partnerSubmitted
-                      ? "Your Union Score will appear when your partner completes their check-in."
-                      : "Your check-ins are complete. Your Union Score will appear here once analysis is ready."}
-                </p>
+                <>
+                  <p className="mx-auto mt-7 max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
+                    {!userSubmitted
+                      ? "Once you both complete your check-ins, your Union Score will appear"
+                      : !partnerSubmitted
+                        ? "Your Union Score will appear when your partner completes their check-in."
+                        : !hasActiveSubscription
+                          ? "Once you purchase a subscription, your Union Score will be unlocked for both of you."
+                          : "Your check-ins are complete. Your Union Score will appear here once analysis is ready."}
+                  </p>
+
+                </>
               )}
             </div>
           </Card>
@@ -266,6 +283,15 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             }
+            {userSubmitted && partnerSubmitted && !hasActiveSubscription && (
+              <Button asChild className="h-12 w-full rounded-xl text-base shadow-lg shadow-primary/20"
+              >
+                <Link href={APP_URL.LINKS.EXPLORE_PLANS}>
+                  <ArrowRight className="mr-2 h-5 w-5" />
+                  Explore Plans
+                </Link>
+              </Button>
+            )}
 
             <Card
               id="insights"

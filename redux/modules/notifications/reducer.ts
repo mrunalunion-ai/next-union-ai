@@ -12,18 +12,20 @@ const notificationsReducer = (
       return {
         ...state,
         items: action.payload.items,
-        unreadCount: action.payload.unreadCount ?? action.payload.items.filter((item: any) => !item.isRead).length,
+        unreadCount: action.payload.items.filter((item: any) => !item.isRead).length,
         loading: false,
         error: "",
       };
-    case NotificationActionTypes.ADD_ITEM:
+    case NotificationActionTypes.ADD_ITEM: {
+      const items = [action.payload, ...state.items.filter((item) => item.id !== action.payload.id)];
       return {
         ...state,
-        items: [action.payload, ...state.items.filter((item) => item.id !== action.payload.id)],
-        unreadCount: action.payload.isRead ? state.unreadCount : state.unreadCount + 1,
+        items,
+        unreadCount: items.filter((item) => !item.isRead).length,
       };
+    }
     case NotificationActionTypes.SET_UNREAD_COUNT:
-      return { ...state, unreadCount: action.payload, loading: false };
+      return state;
     case NotificationActionTypes.MARK_READ: {
       const item = state.items.find((notification) => notification.id === action.payload);
       return {

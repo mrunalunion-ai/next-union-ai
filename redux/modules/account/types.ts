@@ -23,7 +23,11 @@ export interface IAccountSubscription {
   startDate?: string;
   endDate?: string;
   isTrial: boolean;
+  isShared?: boolean;
   autoRenew: boolean;
+  transactionId?: string;
+  platform?: string;
+  trialDays?: number;
   isActive?: boolean;
 }
 

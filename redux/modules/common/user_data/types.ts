@@ -87,6 +87,7 @@ export interface ISubscription {
   trialEndDate: string;
   hasUsedFirstPurchaseTrial: boolean;
   autoRenew: boolean;
+  isActive?: boolean;
   transactionId: string;
   subscriptionEligibility: ISubscriptionEligibility;
 }

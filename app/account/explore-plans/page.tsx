@@ -4,15 +4,21 @@ import {
   Check,
   Crown,
   LockKeyhole,
-  RefreshCw,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 import { AccountPageHeader } from "@/components/account/account-ui";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import {
@@ -42,14 +48,84 @@ function formatDuration(plan: IAccountPlan) {
   return `${plan.duration} ${unit}`;
 }
 
+function PlanCard({
+  plan,
+  currency,
+  selected,
+  current = false,
+  onSelect,
+}: {
+  plan: IAccountPlan;
+  currency: Currency;
+  selected: boolean;
+  current?: boolean;
+  onSelect: () => void;
+}) {
+  const price = getPlanPrice(plan, currency);
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className="group w-full text-left"
+    >
+      <Card
+        className={`relative flex min-h-[142px] h-full flex-col rounded-3xl bg-surface p-5 shadow-sm transition-all duration-200 ${selected
+          ? "border-2 border-primary ring-4 ring-primary/10"
+          : "border border-border/70 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+          }`}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-base font-bold uppercase leading-6 text-primary">
+            {formatDuration(plan)}
+          </p>
+          <span className="rounded-lg bg-muted px-3 py-1 text-sm font-bold text-muted-foreground">
+            Basic
+          </span>
+          {current && (
+            <span className="rounded-lg bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
+              Current Plan
+            </span>
+          )}
+        </div>
+        <div className="mt-5 flex items-baseline">
+          <span className="text-[25px] font-bold leading-none tracking-tight text-foreground">
+            {currency === "USD" ? "$" : "£"}{price.toFixed(2)}
+          </span>
+          <span className="ml-1 text-sm font-medium text-muted-foreground">/mo</span>
+        </div>
+        <div className="mt-2 min-h-5">
+          {plan.trialDays > 0 && (
+            <p className="text-sm font-medium leading-5 text-muted-foreground">
+              + {plan.trialDays} days free trial
+            </p>
+          )}
+        </div>
+      </Card>
+    </button>
+  );
+}
+
 export default function ExplorePlansPage() {
   const dispatch = useAppDispatch();
   const { user_data, account } = usePosterReducers();
-  const { isConnected, sendMessage } = useWebSocket();
+  const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const accountState = account ?? initialAccountState;
   const [currency, setCurrency] = useState<Currency>("USD");
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
   const userId = user_data?.user?.id ?? "";
+  const relationship = user_data?.user?.relationships?.[0];
+  const subscriptionCandidate = accountState.activeSubscription ?? relationship?.subscription;
+  const activeSubscription = subscriptionCandidate?.planId &&
+    subscriptionCandidate?.status &&
+    subscriptionCandidate.status.toUpperCase() !== "EXPIRED" &&
+    subscriptionCandidate.isActive !== false
+    ? subscriptionCandidate
+    : null;
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const paymentPending = useRef(false);
 
   const loadPlans = useCallback(() => {
     if (!isConnected) return;
@@ -75,13 +151,44 @@ export default function ExplorePlansPage() {
   }, [loadPlans]);
 
   useEffect(() => {
-    if (!selectedPlanId && accountState.plans.length) {
+    if (!paymentPending.current) return;
+
+    const message = lastEvent?.data;
+    if (
+      message?.request?.type !== "paymentService" ||
+      message?.request?.action !== "recordPayment"
+    ) {
+      return;
+    }
+
+    paymentPending.current = false;
+    setProcessingPayment(false);
+    if (message.status === true) {
+      setCheckoutOpen(false);
+      toast.success(message.msg ?? "Subscription activated successfully.");
+      sendMessage("action", { type: "userService", action: "get", payload: {} });
+    } else {
+      toast.error(message.msg ?? "Unable to complete the subscription.");
+    }
+  }, [lastEvent, sendMessage]);
+
+  useEffect(() => {
+    const selectablePlans = activeSubscription
+      ? accountState.plans.filter((plan: any) => plan.id !== activeSubscription.planId)
+      : accountState.plans;
+
+    if (!selectablePlans.length) {
+      if (selectedPlanId) setSelectedPlanId("");
+      return;
+    }
+
+    if (!selectedPlanId || !selectablePlans.some((plan: any) => plan.id === selectedPlanId)) {
       const preferredPlan =
-        accountState.plans.find((plan: any) => plan.isPopular || plan.isBestValue) ??
-        accountState.plans[0];
+        selectablePlans.find((plan: any) => plan.isPopular || plan.isBestValue) ??
+        selectablePlans[0];
       setSelectedPlanId(preferredPlan.id);
     }
-  }, [accountState.plans, selectedPlanId]);
+  }, [accountState.plans, activeSubscription, selectedPlanId]);
 
   const selectedPlan = useMemo(
     () => accountState.plans.find((plan: any) => plan.id === selectedPlanId),
@@ -90,35 +197,44 @@ export default function ExplorePlansPage() {
 
   const subscribe = () => {
     if (!selectedPlan) return;
-
-    toast.info("Subscription checkout will be available soon.");
+    setCheckoutOpen(true);
   };
+
+  const confirmSubscription = () => {
+    if (!selectedPlan || processingPayment) return;
+
+    setProcessingPayment(true);
+    paymentPending.current = true;
+    const transactionId = globalThis.crypto?.randomUUID?.() ?? `WEB-${Date.now()}`;
+    sendMessage("action", {
+      type: "paymentService",
+      action: "recordPayment",
+      payload: {
+        planId: selectedPlan.id,
+        ownerUserId: userId,
+        otherUserId: relationship?.partner?.id ?? "",
+        platform: "MANUAL",
+        productId: selectedPlan.code,
+        transactionId,
+        originalTransactionId: transactionId,
+        currency,
+        amount: getPlanPrice(selectedPlan, currency),
+      },
+    });
+  };
+
+  const currentPlan = accountState.plans.find((plan: any) => plan.id === activeSubscription?.planId);
+  const otherPlans = accountState.plans.filter((plan: any) => plan.id !== activeSubscription?.planId);
 
   return (
     <DashboardLayout>
       <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
-            <AccountPageHeader
-              title="Explore Plans"
-              description="Choose the plan that fits your shared relationship journey."
-              showBack
-            />
-
-          {accountState.activeSubscription && (
-            <Card className="mb-6 rounded-3xl border-primary/20 bg-primary/[0.04] p-5 shadow-sm">
-              <p className="text-xs font-extrabold uppercase tracking-wide text-primary">
-                Current plan
-              </p>
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-extrabold">
-                  {accountState.activeSubscription.planName}
-                </h2>
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold capitalize text-emerald-700">
-                  {accountState.activeSubscription.status}
-                </span>
-              </div>
-            </Card>
-          )}
+          <AccountPageHeader
+            title="Explore Plans"
+            description="Choose the plan that fits your shared relationship journey."
+            showBack
+          />
 
           <section className="mb-10">
             <h1 className="text-xl font-bold tracking-tight sm:text-xl">
@@ -149,7 +265,7 @@ export default function ExplorePlansPage() {
                 id="choose-duration-heading"
                 className="text-xl font-bold tracking-tight sm:text-xl"
               >
-                Choose your duration
+                {activeSubscription ? "Current Plan" : "Choose your duration"}
               </h2>
               <div className="flex w-full rounded-xl border border-border bg-surface p-1 sm:w-auto">
                 {(["USD", "GBP"] as Currency[]).map((option) => (
@@ -186,61 +302,40 @@ export default function ExplorePlansPage() {
                 </p>
               </Card>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
-                {accountState.plans.map((plan: any) => {
-                  const selected = plan?.id === selectedPlanId;
-                  const price = getPlanPrice(plan, currency);
+              <>
+                {activeSubscription && currentPlan && (
+                  <div className="mb-7 max-w-md">
+                    <PlanCard
+                      plan={currentPlan}
+                      currency={currency}
+                      selected={false}
+                      current
+                      onSelect={() => toast.info("This is your current plan.")}
+                    />
+                  </div>
+                )}
 
-                  return (
-                    <button
-                      key={plan?.id}
-                      type="button"
-                      onClick={() => setSelectedPlanId(plan?.id)}
-                      aria-pressed={selected}
-                      className="group w-full text-left"
-                    >
-                      <Card
-                        className={`relative flex min-h-[142px] h-full flex-col rounded-3xl bg-surface p-5 shadow-sm transition-all duration-200 ${selected
-                            ? "border-2 border-primary ring-4 ring-primary/10"
-                            : "border border-border/70 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
-                          }`}
-                      >
-                        {/* Plan Name */}
-                        <div className="">
-                          <p className="text-base font-bold uppercase leading-6 text-primary">
-                            {plan.name}
-                          </p>
-                        </div>
+                {activeSubscription && (
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <h2 className="text-xl font-bold tracking-tight">Other Plans</h2>
+                  </div>
+                )}
+                <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
+                  {(activeSubscription ? otherPlans : accountState.plans).map((plan: any) => {
+                    const selected = plan?.id === selectedPlanId;
 
-                        {/* Price */}
-                        <div className="mt-5 flex items-baseline">
-                          <span className="text-[25px] font-bold leading-none tracking-tight text-foreground">
-                            {currency === "USD" ? "$" : "£"}
-                            {price.toFixed(2)}
-                          </span>
-
-                          <span className="ml-1 text-sm font-medium text-muted-foreground">
-                            /mo
-                          </span>
-                        </div>
-
-                        {/* Trial */}
-                        <div className="mt-2">
-                          {plan.trialDays > 0 ? (
-                            <p className="text-sm font-medium leading-5 text-muted-foreground">
-                              + {plan.trialDays} days free trial
-                            </p>
-                          ) : (
-                            <p className="text-sm leading-5 text-transparent">
-                              &nbsp;
-                            </p>
-                          )}
-                        </div>
-                      </Card>
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <PlanCard
+                        key={plan?.id}
+                        plan={plan}
+                        currency={currency}
+                        selected={selected}
+                        onSelect={() => setSelectedPlanId(plan?.id)}
+                      />
+                    );
+                  })}
+                </div>
+              </>
             )}
           </section>
 
@@ -258,11 +353,60 @@ export default function ExplorePlansPage() {
                 disabled={!selectedPlan}
                 onClick={subscribe}
               >
-                Subscribe
+                {activeSubscription ? "Extend Current" : "Subscribe"}
               </Button>
             </section>
           )}
         </div>
+
+        <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+          <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] max-w-2xl overflow-y-auto rounded-3xl bg-surface p-5 shadow-2xl sm:p-7">
+            {selectedPlan && (
+              <>
+                <DialogHeader className="items-start text-left">
+                  <DialogTitle className="text-xl font-bold">You selected</DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    Review your plan details before continuing.
+                  </DialogDescription>
+                </DialogHeader>
+                <Card className="mt-4 rounded-2xl border-2 border-primary bg-primary/[0.03] p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-base font-extrabold uppercase text-primary">{formatDuration(selectedPlan)}</p>
+                    <span className="rounded-lg bg-muted px-3 py-1 text-sm font-bold">Basic</span>
+                  </div>
+                  <p className="mt-4 text-3xl font-extrabold">
+                    {currency === "USD" ? "$" : "£"}{getPlanPrice(selectedPlan, currency).toFixed(2)} total
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {selectedPlan.duration * 30} days · /mo {currency === "USD" ? "$" : "£"}{(getPlanPrice(selectedPlan, currency) / Math.max(selectedPlan.duration, 1)).toFixed(2)}
+                  </p>
+                </Card>
+                <p className="mt-5 text-base text-muted-foreground">
+                  Renews automatically unless cancelled before {activeSubscription?.endDate ? new Date(activeSubscription.endDate).toLocaleDateString() : "the next billing date"}.
+                </p>
+                <div className="mt-5 rounded-2xl border border-border bg-background p-5 text-sm">
+                  <div className="flex justify-between gap-4"><span className="text-muted-foreground">Plan</span><strong>{formatDuration(selectedPlan)}</strong></div>
+                  <div className="mt-3 flex justify-between gap-4"><span className="font-bold text-muted-foreground">Due today</span><strong>{currency === "USD" ? "$" : "£"}{getPlanPrice(selectedPlan, currency).toFixed(2)}</strong></div>
+                  <p className="mt-4 text-muted-foreground">Payment method on file will be charged through the configured payment provider. Cancel anytime.</p>
+                </div>
+                <div className="flex gap-5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setCheckoutOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button className="submit flex-1" onClick={confirmSubscription} disabled={processingPayment}>
+                    <LockKeyhole className="mr-2 h-4 w-4" />
+                    {processingPayment ? "Processing..." : "Subscribe"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </DashboardLayout>
   );

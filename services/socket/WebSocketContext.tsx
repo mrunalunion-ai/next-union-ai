@@ -171,6 +171,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       "accept_request",
       "cancel_request",
       "connection_deleted",
+      "package_buy",
     ]);
     const unionActions = new Set([
       "createUnion",

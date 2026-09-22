@@ -33,11 +33,6 @@ export default function NotificationsPage() {
       action: "list",
       payload: { page: 1, limit: 10 },
     });
-    sendMessage("action", {
-      type: "notificationService",
-      action: "unreadCount",
-      payload: {},
-    });
   }, [dispatch, isConnected, sendMessage]);
 
   useEffect(() => {

@@ -2,7 +2,6 @@ import { APP_URL } from "./static";
 
 export const PUBLIC_ROUTES: string[] = [
   APP_URL.LINKS.HOME,
-  APP_URL.LINKS.ABOUT,
   APP_URL.LINKS.LOGIN,
   APP_URL.LINKS.REGISTER,
   APP_URL.LINKS.FORGOT_PASSWORD,

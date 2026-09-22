@@ -83,11 +83,6 @@ export function Header({ variant = "auth" }: HeaderProps) {
       action: "list",
       payload: { page: 1, limit: 10 },
     });
-    sendMessage("action", {
-      type: "notificationService",
-      action: "unreadCount",
-      payload: {},
-    });
   }, [isConnected, notificationUserKey, sendMessage, showNotifications, user_data?.access_token]);
 
   useEffect(() => {
@@ -108,11 +103,6 @@ export function Header({ variant = "auth" }: HeaderProps) {
       type: "notificationService",
       action: "list",
       payload: { page: 1, limit: 10 },
-    });
-    sendMessage("action", {
-      type: "notificationService",
-      action: "unreadCount",
-      payload: {},
     });
   }, [isConnected, lastEvent, notificationUserKey, sendMessage, showNotifications, user_data?.access_token]);
 
