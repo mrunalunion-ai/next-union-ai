@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -278,7 +279,9 @@ export default function DashboardPage() {
                 <div>
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
                     {user?.profileImage ? (
-                      <img
+                      <Image
+                        width={56}
+                        height={56}
                         src={API_BASE_URL + user.profileImage}
                         alt={userName}
                         className="h-full w-full rounded-full object-cover"
@@ -301,7 +304,9 @@ export default function DashboardPage() {
                 <div>
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
                     {partner?.profileImage ? (
-                      <img
+                      <Image
+                        width={56}
+                        height={56}
                         src={API_BASE_URL + partner.profileImage}
                         alt={partnerName}
                         className="h-full w-full rounded-full object-cover"

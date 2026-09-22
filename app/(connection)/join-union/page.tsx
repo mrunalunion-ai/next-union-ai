@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Key, RefreshCw } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,6 +10,7 @@ import { useForm } from "react-hook-form";
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
 import RouteGuard from "@/components/auth/route-guard";
+import { Popup } from "@/components/common/popup";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/ui/InputField";
 import { API_BASE_URL, APP_URL } from "@/constant/static";
@@ -21,6 +23,7 @@ function JoinUnionContent() {
   const { user_data } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const [mode, setMode] = useState<"send" | "info">("info");
+  const [confirmation, setConfirmation] = useState<"send" | "cancel" | "notPartner" | null>(null);
   const form = useForm<JoinUnionFormValues>({
     resolver: zodResolver(joinUnionSchema),
     defaultValues: { unionCode: "" },
@@ -123,7 +126,9 @@ function JoinUnionContent() {
                         <div className="flex flex-col items-center text-center">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-xl font-medium text-primary">
                             {partner?.profileImage ? (
-                              <img
+                              <Image
+                                width={48}
+                                height={48}
                                 src={API_BASE_URL + partner.profileImage}
                                 alt={partnerName}
                                 className="h-full w-full rounded-full object-cover"
@@ -172,7 +177,7 @@ function JoinUnionContent() {
                         type="button"
                         variant="outline"
                         className="h-11 w-full rounded-lg shadow-sm"
-                        onClick={cancelRequest}
+                            onClick={() => setConfirmation("cancel")}
                       >
                         Cancel Connection
                       </Button></div>
@@ -183,7 +188,9 @@ function JoinUnionContent() {
                       <div className="flex flex-col items-center text-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-xl font-medium text-primary">
                           {partner?.profileImage ? (
-                            <img
+                            <Image
+                              width={48}
+                              height={48}
                               src={API_BASE_URL + partner.profileImage}
                               alt={partnerName}
                               className="h-full w-full rounded-full object-cover"
@@ -203,7 +210,7 @@ function JoinUnionContent() {
                           <Button
                             type="button"
                             className="auth-submit"
-                            onClick={sendRequest}
+                            onClick={() => setConfirmation("send")}
                           >
                             Send Connection Request
                           </Button>
@@ -211,7 +218,7 @@ function JoinUnionContent() {
                             type="button"
                             variant="destructive"
                             className="!h-11 w-full rounded-lg shadow-sm"
-                            onClick={() => router.push(APP_URL.LINKS.CREATE_UNION)}
+                            onClick={() => setConfirmation("notPartner")}
                           >
                             No, This Is Not My Partner
                           </Button>
@@ -223,6 +230,38 @@ function JoinUnionContent() {
             </div>
           </div>
         </div >
+        <Popup
+          open={confirmation !== null}
+          onOpenChange={(open) => !open && setConfirmation(null)}
+          variant={confirmation === "send" ? "info" : "warning"}
+          title={
+            confirmation === "send"
+              ? "Send connection request?"
+              : confirmation === "cancel"
+                ? "Cancel connection request?"
+                : "This is not my partner?"
+          }
+          description={
+            confirmation === "send"
+              ? `Send a request to ${partnerName || "this partner"}? They will need to accept before your accounts are connected.`
+              : confirmation === "cancel"
+                ? "This will cancel your pending connection request. You can join again later with a Union Code."
+                : "You will leave this partner match and return to the Union connection setup."
+          }
+          confirmText={
+            confirmation === "send"
+              ? "Yes, send request"
+              : confirmation === "cancel"
+                ? "Yes, cancel request"
+                : "Yes, continue"
+          }
+          onConfirm={() => {
+            if (confirmation === "send") sendRequest();
+            if (confirmation === "cancel") cancelRequest();
+            if (confirmation === "notPartner") router.push(APP_URL.LINKS.CREATE_UNION);
+            setConfirmation(null);
+          }}
+        />
       </AuthLayout >
     </RouteGuard >
   );

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -162,7 +163,9 @@ export function Header({ variant = "auth" }: HeaderProps) {
             aria-label="UnionAI home"
             className={`inline-flex shrink-0 items-center ${isDashboard ? "lg:hidden" : ""}`}
           >
-            <img
+            <Image
+              width={160}
+              height={40}
               src={isDark ? APP_URL.IMAGES.LIGHT_LOGO : APP_URL.IMAGES.LOGO}
               alt="UnionAI"
               className="h-8 w-auto sm:h-9"

@@ -64,7 +64,7 @@ export default function TasksPage() {
   const [deleteTask, setDeleteTask] = useState<ITask | null>(null);
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
   const userId = user_data?.user?.id;
-
+  console.log("tasks",tasks)
   const loadTasks = useCallback((filter?: TaskFilter) => {
     if (!isConnected) return;
 

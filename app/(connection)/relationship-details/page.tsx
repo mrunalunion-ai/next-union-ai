@@ -293,7 +293,6 @@ export default function RelationshipDetailsContent() {
                               alt="Profile"
                               width={80}
                               height={80}
-                              unoptimized
                               className="h-full w-full object-cover"
                             />
                           ) : (

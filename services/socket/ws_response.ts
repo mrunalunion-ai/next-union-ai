@@ -601,23 +601,39 @@ export const ws_response = (
       }
 
       case "tasksService": {
-        const action = ws_onmessage?.request?.action;
-        const success = ws_onmessage?.status === true;
+        const action =
+          ws_onmessage?.request?.action ??
+          ws_onmessage?.data?.request?.action;
+        const success =
+          ws_onmessage?.status === true || ws_onmessage?.data?.status === true;
 
         if (action === "list") {
-          const filter = ws_onmessage?.request?.payload?.filter as
+          // Task list responses can arrive either as the normal WebSocket
+          // envelope or with request/status/data nested one level deeper.
+          const response =
+            ws_onmessage?.data &&
+              typeof ws_onmessage.data === "object" &&
+              !Array.isArray(ws_onmessage.data)
+              ? ws_onmessage.data
+              : ws_onmessage;
+          const request = ws_onmessage?.request ?? response?.request;
+          const filter = request?.payload?.filter as
             | TaskFilter
             | undefined;
-          const data = ws_onmessage?.data ?? {};
-          const items = Array.isArray(data)
-            ? data
-            : Array.isArray(data?.data)
-              ? data.data
+          const payload = response?.data ?? response ?? {};
+          const items = Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload?.data)
+              ? payload.data
               : [];
           const count =
-            typeof data?.pagination?.totalCount === "number"
-              ? data.pagination.totalCount
+            typeof response?.pagination?.totalCount === "number"
+              ? response.pagination.totalCount
+              : typeof payload?.pagination?.totalCount === "number"
+                ? payload.pagination.totalCount
               : items.length;
+          const success =
+            ws_onmessage?.status !== false && response?.status !== false;
 
           if (
             filter &&

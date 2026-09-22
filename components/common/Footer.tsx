@@ -1,5 +1,6 @@
 "use client";
 import { Heart, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { APP_URL } from "@/constant/static";
 
@@ -47,7 +48,9 @@ export function Footer() {
             aria-label={`${APP_NAME} home`}
           >
             <div className="mx-auto flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
-              <img
+              <Image
+                width={56}
+                height={56}
                 src={APP_URL.IMAGES.LOGO_BADGE}
                 alt="UnionAI"
                 className="h-12 w-12 object-contain sm:h-14 sm:w-14"

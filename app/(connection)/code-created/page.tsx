@@ -3,13 +3,14 @@
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
 import RouteGuard from "@/components/auth/route-guard";
+import { Popup } from "@/components/common/popup";
 import { Button } from "@/components/ui/button";
 import { APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { ArrowBigUpDash, Copy, RefreshCw, UserRoundCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export default function CodeCreate() {
@@ -23,6 +24,9 @@ export default function CodeCreate() {
     const partnerName = partner
         ? `${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()
         : "";
+    const [confirmation, setConfirmation] = useState<
+        "accept" | "reject" | "delete" | null
+    >(null);
 
     useEffect(() => {
         if (!isConnected) return;
@@ -39,7 +43,7 @@ export default function CodeCreate() {
         toast.success("Union Code copied.");
     };
 
-    const DeleteUnionCode = () => {
+    const deleteUnionCode = () => {
         sendMessage("action", {
             type: "userService",
             action: "delete",
@@ -160,7 +164,7 @@ export default function CodeCreate() {
                                                 type="button"
                                                 variant="green"
                                                 className="!h-11 mt-5 w-full rounded-lg shadow-sm"
-                                                onClick={acceptConnection}
+                                                onClick={() => setConfirmation("accept")}
                                             >
                                                 Yes, This Is My Partner
                                             </Button>
@@ -168,7 +172,7 @@ export default function CodeCreate() {
                                                 type="button"
                                                 variant="destructive"
                                                 className="!h-11 mt-4 w-full rounded-lg shadow-sm"
-                                                onClick={rejectConnection}
+                                                onClick={() => setConfirmation("reject")}
                                             >
                                                 No, This Is Not My Partner
                                             </Button>
@@ -208,7 +212,7 @@ export default function CodeCreate() {
                                         type="button"
                                         variant="destructive"
                                         className="h-11 w-full rounded-lg shadow-sm"
-                                        onClick={DeleteUnionCode}
+                                        onClick={() => setConfirmation("delete")}
                                     >
                                         Cancel This Union Code
                                     </Button>
@@ -217,6 +221,38 @@ export default function CodeCreate() {
                     </div>
                 </div>
             </AuthLayout>
+                <Popup
+                    open={confirmation !== null}
+                    onOpenChange={(open) => !open && setConfirmation(null)}
+                    variant={confirmation === "accept" ? "success" : "warning"}
+                    title={
+                        confirmation === "accept"
+                            ? "Accept connection?"
+                            : confirmation === "reject"
+                                ? "Reject connection?"
+                                : "Cancel This Union Code?"
+                    }
+                    description={
+                        confirmation === "accept"
+                            ? `Are you sure you want to connect with ${partnerName || "this person"} ?`
+                            : confirmation === "reject"
+                                ? `Are you sure ${partnerName || "this person"} is not your partner ?`
+                                : "Are you sure you want to cancel this Union Code? You will need to create a new one."
+                    }
+                    confirmText={
+                        confirmation === "accept"
+                            ? "Yes, connect"
+                            : confirmation === "reject"
+                                ? "Yes, reject"
+                                : "Yes, cancel code"
+                    }
+                    onConfirm={() => {
+                        if (confirmation === "accept") acceptConnection();
+                        if (confirmation === "reject") rejectConnection();
+                        if (confirmation === "delete") deleteUnionCode();
+                        setConfirmation(null);
+                    }}
+                />
         </RouteGuard >
     );
 }

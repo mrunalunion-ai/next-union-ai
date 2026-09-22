@@ -7,6 +7,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { toast } from "react-toastify";
 
 import { AccountPageHeader } from "@/components/account/account-ui";
@@ -146,7 +147,9 @@ export default function ConnectedPartnerPage() {
                 <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-7">
                   <div className="flex h-20 w-20 items-center overflow-hidden rounded-full justify-center bg-primary/10 text-3xl font-semibold text-primary">
                     {partner?.profileImage ? (
-                      <img
+                      <Image
+                        width={80}
+                        height={80}
                         src={API_BASE_URL + partner.profileImage}
                         alt={partnerName}
                         className="h-full w-full object-cover"

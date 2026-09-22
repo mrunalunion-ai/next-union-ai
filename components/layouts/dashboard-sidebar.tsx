@@ -8,12 +8,13 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { APP_URL } from "@/constant/static";
 
 const dashboardNavItems = [
-  { label: "Home", icon: Home, href: APP_URL.LINKS.DASHBOARD },
+  { label: "Dashboard", icon: Home, href: APP_URL.LINKS.DASHBOARD },
   { label: "Tasks", icon: CheckSquare, href: APP_URL.LINKS.TASKS },
   { label: "Insights", icon: TrendingUp, href: APP_URL.LINKS.INSIGHTS },
   { label: "Account", icon: UserRound, href: APP_URL.LINKS.ACCOUNT },
@@ -32,12 +33,16 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
         aria-label="UnionAI home"
         className="group relative z-50 inline-flex w-full shrink-0 items-center justify-center border-b border-border/60 px-2 pb-5"
       >
-        <img
+        <Image
+          width={160}
+          height={40}
           src={APP_URL.IMAGES.LOGO}
           alt="UnionAI"
           className="h-8 w-auto sm:h-9 dark:hidden"
         />
-        <img
+        <Image
+          width={160}
+          height={40}
           src={APP_URL.IMAGES.LIGHT_LOGO}
           alt="UnionAI"
           className="hidden h-8 w-auto sm:h-9 dark:block"

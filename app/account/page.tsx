@@ -14,6 +14,7 @@ import {
   UserRound
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 import { AccountPageHeader, AccountRow, AccountSection, SettingRow, Toggle } from "@/components/account/account-ui";
 import { Popup } from "@/components/common/popup";
@@ -105,7 +106,9 @@ export default function AccountPage() {
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center overflow-hidden rounded-full justify-center bg-primary/10 text-3xl font-semibold text-primary">
                 {user?.profileImage ? (
-                  <img
+                  <Image
+                    width={80}
+                    height={80}
                     src={API_BASE_URL + user.profileImage}
                     alt={`${user?.firstName ?? ""}${user?.lastName ?? ""}`.toUpperCase() || "U"}
                     className="h-full w-full object-cover"

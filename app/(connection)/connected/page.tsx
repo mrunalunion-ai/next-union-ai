@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, Heart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -44,7 +45,9 @@ export default function ConnectedPage() {
                     <div className="mx-auto min-h-full w-full max-w-2xl items-center justify-center px-4 sm:px-6 lg:px-8">
                         <div className="w-full max-w-xl text-center sm:p-8 lg:p-10">
                             <div className="mx-auto flex h-16 w-16 items-center justify-center sm:h-20 sm:w-20">
-                                <img
+                                <Image
+                                    width={80}
+                                    height={80}
                                     src={APP_URL.IMAGES.LOGO_BADGE}
                                     alt="UnionAI"
                                     className="h-12 w-12 object-contain sm:h-16 sm:w-16"
@@ -62,7 +65,9 @@ export default function ConnectedPage() {
                                 <div className="min-w-0">
                                     <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-semibold text-primary ring-4 ring-primary/5 sm:h-20 sm:w-20">
                                         {user?.profileImage ? (
-                                            <img
+                                            <Image
+                                                width={80}
+                                                height={80}
                                                 src={API_BASE_URL + user.profileImage}
                                                 alt={userName}
                                                 className="h-full w-full object-cover"
@@ -83,7 +88,9 @@ export default function ConnectedPage() {
                                 <div className="min-w-0">
                                     <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-semibold text-primary ring-4 ring-primary/5 sm:h-20 sm:w-20">
                                         {partner?.profileImage ? (
-                                            <img
+                                            <Image
+                                                width={80}
+                                                height={80}
                                                 src={API_BASE_URL + partner.profileImage}
                                                 alt={partnerName}
                                                 className="h-full w-full object-cover"
