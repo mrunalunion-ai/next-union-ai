@@ -187,7 +187,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     }
 
     if (eventType === "cancel_request") {
-      console.log("user_data.onboarding", user_data)
       if (user_data.user.onboardingStep === "connectionRequestSent" || user_data.user.onboardingStep === "relationshipDetailsCompleted") {
         router.replace(APP_URL.LINKS.CREATE_UNION);
       } else {

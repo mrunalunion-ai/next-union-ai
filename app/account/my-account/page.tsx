@@ -113,7 +113,7 @@ export default function MyAccountPage() {
       relationStatusId: relationship?.relationStatusId ?? ""
     });
   }, [personalForm, relationshipForm, user, relationship]);
-  console.log("relationship", relationship)
+
   const toggleLanguage = (id: string) => {
     const language = languages.find((item: ILoveLanguage) => item.id === id);
     if (!language) return;

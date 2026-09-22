@@ -240,7 +240,6 @@ export default function RelationshipDetailsContent() {
       },
     });
   };
-  console.log("lastEvent", lastEvent);
 
   useEffect(() => {
     if (
