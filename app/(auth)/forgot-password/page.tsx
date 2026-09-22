@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
     <AuthLayout>
       <div className="flex h-full min-h-0 flex-col overflow-hidden lg:flex-row">
         <div className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden px-5 py-5 sm:px-8 sm:py-6 lg:w-1/2 lg:px-12 lg:py-8 xl:px-16">
-          <div className="relative mx-auto w-full max-w-[390px]">
+          <div className="relative mx-auto w-full">
             <header className="mb-5 anim-slide-right sm:mb-6">
               <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#9b75f4] shadow-lg shadow-purple-500/20">
                 <Heart

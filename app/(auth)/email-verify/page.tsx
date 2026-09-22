@@ -140,7 +140,7 @@ export default function EmailVerificationPage() {
   return (
     <AuthLayout>
       <div className="h-full overflow-y-auto scrollbar-hidden">
-        <div className="mx-auto flex w-full max-w-[900px] flex-col items-center px-1 py-8 sm:px-4 sm:py-10 lg:py-12">
+        <div className="mx-auto flex w-full flex-col items-center px-1 py-8 sm:px-4 sm:py-10 lg:py-12">
           {/* ─── Header ─── */}
           <header className="mb-5 text-center">
             <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-foreground sm:text-3xl">
