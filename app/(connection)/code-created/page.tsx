@@ -74,6 +74,9 @@ export default function CodeCreate() {
             if (lastEvent?.data?.request?.action === "acceptConnection") {
                 router.push(APP_URL.LINKS.CONNECTED)
             }
+            if (lastEvent?.data?.request?.action === "cancelConnection") {
+                sendMessage("action", { type: "userService", action: "get", payload: {} });
+            }
         }
         if (lastEvent?.event === "send_request") {
             sendMessage("action", { type: "userService", action: "get", payload: {} });

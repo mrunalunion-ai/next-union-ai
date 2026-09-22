@@ -10,7 +10,12 @@ const selectPosterReducers = createSelector(
     user_data: combinedReducer?.user_data,
     user: combinedReducer?.user_data?.user,
     ui : combinedReducer?.uiReducer,
-    mainReducer : combinedReducer?.mainReducer
+    mainReducer : combinedReducer?.mainReducer,
+    checkin: combinedReducer?.checkin,
+    tasks: combinedReducer?.tasks,
+    insights: combinedReducer?.insights,
+    notifications: combinedReducer?.notifications,
+    account: combinedReducer?.account,
   })
 );
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Heart } from "lucide-react";
+import Image from "next/image";
+import { Check, Heart, ImagePlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import AuthLayout from "@/components/auth/auth-layout";
@@ -11,9 +12,10 @@ import { RegistrationStepIndicator } from "@/components/auth/registration-step-i
 import RouteGuard from "@/components/auth/route-guard";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/ui/InputField";
-import { APP_URL } from "@/constant/static";
+import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { ILoveLanguage } from "@/redux/modules/main/types";
+import { postData } from "@/services/rest/fetchData";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import {
   relationshipDetailsSchema,
@@ -34,10 +36,13 @@ export default function RelationshipDetailsContent() {
   const { user_data, mainReducer } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const [isFetching, setIsFetching] = useState(true);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const pendingUpdate = useRef(false);
   const form = useForm<RelationshipDetailsFormValues>({
     resolver: zodResolver(relationshipDetailsSchema),
-    defaultValues: { summary: "", loveLanguages: [] },
+    defaultValues: { summary: "", loveLanguages: [], profileImage: "" },
     mode: "onChange",
   });
   const {
@@ -48,7 +53,98 @@ export default function RelationshipDetailsContent() {
     reset,
     formState: { errors, isValid, isSubmitting },
   } = form;
-  const selectedLanguages = useWatch({ control, name: "loveLanguages" }) ?? [];
+  const watchedLanguages = useWatch({ control, name: "loveLanguages" });
+  const selectedLanguages = Array.isArray(watchedLanguages)
+    ? watchedLanguages
+    : [];
+  const currentUser = user_data?.user;
+
+  const resolveImageUrl = (imageUrl?: string | null) => {
+    if (!imageUrl) return null;
+    return /^(https?:|blob:|data:)/i.test(imageUrl)
+      ? imageUrl
+      : `${API_BASE_URL}${imageUrl}`;
+  };
+
+  const displayImage =
+    resolveImageUrl(uploadedImageUrl) ||
+    imagePreview ||
+    resolveImageUrl(currentUser?.profileImage);
+
+  const uploadProfileImage = async (file: File): Promise<string | null> => {
+    const token = user_data?.access_token;
+    if (!token) {
+      toast.error("Authentication required");
+      return null;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file, file.name);
+
+      const response = await postData(
+        APP_URL.ENDPOINT_URL.UPLOAD_FILE,
+        formData,
+        token,
+        "multipart/form-data",
+      );
+      const responseData = response?.data as any;
+
+      return (
+        responseData?.data?.fileUrl ??
+        (responseData?.success ? responseData?.data?.fileUrl : null) ??
+        responseData?.fileUrl ??
+        null
+      );
+    } catch (error) {
+      console.error("Upload error:", error);
+      return null;
+    }
+  };
+
+  const handleImageChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    setIsUploadingImage(true);
+
+    const uploadedUrl = await uploadProfileImage(file);
+    setIsUploadingImage(false);
+
+    if (!uploadedUrl) {
+      toast.error("Failed to upload image");
+      return;
+    }
+
+    setUploadedImageUrl(uploadedUrl);
+    setValue("profileImage", uploadedUrl, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    toast.success("Profile image uploaded");
+  };
+
+  const removeImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setUploadedImageUrl(null);
+    setImagePreview(null);
+    setValue("profileImage", "", { shouldDirty: true, shouldValidate: true });
+  };
 
   useEffect(() => {
     if (!isConnected) return;
@@ -74,13 +170,17 @@ export default function RelationshipDetailsContent() {
       reset({
         summary: String(data.summary ?? ""),
         loveLanguages: selectedNotSure ? [selectedNotSure] : selected,
+        profileImage: String(data.profileImage ?? ""),
       });
+      setUploadedImageUrl(data.profileImage ?? null);
     }
     setIsFetching(false);
-  }, [isConnected, reset]);
+  }, [isConnected, reset, user_data?.user]);
 
   const toggleLanguage = (id: string) => {
-    const languages = mainReducer?.loveLanguageList?.data ?? [];
+    const languages = Array.isArray(mainReducer?.loveLanguageList?.data)
+      ? mainReducer.loveLanguageList.data
+      : [];
 
     const selectedLanguage = languages.find(
       (language: ILoveLanguage) => language.id === id,
@@ -135,6 +235,7 @@ export default function RelationshipDetailsContent() {
         id: user_data?.user?.id,
         summary: values.summary.trim(),
         loveLanguages: values.loveLanguages,
+        profileImage: values.profileImage || "",
         onboardingStep: "relationshipDetailsCompleted",
       },
     });
@@ -182,6 +283,63 @@ export default function RelationshipDetailsContent() {
                   className="space-y-7"
                   noValidate
                 >
+                  <div className="rounded-xl border border-dashed border-primary/30 bg-primary/[0.03] p-4 sm:p-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                      <div className="relative shrink-0 self-center sm:self-auto">
+                        <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-primary/15 bg-primary/10 shadow-sm">
+                          {displayImage ? (
+                            <Image
+                              src={displayImage}
+                              alt="Profile"
+                              width={80}
+                              height={80}
+                              unoptimized
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-primary">
+                              {(currentUser?.firstName?.[0] || "") +
+                                (currentUser?.lastName?.[0] || "")}
+                            </div>
+                          )}
+                        </div>
+                        {displayImage && !isUploadingImage && (
+                          <button
+                            type="button"
+                            onClick={removeImage}
+                            aria-label="Remove profile image"
+                            className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-destructive text-destructive-foreground shadow-sm transition hover:scale-105"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1 text-center sm:text-left">
+                        <p className="text-sm font-semibold text-foreground">
+                          Add a profile image <span className="font-normal text-muted-foreground">(optional)</span>
+                        </p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                          JPG, JPEG, or PNG up to 5MB.
+                        </p>
+                        <label
+                          htmlFor="profile-image-input"
+                          className={`mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 ${isUploadingImage ? "pointer-events-none opacity-60" : ""}`}
+                        >
+                          <ImagePlus className="h-4 w-4" />
+                          {isUploadingImage ? "Uploading…" : displayImage ? "Change image" : "Choose image"}
+                        </label>
+                        <input
+                          id="profile-image-input"
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg"
+                          onChange={handleImageChange}
+                          disabled={isUploadingImage}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <InputField<RelationshipDetailsFormValues>
                     name="summary"
                     label="Provide a Short Summary of Your Relationship"
@@ -208,7 +366,11 @@ export default function RelationshipDetailsContent() {
                     </p>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
-                      {[...(mainReducer?.loveLanguageList?.data ?? [])]
+                      {[
+                        ...(Array.isArray(mainReducer?.loveLanguageList?.data)
+                          ? mainReducer.loveLanguageList.data
+                          : []),
+                      ]
                         .sort(
                           (a: ILoveLanguage, b: ILoveLanguage) =>
                             Number(isNotSureLanguage(a)) -
@@ -318,7 +480,7 @@ export default function RelationshipDetailsContent() {
                   <Button
                     type="submit"
                     className="auth-submit"
-                    disabled={!isValid || isSubmitting}
+                    disabled={!isValid || isSubmitting || isUploadingImage}
                   >
                     {isSubmitting ? "Saving..." : "Continue"}
                   </Button>

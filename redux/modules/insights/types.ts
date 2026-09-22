@@ -39,9 +39,13 @@ export interface IInsightUser {
 }
 
 export interface IInsightDashboard {
+  overallScore?: number;
+  relationshipStatus?: string;
   user1?: IInsightUser | null;
   user2?: IInsightUser | null;
   recommendations: ICoachRecommendation[];
+  recommendationCount?: number;
+  pendingTaskCount?: number;
 }
 
 export interface IInsightsState {

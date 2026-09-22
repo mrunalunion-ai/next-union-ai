@@ -11,7 +11,7 @@ import { RegistrationStepIndicator } from "@/components/auth/registration-step-i
 import RouteGuard from "@/components/auth/route-guard";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/ui/InputField";
-import { APP_URL } from "@/constant/static";
+import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { joinUnionSchema, type JoinUnionFormValues } from "@/utils/schema";
@@ -124,7 +124,7 @@ function JoinUnionContent() {
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-xl font-medium text-primary">
                             {partner?.profileImage ? (
                               <img
-                                src={partner.profileImage}
+                                src={API_BASE_URL + partner.profileImage}
                                 alt={partnerName}
                                 className="h-full w-full rounded-full object-cover"
                               />
@@ -184,7 +184,7 @@ function JoinUnionContent() {
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-xl font-medium text-primary">
                           {partner?.profileImage ? (
                             <img
-                              src={partner.profileImage}
+                              src={API_BASE_URL + partner.profileImage}
                               alt={partnerName}
                               className="h-full w-full rounded-full object-cover"
                             />

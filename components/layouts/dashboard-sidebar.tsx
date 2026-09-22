@@ -26,11 +26,11 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
   const pathname = usePathname();
   return (
-    <aside className="hidden h-full w-[248px] shrink-0 flex-col bg-surface px-5 py-6 lg:flex">
+    <aside className="hidden h-full w-[248px] shrink-0 flex-col border-r border-border/60 bg-background/80 px-4 py-5 lg:flex">
       <Link
         href={APP_URL.LINKS.HOME}
         aria-label="UnionAI home"
-        className="group inline-flex w-full items-center justify-center relative z-50 shrink-0"
+        className="group relative z-50 inline-flex w-full shrink-0 items-center justify-center border-b border-border/60 px-2 pb-5"
       >
         <img
           src={APP_URL.IMAGES.LOGO}
@@ -44,19 +44,19 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
         />
       </Link>
 
-      <nav className="mt-8 space-y-1.5" aria-label="Dashboard navigation">
+      <nav className="mt-7 space-y-1.5" aria-label="Dashboard navigation">
         {dashboardNavItems.map(({ label, icon: Icon, href }) => {
           const isActive = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
               key={label}
               href={href}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${isActive
-                ? "bg-primary/10 text-primary"
+              className={`group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all ${isActive
+                ? "bg-primary/10 text-primary shadow-sm"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
             >
-              <Icon className="h-[18px] w-[18px]" />
+              <Icon className={`h-[18px] w-[18px] transition-transform ${isActive ? "scale-105" : "group-hover:scale-105"}`} />
               {label}
             </Link>
           );
@@ -65,7 +65,7 @@ export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
       <button
         type="button"
         onClick={onLogout}
-        className="mt-auto flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
+        className="mt-auto flex w-full items-center gap-3 border-t border-border/60 px-3.5 pb-1 pt-5 text-left text-sm font-semibold text-destructive transition-colors hover:text-destructive/80"
       >
         <LogOut className="h-[18px] w-[18px]" />
         Log out
@@ -90,8 +90,8 @@ export function DashboardMobileNav() {
             <Link
               key={label}
               href={href}
-              className={`flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold ${isActive ? "text-primary" : "text-muted-foreground"
-                }`}
+                className={`flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                  }`}
             >
               <Icon
                 className="h-6 w-6"

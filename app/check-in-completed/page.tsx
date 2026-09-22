@@ -9,7 +9,8 @@ import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_URL } from "@/constant/static";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { usePosterReducers } from "@/redux/getdata/usePostReducer";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   setCheckinPartnerMessage,
   setCheckinSubmitting,
@@ -36,7 +37,7 @@ function parseMessage(rawMessage: unknown): Record<string, any> | null {
 export default function CheckInCompletedPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const checkin = useAppSelector((state) => state.combinedReducer.checkin);
+  const { checkin } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const submitted = useRef(false);
 

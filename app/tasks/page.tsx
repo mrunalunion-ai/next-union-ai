@@ -15,7 +15,7 @@ import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   setTaskFilter,
   setTasksError,
@@ -58,9 +58,8 @@ function isTaskResponse(message: Record<string, any> | null) {
 
 export default function TasksPage() {
   const dispatch = useAppDispatch();
-  const { user_data } = usePosterReducers();
+  const { user_data, tasks } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
-  const tasks = useAppSelector((state) => state.combinedReducer.tasks);
   const [modalTask, setModalTask] = useState<ITask | null | undefined>(undefined);
   const [deleteTask, setDeleteTask] = useState<ITask | null>(null);
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
@@ -234,7 +233,7 @@ export default function TasksPage() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
-                {tasks.byFilter[tasks.activeFilter].map((task) => (
+                {tasks?.byFilter[tasks?.activeFilter].map((task: any) => (
                   <TaskCard
                     key={task.id}
                     task={task}

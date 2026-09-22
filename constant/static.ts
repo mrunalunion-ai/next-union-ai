@@ -4,7 +4,6 @@ export const API_BASE_URL =
 export const APP_URL = {
   LINKS: {
     HOME: "/",
-    ABOUT: "/about",
     LOGIN: "/login",
     REGISTER: "/register",
     FORGOT_PASSWORD: "/forgot-password",
@@ -41,6 +40,7 @@ export const APP_URL = {
     VERIFY_OTP: '/api/auth/verify-otp',
     RESET_PASSWORD: '/api/auth/reset-password',
     LOGOUT: '/api/auth/logout',
+    UPLOAD_FILE: '/api/upload',
   },
   IMAGES: {
     LOGO: '/assets/images/logo.svg',

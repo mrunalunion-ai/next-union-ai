@@ -112,7 +112,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
         </div>
-        <AuthInfoPanel />
+        <AuthInfoPanel mode="recovery" />
       </div>
     </AuthLayout>
   );

@@ -36,9 +36,11 @@ interface InputFieldProps<T extends FieldValues> {
     className?: string;
     inputClassName?: string;
     labelClassName?: string;
+    labelAdornment?: React.ReactNode;
 
     rightLabel?: React.ReactNode;
     leftAdornment?: React.ReactNode;
+    helperText?: string;
 
     onChange?:
         | React.ChangeEventHandler<HTMLInputElement>
@@ -69,8 +71,10 @@ export default function InputField<T extends FieldValues>({
     className = "",
     inputClassName = "",
     labelClassName = "",
+    labelAdornment,
     rightLabel,
     leftAdornment,
+    helperText,
     onChange,
     onBlur,
     onFocus,
@@ -126,9 +130,11 @@ export default function InputField<T extends FieldValues>({
                 {label && (
                     <label
                         htmlFor={inputId}
-                        className={`text-sm font-medium ${labelClassName}`}
+                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${labelClassName}`}
                     >
                         {label}
+
+                        {labelAdornment}
 
                         {required && (
                             <span className="ml-1 text-red-500">*</span>
@@ -369,6 +375,11 @@ export default function InputField<T extends FieldValues>({
             {errorMessage && (
                 <p className="text-sm text-red-500">
                     {errorMessage}
+                </p>
+            )}
+            {helperText && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {helperText}
                 </p>
             )}
         </div>

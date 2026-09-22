@@ -1,8 +1,9 @@
 "use client";
 
 import { APP_URL } from "@/constant/static";
+import { Popup } from "@/components/common/popup";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { setAuthData } from "@/redux/modules/common/user_data/action";
+import { logoutUser, setAuthData } from "@/redux/modules/common/user_data/action";
 import { setReduxClear } from "@/redux/modules/main/action";
 import { useRouter } from "next/navigation";
 import React, {
@@ -15,6 +16,7 @@ import React, {
 } from "react";
 import { useDispatch } from "react-redux";
 import { io, Socket } from "socket.io-client";
+import { toast } from "react-toastify";
 import { ws_response } from "./ws_response";
 
 // Singleton socket reference
@@ -52,12 +54,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     event: string;
     data: any;
   } | null>(null);
+  const [isConnectionDeletedPopupOpen, setIsConnectionDeletedPopupOpen] =
+    useState(false);
 
   const buildAuthPayload = () => {
-    if (accessToken) {
-      return { token: accessToken };
-    }
-    return {};
+    const token = accessToken || guestAccessToken;
+    return token ? { token } : {};
   };
 
   const sendMessage = useCallback((event: string, data?: any) => {
@@ -78,12 +80,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     //   return;
     // }
 
-    const url = process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (!url) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
       console.log("⚠️ NEXT_PUBLIC_ENDPOINT_API_URL is not set");
       return;
     }
-    singletonSocket = io(url, {
+    const socketUrl = accessToken
+      ? baseUrl
+      : `${baseUrl.replace(/\/$/, "")}/guest`;
+
+    singletonSocket = io(socketUrl, {
       auth: buildAuthPayload(),
       transports: ["websocket"],
       reconnection: true,
@@ -108,33 +114,36 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       setIsConnected(false);
       if (
         err.message === "Unauthorized token" ||
-        err.message?.toLowerCase().includes("unauthorized")
+        err.message?.toLowerCase().includes("unauthorized") ||
+        err.message === "Authentication failed"
       ) {
-        // dispatch(setLogout());
+        dispatch(logoutUser());
         localStorage.clear();
         dispatch(setAuthData({} as any));
         dispatch(setReduxClear());
-        router.replace(APP_URL.LINKS.HOME);
+        router.replace(APP_URL.LINKS.LOGIN);
       }
     });
 
     singletonSocket.onAny((event, data) => {
       console.log("📥 Received event:", event, data);
 
-      if (event === "unauthorized") {
-        // dispatch(setLogout());
+      if (event === "unauthorized" || data?.type === "unauthorized") {
+        dispatch(logoutUser());
         localStorage.clear();
+        sessionStorage.clear();
         dispatch(setAuthData({} as any));
         dispatch(setReduxClear());
-        router.push(APP_URL.LINKS.HOME);
+        router.replace(APP_URL.LINKS.LOGIN);
         return;
       }
+
       setLastEvent({ event, data });
       dispatch(
         ws_response(
           { evt: { event, data } },
           router,
-          (d: any) => sendMessage(event, d),
+          sendMessage,
           user_data,
         ) as any,
       );
@@ -142,6 +151,83 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     isSocketInitialized = true;
   }, [accessToken, guestAccessToken, dispatch, router, sendMessage]);
+
+  useEffect(() => {
+    // Do not process stale socket events after the authenticated session has
+    // been cleared. This prevents logout from triggering another userService
+    // get request while the guest socket is being initialized.
+    if (!lastEvent || !isConnected || !accessToken) return;
+
+    const relationship = user_data?.user?.relationships?.[0];
+    const relationshipId = relationship?.id;
+    const eventType =
+      lastEvent.event === "data" ? lastEvent.data?.type : lastEvent.event;
+    const request = lastEvent.data?.request;
+    const directAccountEvents = new Set([
+      "ws_send_request_event",
+      "ws_accept_request_event",
+      "ws_cancel_request_event",
+      "send_request",
+      "accept_request",
+      "cancel_request",
+      "connection_deleted",
+    ]);
+    const unionActions = new Set([
+      "createUnion",
+      "delete",
+      "sendRequest",
+      "acceptConnection",
+      "cancelConnection",
+      "deleteConnection",
+    ]);
+
+    if (directAccountEvents.has(eventType) || (request?.type === "userService" && unionActions.has(request.action))) {
+      sendMessage("action", { type: "userService", action: "get", payload: {} });
+    }
+
+    if (eventType === "cancel_request") {
+      console.log("user_data.onboarding", user_data)
+      if (user_data.user.onboardingStep === "connectionRequestSent" || user_data.user.onboardingStep === "relationshipDetailsCompleted") {
+        router.replace(APP_URL.LINKS.CREATE_UNION);
+      } else {
+        router.replace(APP_URL.LINKS.CODE_CREATED);
+      }
+    }
+
+    if (eventType === "connection_deleted") {
+      setIsConnectionDeletedPopupOpen(true);
+      router.replace(APP_URL.LINKS.CREATE_UNION);
+    }
+
+    if (eventType === "checkin_completed") {
+      if (relationshipId) {
+        sendMessage("action", {
+          type: "checkinService",
+          action: "list",
+          payload: { relationshipId },
+        });
+        sendMessage("action", {
+          type: "relationshipAnalysisService",
+          action: "dashboard",
+          payload: { relationshipId },
+        });
+      }
+    }
+
+    if (eventType === "task_assigned" || eventType === "task_completed") {
+      ["me", "partner", "completed", "overdue"].forEach((filter) => {
+        sendMessage("action", {
+          type: "tasksService",
+          action: "list",
+          payload: { filter, page: 1, limit: 100, relationshipId },
+        });
+      });
+    }
+
+    if (eventType === "ws_error") {
+      toast.error("Unable to synchronize with the server. Please try again.");
+    }
+  }, [accessToken, isConnected, lastEvent, sendMessage, user_data]);
 
   // Re-initialize socket whenever token changes
   useEffect(() => {
@@ -167,6 +253,18 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       }}
     >
       {children}
+      <Popup
+        open={isConnectionDeletedPopupOpen}
+        onOpenChange={setIsConnectionDeletedPopupOpen}
+        variant="info"
+        title="Connection deleted"
+        description="Your partner deleted their account."
+        confirmText="OK"
+        hideCancel
+        onConfirm={() => {
+          router.replace(APP_URL.LINKS.CREATE_UNION);
+        }}
+      />
     </WebSocketContext.Provider>
   );
 };

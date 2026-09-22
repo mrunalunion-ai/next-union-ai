@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
+export const passwordRequirements = [
+  "At least 8 characters long",
+  "At least one uppercase letter (A-Z)",
+  "At least one lowercase letter (a-z)",
+  "At least one number (0-9)",
+  "At least one special character (! @ # $ % ^ & *)",
+] as const;
+
 export const loginSchema = z.object({
   email: z
     .string()
@@ -107,6 +115,7 @@ export const relationshipDetailsSchema = z.object({
   relationStatusId: z.string().optional(),
   summary: z.string().trim().min(1, "Short summary is required").refine((value) => value.split(/\s+/).length <= 100, "Summary must be 100 words or fewer"),
   loveLanguages: z.array(z.string()).min(1, "Select at least one love language").max(3, "You can select up to 3 love languages."),
+  profileImage: z.string().optional(),
 });
 export type RelationshipDetailsFormValues = z.infer<typeof relationshipDetailsSchema>;
 

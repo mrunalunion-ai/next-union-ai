@@ -12,8 +12,8 @@ import { useAppDispatch } from "@/redux/hooks";
 import { logoutUser } from "@/redux/modules/common/user_data/action";
 import { setReduxClear } from "@/redux/modules/main/action";
 import { postData } from "@/services/rest/fetchData";
+import { Header } from "@/components/common/Header";
 
-import { DashboardHeader } from "./dashboard-header";
 import { DashboardMobileNav, DashboardSidebar } from "./dashboard-sidebar";
 
 interface DashboardLayoutProps {
@@ -42,7 +42,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       localStorage.clear();
       dispatch(logoutUser());
       dispatch(setReduxClear());
-      router.push(APP_URL.LINKS.HOME);
+      router.replace(APP_URL.LINKS.LOGIN);
     }
   };
 
@@ -54,7 +54,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
-          <DashboardHeader />
+          <Header variant="dashboard" />
           <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hidden">
             {children}
           </div>

@@ -28,21 +28,39 @@ const mainReducer = (
     }
 
     case ActionTypes.SET_RELATION_STATUS_LIST: {
+      const payload = action?.payload;
+      const data = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.data?.data)
+            ? payload.data.data
+            : [];
+
       return {
         ...state,
         relationStatusList: {
-          data: action?.payload?.data,
-          pagination: action?.payload?.pagination,
+          data,
+          pagination: payload?.pagination,
         },
       };
     }
 
     case ActionTypes.SET_LOVE_LANGUAGE_LIST: {
+      const payload = action?.payload;
+      const data = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.data?.data)
+            ? payload.data.data
+            : [];
+
       return {
         ...state,
         loveLanguageList: {
-          data: action?.payload?.data,
-          pagination: action?.payload?.pagination,
+          data,
+          pagination: payload?.pagination,
         },
       };
     }

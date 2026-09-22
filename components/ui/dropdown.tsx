@@ -145,8 +145,8 @@ const DropdownSelect: React.FC<DropdownProps> = ({
     };
     const themes: any = {
         secondary: {
-            indicator: `bg-[#F0F0F0] h-auto right-[-1px] rounded-r-md relative`,
-            dropdownIndicator: `border-l border-l-table`,
+            indicator: `bg-muted h-auto right-[-1px] rounded-r-md relative`,
+            dropdownIndicator: `border-l border-l-border`,
             control: '!py-0',
         },
     };
@@ -161,16 +161,23 @@ const DropdownSelect: React.FC<DropdownProps> = ({
     const customStyles = {
         control: (provided: any, state: any) => ({
             ...provided,
-            backgroundColor: state.isDisabled ? '#fdfcfb' : '#fffff',
+            backgroundColor: state.isDisabled
+                ? 'hsl(var(--muted))'
+                : '',
+            color: 'hsl(var(--foreground))',
             padding: '0.08rem',
             minHeight: "42px",
             border: 'none',
             boxShadow: 'none',
             borderRadius: "5px",
+            cursor: state.isDisabled ? 'not-allowed' : 'default',
         }),
         menu: (provided: any) => ({
             ...provided,
+            backgroundColor: 'hsl(var(--surface))',
+            color: 'hsl(var(--foreground))',
             borderRadius: '10px',
+            border: '1px solid hsl(var(--border))',
             overflow: 'hidden',
             zIndex: 9999,
         }),
@@ -178,12 +185,48 @@ const DropdownSelect: React.FC<DropdownProps> = ({
             ...provided,
             zIndex: 9999,
         }),
-        option: (provided: any) => ({
+        option: (provided: any, state: any) => ({
             ...provided,
+            backgroundColor: state.isSelected
+                ? 'hsl(var(--primary))'
+                : state.isFocused
+                    ? 'hsl(var(--accent))'
+                    : 'hsl(var(--surface))',
+            color: state.isSelected
+                ? 'hsl(var(--primary-foreground))'
+                : 'hsl(var(--foreground))',
             padding: '10px',
+            cursor: 'pointer',
+        }),
+        singleValue: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--foreground))',
+        }),
+        input: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--foreground))',
+        }),
+        indicatorsContainer: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--muted-foreground))',
+        }),
+        dropdownIndicator: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--muted-foreground))',
+            ':hover': {
+                color: 'hsl(var(--foreground))',
+            },
+        }),
+        clearIndicator: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--muted-foreground))',
+            ':hover': {
+                color: 'hsl(var(--foreground))',
+            },
         }),
         placeholder: (provided: any) => ({
             ...provided,
+            color: 'hsl(var(--muted-foreground))',
             marginLeft: 0,
             marginRight: 0,
             padding: '0px 2px 0px 2px',
@@ -192,6 +235,26 @@ const DropdownSelect: React.FC<DropdownProps> = ({
             width: '100%',
             overflow: 'hidden',
             borderRadius: '10px',
+        }),
+        noOptionsMessage: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--muted-foreground))',
+        }),
+        multiValue: (provided: any) => ({
+            ...provided,
+            backgroundColor: 'hsl(var(--accent))',
+        }),
+        multiValueLabel: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--foreground))',
+        }),
+        multiValueRemove: (provided: any) => ({
+            ...provided,
+            color: 'hsl(var(--muted-foreground))',
+            ':hover': {
+                backgroundColor: 'hsl(var(--destructive))',
+                color: 'hsl(var(--destructive-foreground))',
+            },
         }),
         '&:hover': {
             border: 'none',
@@ -294,7 +357,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                                 placeholder || (defaultValue ? `Select ${defaultValue}` : '')
                             }
                             noOptionsMessage={() => noOptionsPlaceholder}
-                            className={`${className} text-sm select-form-containers bg-white shadow-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20`}
+                            className={`${className} text-sm select-form-containers shadow-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20`}
                             onFocus={callOnFocus}
                             onBlur={callOnBlur}
                             inputValue={searchInput}
@@ -328,7 +391,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                 </label>
             )}
             <div
-                className={`flex  ${inline ? 'items-center space-x-2' : 'flex flex-col'}  ${formClassName} mt-1 h-11 rounded-[10px] border-input border-[1px] ${isRounded ? 'rounded-full' : ' rounded-md'}   overflow-hidden ${errors ? 'border-red-600' : `focus-within:border-[#C8C9C9] border-[#C8C9C9]`}`}
+                className={`flex  ${inline ? 'items-center space-x-2' : 'flex flex-col'}  ${formClassName} mt-1 h-11 rounded-[10px] border-input border-[1px] ${isRounded ? 'rounded-full' : ' rounded-md'}   overflow-hidden ${errors ? 'border-red-600' : 'border-input focus-within:border-primary'}`}
             >
                 <Controller
                     name={name!}

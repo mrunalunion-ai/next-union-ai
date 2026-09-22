@@ -6,7 +6,8 @@ import { useCallback, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { usePosterReducers } from "@/redux/getdata/usePostReducer";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -20,10 +21,8 @@ import {
 
 export default function NotificationsPage() {
   const dispatch = useAppDispatch();
+  const { notifications } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const notifications = useAppSelector(
-    (state) => state.combinedReducer.notifications,
-  );
 
   const loadNotifications = useCallback(() => {
     if (!isConnected) return;
@@ -133,7 +132,7 @@ export default function NotificationsPage() {
             </Card>
           ) : (
             <div className="space-y-3" role="list">
-              {notifications.items.map((notification) => (
+              {notifications?.items?.map((notification: any) => (
                 <div key={notification.id} role="listitem">
                   <NotificationCard
                     notification={notification}

@@ -125,15 +125,31 @@ function directNotificationType(type: unknown) {
     "ws_send_request_event",
     "ws_accept_request_event",
     "ws_cancel_request_event",
+    "send_request",
+    "accept_request",
+    "cancel_request",
+    "connection_deleted",
+    "checkin_completed",
     "package_buy",
   ].includes(String(type));
+}
+
+function responseData(message: Record<string, any>) {
+  const data = message?.data;
+
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    return data.data ?? data;
+  }
+
+  return data;
 }
 
 export const ws_response = (
   { evt }: { evt: { event: string; data: any } },
   navigate: any,
   sendMessage: (
-    data: string | ArrayBufferLike | Blob | ArrayBufferView,
+    event: string,
+    data?: Record<string, any>,
   ) => void,
   user_data: IUserRes,
 ) => {
@@ -145,13 +161,28 @@ export const ws_response = (
       adminReducers: { device_id: string; access_token: string };
     },
   ) => {
-    const ws_onmessage = typeof evt.data === "string" ? JSON.parse(evt.data) : evt.data;
+    let ws_onmessage: Record<string, any>;
+    try {
+      ws_onmessage =
+        typeof evt.data === "string" ? JSON.parse(evt.data) : evt.data;
+    } catch {
+      return;
+    }
+
+    if (!ws_onmessage?.type && evt.event) {
+      ws_onmessage = { ...ws_onmessage, type: evt.event, data: ws_onmessage };
+    }
 
     const directType = ws_onmessage?.type;
     if (directNotificationType(directType)) {
       const notification = toNotification(ws_onmessage?.data, directType);
 
-      if (ws_onmessage?.status !== false && notification) {
+      if (
+        ws_onmessage?.status !== false &&
+        directType !== "connection_deleted" &&
+        directType !== "checkin_completed" &&
+        notification
+      ) {
         dispatch(addNotification(notification));
       }
       return;
@@ -165,10 +196,11 @@ export const ws_response = (
           if (ws_onmessage?.status === true) {
             const data = getInsightPayload(ws_onmessage);
             dispatch(updateUserData(data?.user ?? data));
-            toast.success(ws_onmessage?.msg)
+            toast.success(ws_onmessage?.msg ?? "Profile updated successfully.");
           } else {
-            dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to update your profile."));
-            toast.error(ws_onmessage?.msg)
+            const message = ws_onmessage?.msg ?? "Unable to update your profile.";
+            dispatch(setAccountError(message));
+            toast.error(message);
           }
         }
 
@@ -177,10 +209,47 @@ export const ws_response = (
           const relationship = data?.user?.relationships?.[0] ?? data?.relationships?.[0];
           if (relationship?.partner) dispatch(setAccountPartner(relationship.partner));
           if (ws_onmessage?.status === true) {
-            dispatch(updateUserData(ws_onmessage?.data));
+            dispatch(updateUserData(data?.user ?? data));
           } else {
-            toast.error(ws_onmessage?.msg);
-            dispatch(updateUserData(ws_onmessage?.data));
+            toast.error(ws_onmessage?.msg ?? "Unable to load your account.");
+          }
+        }
+
+        if (
+          [
+            "createUnion",
+            "delete",
+            "sendRequest",
+            "acceptConnection",
+            "cancelConnection",
+            "deleteAccount",
+            "deleteConnection",
+          ].includes(ws_onmessage?.request?.action)
+        ) {
+          dispatch(setAccountSaving(false));
+          if (ws_onmessage?.status === true) {
+            toast.success(ws_onmessage?.msg);
+          }
+          else if (ws_onmessage?.status === false) {
+            const message = ws_onmessage?.msg ?? "Unable to complete account action.";
+            dispatch(setAccountError(message));
+            toast.error(message);
+          } else if (ws_onmessage?.request?.action === "deleteConnection") {
+            dispatch(setAccountPartner(null));
+          }
+        }
+        break;
+
+      case "profileService":
+        if (["get", "update"].includes(ws_onmessage?.request?.action)) {
+          dispatch(setAccountSaving(false));
+          if (ws_onmessage?.status === true) {
+            const data = getInsightPayload(ws_onmessage);
+            dispatch(updateUserData(data?.user ?? data));
+          } else {
+            const message = ws_onmessage?.msg ?? "Unable to update your profile.";
+            dispatch(setAccountError(message));
+            toast.error(message);
           }
         }
         break;
@@ -211,12 +280,6 @@ export const ws_response = (
             dispatch(setCheckInQuesList(ws_onmessage?.data));
           } else {
             dispatch(setCheckInQuesList(ws_onmessage?.data));
-          }
-        }
-        if (["deleteAccount", "deleteConnection"].includes(ws_onmessage?.request?.action)) {
-          dispatch(setAccountSaving(false));
-          if (ws_onmessage?.status === false) {
-            dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to complete account action."));
           }
         }
         break;
@@ -261,21 +324,44 @@ export const ws_response = (
             setActiveSubscription(
               subscription && (subscription.id || subscription.planId)
                 ? {
-                    id: String(subscription.id ?? ""),
-                    planId: String(subscription.planId ?? ""),
-                    planName: String(subscription.planName ?? ""),
-                    planCode: String(subscription.planCode ?? ""),
-                    status: String(subscription.status ?? ""),
-                    ownerUserId: String(subscription.ownerUserId ?? ""),
-                    startDate: subscription.startDate,
-                    endDate: subscription.endDate,
-                    isTrial: subscription.isTrial === true,
-                    autoRenew: subscription.autoRenew !== false,
-                    isActive: subscription.isActive,
-                  }
+                  id: String(subscription.id ?? ""),
+                  planId: String(subscription.planId ?? ""),
+                  planName: String(subscription.planName ?? ""),
+                  planCode: String(subscription.planCode ?? ""),
+                  status: String(subscription.status ?? ""),
+                  ownerUserId: String(subscription.ownerUserId ?? ""),
+                  startDate: subscription.startDate,
+                  endDate: subscription.endDate,
+                  isTrial: subscription.isTrial === true,
+                  autoRenew: subscription.autoRenew !== false,
+                  isActive: subscription.isActive,
+                }
                 : null,
             ),
           );
+        }
+        if (ws_onmessage?.request?.action === "getPlans") {
+          const data = getInsightPayload(ws_onmessage);
+          const plans = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+          dispatch(
+            setAccountPlans(
+              plans.map((plan: Record<string, any>) => ({
+                id: String(plan.id ?? ""),
+                name: String(plan.name ?? ""),
+                code: String(plan.code ?? ""),
+                duration: toNumber(plan.duration),
+                durationUnit: String(plan.durationUnit ?? "MONTH"),
+                priceUSD: toNumber(plan.priceUSD ?? plan.priceUsd),
+                priceGBP: toNumber(plan.priceGBP ?? plan.priceGbp),
+                trialDays: toNumber(plan.trialDays),
+                isPopular: String(plan.tag ?? "").toLowerCase() === "most popular",
+                isBestValue: String(plan.tag ?? "").toLowerCase() === "best value",
+              })),
+            ),
+          );
+        }
+        if (ws_onmessage?.request?.action === "recordPayment" && ws_onmessage?.status === true) {
+          toast.success(ws_onmessage?.msg ?? "Payment recorded successfully.");
         }
         break;
       }
@@ -304,6 +390,9 @@ export const ws_response = (
               })),
             ),
           );
+        }
+        if (ws_onmessage?.request?.action === "recordPayment" && ws_onmessage?.status === true) {
+          toast.success(ws_onmessage?.msg ?? "Payment recorded successfully.");
         }
         break;
       }
@@ -336,7 +425,7 @@ export const ws_response = (
       case "checkinService":
         if (ws_onmessage?.request?.action === "list") {
           if (ws_onmessage?.status === true) {
-            const data = ws_onmessage?.data ?? {};
+            const data = responseData(ws_onmessage) ?? {};
             const checkin = Array.isArray(data?.questions)
               ? data
               : Array.isArray(data?.data)
@@ -356,8 +445,8 @@ export const ws_response = (
             dispatch(
               setCheckinError(
                 ws_onmessage?.msg ??
-                  ws_onmessage?.message ??
-                  "Unable to load your weekly check-in.",
+                ws_onmessage?.message ??
+                "Unable to load your weekly check-in.",
               ),
             );
           }
@@ -370,8 +459,8 @@ export const ws_response = (
             dispatch(
               setCheckinError(
                 ws_onmessage?.msg ??
-                  ws_onmessage?.message ??
-                  "Unable to save your check-in.",
+                ws_onmessage?.message ??
+                "Unable to save your check-in.",
               ),
             );
           }
@@ -385,8 +474,8 @@ export const ws_response = (
           dispatch(
             setInsightsError(
               ws_onmessage?.msg ??
-                ws_onmessage?.message ??
-                "Unable to load relationship insights.",
+              ws_onmessage?.message ??
+              "Unable to load relationship insights.",
             ),
           );
           break;
@@ -397,40 +486,40 @@ export const ws_response = (
         if (action === "list") {
           const analyses = Array.isArray(data.analyses)
             ? data.analyses
-                .filter((item: unknown) => item && typeof item === "object")
-                .map((item: Record<string, any>) => ({
-                  id: String(item.id ?? item._id ?? ""),
-                  weekNumber: toNumber(item.weekNumber),
-                  overallScore: toNumber(item.overallScore),
-                  relationshipStatus: String(item.relationshipStatus ?? ""),
-                  emotionalConnection: toNumber(item.emotionalConnection),
-                  communicationSatisfaction: toNumber(
-                    item.communicationSatisfaction,
-                  ),
-                  pacingAndReciprocity: toNumber(item.pacingAndReciprocity),
-                  coreTrustIndex: toNumber(item.coreTrustIndex),
-                  coreStrengths: Array.isArray(item.coreStrengths)
-                    ? item.coreStrengths.map(toInsightText)
-                    : [],
-                  gapsAndRisks: Array.isArray(item.gapsAndRisks)
-                    ? item.gapsAndRisks.map(toInsightText)
-                    : [],
-                  recommendations: Array.isArray(item.recommendations)
-                    ? item.recommendations
-                        .map(toRecommendation)
-                        .filter(Boolean)
-                    : [],
-                }))
+              .filter((item: unknown) => item && typeof item === "object")
+              .map((item: Record<string, any>) => ({
+                id: String(item.id ?? item._id ?? ""),
+                weekNumber: toNumber(item.weekNumber),
+                overallScore: toNumber(item.overallScore),
+                relationshipStatus: String(item.relationshipStatus ?? ""),
+                emotionalConnection: toNumber(item.emotionalConnection),
+                communicationSatisfaction: toNumber(
+                  item.communicationSatisfaction,
+                ),
+                pacingAndReciprocity: toNumber(item.pacingAndReciprocity),
+                coreTrustIndex: toNumber(item.coreTrustIndex),
+                coreStrengths: Array.isArray(item.coreStrengths)
+                  ? item.coreStrengths.map(toInsightText)
+                  : [],
+                gapsAndRisks: Array.isArray(item.gapsAndRisks)
+                  ? item.gapsAndRisks.map(toInsightText)
+                  : [],
+                recommendations: Array.isArray(item.recommendations)
+                  ? item.recommendations
+                    .map(toRecommendation)
+                    .filter(Boolean)
+                  : [],
+              }))
             : [];
           const trend = Array.isArray(data.trend)
             ? data.trend
-                .filter((item: unknown) => item && typeof item === "object")
-                .map((item: Record<string, any>) => ({
-                  label: String(item.label ?? ""),
-                  weekNumber: toNumber(item.weekNumber),
-                  periodStart: String(item.periodStart ?? ""),
-                  overallScore: toNumber(item.overallScore),
-                }))
+              .filter((item: unknown) => item && typeof item === "object")
+              .map((item: Record<string, any>) => ({
+                label: String(item.label ?? ""),
+                weekNumber: toNumber(item.weekNumber),
+                periodStart: String(item.periodStart ?? ""),
+                overallScore: toNumber(item.overallScore),
+              }))
             : [];
 
           dispatch(setInsightsAnalyses({ analyses, trend }));
@@ -449,13 +538,17 @@ export const ws_response = (
 
           dispatch(
             setInsightsDashboard({
+              overallScore: toNumber(data.overallScore),
+              relationshipStatus: String(data.relationshipStatus ?? ""),
               user1: toUser(data.user1),
               user2: toUser(data.user2),
               recommendations: Array.isArray(data.recommendations)
                 ? data.recommendations
-                    .map(toRecommendation)
-                    .filter(Boolean)
+                  .map(toRecommendation)
+                  .filter(Boolean)
                 : [],
+              recommendationCount: toNumber(data.recommendationCount),
+              pendingTaskCount: toNumber(data.pendingTaskCount),
             }),
           );
         }
@@ -469,8 +562,8 @@ export const ws_response = (
           dispatch(
             setNotificationsError(
               ws_onmessage?.msg ??
-                ws_onmessage?.message ??
-                "Unable to load notifications.",
+              ws_onmessage?.message ??
+              "Unable to load notifications.",
             ),
           );
           break;
@@ -545,8 +638,8 @@ export const ws_response = (
             dispatch(
               setTasksError(
                 ws_onmessage?.msg ??
-                  ws_onmessage?.message ??
-                  "Unable to update tasks.",
+                ws_onmessage?.message ??
+                "Unable to update tasks.",
               ),
             );
           }

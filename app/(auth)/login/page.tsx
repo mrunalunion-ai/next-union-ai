@@ -8,6 +8,7 @@ import { APP_URL } from "@/constant/static";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAuthData, setLogin } from "@/redux/modules/common/user_data/action";
 import { AuthReq } from "@/services/rest/fetchData";
+import { onboardingRoutes, OnboardingStep } from "@/utils/common";
 import { loginSchema, type LoginFormValues } from "@/utils/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Heart, LockKeyhole, Mail } from "lucide-react";
@@ -22,17 +23,6 @@ function errorMessage(error: unknown) {
     : "An unexpected error occurred.";
 }
 
-type OnboardingStep =
-  | "notStarted"
-  | "accountCreated"
-  | "relationshipDetailsCompleted"
-  | "unionCodeCreated"
-  | "unionCodeJoining"
-  | "partnerVerified"
-  | "connectionRequestSent"
-  | "connectionRequestReceived"
-  | "connected";
-
 export default function LoginPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -46,18 +36,6 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors, isValid, isSubmitting },
   } = form;
-
-  const onboardingRoutes: Record<OnboardingStep, string> = {
-    notStarted: APP_URL.LINKS.REGISTER,
-    accountCreated: APP_URL.LINKS.RELATIONSHIP_DETAILS,
-    relationshipDetailsCompleted: APP_URL.LINKS.CREATE_UNION,
-    unionCodeCreated: APP_URL.LINKS.CODE_CREATED,
-    unionCodeJoining: APP_URL.LINKS.REGISTER,
-    partnerVerified: APP_URL.LINKS.JOIN_UNION,
-    connectionRequestSent: APP_URL.LINKS.REGISTER,
-    connectionRequestReceived: APP_URL.LINKS.REGISTER,
-    connected: APP_URL.LINKS.DASHBOARD,
-  };
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
@@ -93,7 +71,7 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="flex h-full min-h-0 flex-col overflow-hidden lg:flex-row">
         <div className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden px-5 py-5 sm:px-8 sm:py-6 lg:w-1/2 lg:px-12 lg:py-8 xl:px-16">
-          <div className="relative mx-auto w-full max-w-[390px]">
+          <div className="relative mx-auto w-full">
             <header className="mb-5 anim-slide-right sm:mb-6">
               <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#9b75f4] shadow-lg shadow-purple-500/20">
                 <Heart
@@ -105,7 +83,7 @@ export default function LoginPage() {
               <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-foreground sm:text-3xl lg:text-[2rem]">
                 Welcome Back
               </h1>
-              <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground sm:text-base">
+              <p className="mt-1.5 text-sm leading-6 text-muted-foreground sm:text-base">
                 Sign in to explore your relationship insights
               </p>
             </header>

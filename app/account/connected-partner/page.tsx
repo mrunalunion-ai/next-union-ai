@@ -15,7 +15,7 @@ import { Popup } from "@/components/common/popup";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   initialAccountState,
   setAccountLoading,
@@ -24,6 +24,7 @@ import {
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { formatDateDDMMYYYY } from "@/utils/common";
 import { ILoveLanguage } from "@/redux/modules/main/types";
+import { API_BASE_URL } from "@/constant/static";
 
 function InfoRow({ label, value }: { label: string; value?: string | number }) {
   return (
@@ -55,14 +56,12 @@ function SectionCard({
 
 export default function ConnectedPartnerPage() {
   const dispatch = useAppDispatch();
-  const { user_data } = usePosterReducers();
+  const { user_data, account } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const account = useAppSelector(
-    (state) => state.combinedReducer.account ?? initialAccountState,
-  );
+  const accountState = account ?? initialAccountState;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const relationship = user_data?.user?.relationships?.[0];
-  const partner = account.partner ?? relationship?.partner;
+  const partner = accountState.partner ?? relationship?.partner;
 
   useEffect(() => {
     if (!isConnected) return;
@@ -113,14 +112,14 @@ export default function ConnectedPartnerPage() {
   return (
     <DashboardLayout>
       <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto">
           <AccountPageHeader
             title="Connected Partner"
             description="View the details of your connected partner and relationship."
             showBack
           />
 
-          {account.loading && !partner ? (
+          {accountState.loading && !partner ? (
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2" aria-busy="true">
               {["hero", "personal", "relationship", "status", "union"].map(
                 (section) => (
@@ -145,20 +144,27 @@ export default function ConnectedPartnerPage() {
             <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-[1.35fr_1fr]">
               <Card className="h-full rounded-3xl border-border/70 bg-surface px-6 py-7 shadow-sm sm:px-8 lg:col-span-2">
                 <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-7">
-                  <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-primary/10 text-3xl font-semibold text-primary">
-                    {initials || "P"}
+                  <div className="flex h-20 w-20 items-center overflow-hidden rounded-full justify-center bg-primary/10 text-3xl font-semibold text-primary">
+                    {partner?.profileImage ? (
+                      <img
+                        src={API_BASE_URL + partner.profileImage}
+                        alt={partnerName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      initials || "P"
+                    )}
                   </div>
-
                   <div className="text-center sm:text-left">
-                    <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
                       Connected partner
                     </p>
 
-                    <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                    <h2 className="mt-1 text-xl font-semibold tracking-tight">
                       {partnerName || "Connected partner"}
                     </h2>
 
-                    <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-600">
+                    <div className="mt-1 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
                       <CheckCircle2
                         className="h-4 w-4 fill-emerald-500 text-white"
                         strokeWidth={2}
@@ -245,7 +251,7 @@ export default function ConnectedPartnerPage() {
                     variant="outline"
                     className="h-11 w-full rounded-lg border-destructive/30 bg-destructive/10 text-sm font-semibold text-destructive hover:bg-destructive/15 hover:text-destructive"
                     onClick={() => setConfirmOpen(true)}
-                    disabled={account.saving}
+                    disabled={accountState.saving}
                   >
                     <Trash2 className="mr-2 h-5 w-5" />
                     Delete connection

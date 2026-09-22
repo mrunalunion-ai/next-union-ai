@@ -14,7 +14,7 @@ import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   initialAccountState,
   setAccountLoading,
@@ -44,11 +44,9 @@ function formatDuration(plan: IAccountPlan) {
 
 export default function ExplorePlansPage() {
   const dispatch = useAppDispatch();
-  const { user_data } = usePosterReducers();
+  const { user_data, account } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const account = useAppSelector(
-    (state) => state.combinedReducer.account ?? initialAccountState,
-  );
+  const accountState = account ?? initialAccountState;
   const [currency, setCurrency] = useState<Currency>("USD");
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
   const userId = user_data?.user?.id ?? "";
@@ -69,13 +67,7 @@ export default function ExplorePlansPage() {
       },
     });
 
-    if (userId) {
-      sendMessage("action", {
-        type: "subscriptionService",
-        action: "getActive",
-        payload: { user_id: userId },
-      });
-    }
+
   }, [dispatch, isConnected, sendMessage, userId]);
 
   useEffect(() => {
@@ -83,17 +75,17 @@ export default function ExplorePlansPage() {
   }, [loadPlans]);
 
   useEffect(() => {
-    if (!selectedPlanId && account.plans.length) {
+    if (!selectedPlanId && accountState.plans.length) {
       const preferredPlan =
-        account.plans.find((plan) => plan.isPopular || plan.isBestValue) ??
-        account.plans[0];
+        accountState.plans.find((plan: any) => plan.isPopular || plan.isBestValue) ??
+        accountState.plans[0];
       setSelectedPlanId(preferredPlan.id);
     }
-  }, [account.plans, selectedPlanId]);
+  }, [accountState.plans, selectedPlanId]);
 
   const selectedPlan = useMemo(
-    () => account.plans.find((plan) => plan.id === selectedPlanId),
-    [account.plans, selectedPlanId],
+    () => accountState.plans.find((plan: any) => plan.id === selectedPlanId),
+    [accountState.plans, selectedPlanId],
   );
 
   const subscribe = () => {
@@ -105,24 +97,24 @@ export default function ExplorePlansPage() {
   return (
     <DashboardLayout>
       <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto">
             <AccountPageHeader
               title="Explore Plans"
               description="Choose the plan that fits your shared relationship journey."
               showBack
             />
 
-          {account.activeSubscription && (
+          {accountState.activeSubscription && (
             <Card className="mb-6 rounded-3xl border-primary/20 bg-primary/[0.04] p-5 shadow-sm">
               <p className="text-xs font-extrabold uppercase tracking-wide text-primary">
                 Current plan
               </p>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-xl font-extrabold">
-                  {account.activeSubscription.planName}
+                  {accountState.activeSubscription.planName}
                 </h2>
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold capitalize text-emerald-700">
-                  {account.activeSubscription.status}
+                  {accountState.activeSubscription.status}
                 </span>
               </div>
             </Card>
@@ -176,7 +168,7 @@ export default function ExplorePlansPage() {
               </div>
             </div>
 
-            {account.loading && account.plans.length === 0 ? (
+            {accountState.loading && accountState.plans.length === 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
                 {[1, 2, 3, 4].map((item) => (
                   <div
@@ -185,7 +177,7 @@ export default function ExplorePlansPage() {
                   />
                 ))}
               </div>
-            ) : account.plans.length === 0 ? (
+            ) : accountState.plans.length === 0 ? (
               <Card className="rounded-3xl p-10 text-center shadow-sm">
                 <Crown className="mx-auto h-10 w-10 text-primary/50" />
                 <h2 className="mt-4 font-extrabold">Plans are not available</h2>
@@ -195,7 +187,7 @@ export default function ExplorePlansPage() {
               </Card>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
-                {account?.plans?.map((plan) => {
+                {accountState.plans.map((plan: any) => {
                   const selected = plan?.id === selectedPlanId;
                   const price = getPlanPrice(plan, currency);
 
@@ -252,7 +244,7 @@ export default function ExplorePlansPage() {
             )}
           </section>
 
-          {account.plans.length > 0 && (
+          {accountState.plans.length > 0 && (
             <section className="mt-8 flex flex-col gap-5 rounded-2xl sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
                 <LockKeyhole className="mt-0.5 h-5 w-5 shrink-0" />

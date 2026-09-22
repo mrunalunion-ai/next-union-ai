@@ -14,7 +14,7 @@ import InputField from "@/components/ui/InputField";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   initialAccountState,
   setAccountSaving,
@@ -41,11 +41,9 @@ function isNotSureLanguage(language: ILoveLanguage) {
 
 export default function MyAccountPage() {
   const dispatch = useAppDispatch();
-  const { user_data, mainReducer } = usePosterReducers();
+  const { user_data, mainReducer, account } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const account = useAppSelector(
-    (state) => state.combinedReducer.account ?? initialAccountState,
-  );
+  const accountState = account ?? initialAccountState;
   const [activeTab, setActiveTab] = useState<AccountTab>("personal");
   const user = user_data?.user;
   const relationship = user?.relationships?.[0];
@@ -364,9 +362,9 @@ export default function MyAccountPage() {
                 <div className="flex justify-end pt-1">
                   <Button
                     type="submit"
-                    disabled={account?.saving || !isConnected}
+                    disabled={accountState.saving || !isConnected}
                   >
-                    {account?.saving ? "Saving…" : "Update Personal Details"}
+                    {accountState.saving ? "Saving…" : "Update Personal Details"}
                   </Button>
                 </div>
               </form>
@@ -487,8 +485,8 @@ export default function MyAccountPage() {
                   </div>
                 </div>
                 <div className="flex justify-end pt-1">
-                  <Button type="submit" disabled={account?.saving || !isConnected}>
-                    {account?.saving ? "Saving…" : "Update Relationship Details"}
+                  <Button type="submit" disabled={accountState.saving || !isConnected}>
+                    {accountState.saving ? "Saving…" : "Update Relationship Details"}
                   </Button>
                 </div>
               </form>

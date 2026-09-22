@@ -5,7 +5,7 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Controller,
     type Control,
@@ -232,6 +232,9 @@ function DatePickerCalendar({
     error,
     inputClassName,
 }: DatePickerCalendarProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const calendarRef = useRef<HTMLDivElement>(null);
     const selectedDate = parseDate(value);
 
     const [calendarDate, setCalendarDate] = useState(
@@ -241,6 +244,7 @@ function DatePickerCalendar({
     const [view, setView] = useState<"calendar" | "month" | "year">(
         "calendar"
     );
+    const [placement, setPlacement] = useState<"above" | "below">("below");
 
     const year = calendarDate.getFullYear();
     const month = calendarDate.getMonth();
@@ -251,6 +255,60 @@ function DatePickerCalendar({
         setOpen((previous) => !previous);
         setView("calendar");
     };
+
+    useEffect(() => {
+        if (!open) return;
+
+        const handleOutsidePointerDown = (event: PointerEvent) => {
+            const target = event.target as Node;
+
+            if (!containerRef.current?.contains(target)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener("pointerdown", handleOutsidePointerDown);
+
+        return () => {
+            document.removeEventListener(
+                "pointerdown",
+                handleOutsidePointerDown,
+            );
+        };
+    }, [open, setOpen]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const updatePlacement = () => {
+            const trigger = triggerRef.current;
+            const calendar = calendarRef.current;
+
+            if (!trigger || !calendar) return;
+
+            const triggerRect = trigger.getBoundingClientRect();
+            const calendarHeight = calendar.getBoundingClientRect().height;
+            const spaceBelow = window.innerHeight - triggerRect.bottom;
+            const spaceAbove = triggerRect.top;
+            const shouldPlaceAbove =
+                spaceBelow < calendarHeight + 8 && spaceAbove > spaceBelow;
+
+            setPlacement((previous) => {
+                const next = shouldPlaceAbove ? "above" : "below";
+                return previous === next ? previous : next;
+            });
+        };
+
+        const frame = window.requestAnimationFrame(updatePlacement);
+        window.addEventListener("resize", updatePlacement);
+        window.addEventListener("scroll", updatePlacement, true);
+
+        return () => {
+            window.cancelAnimationFrame(frame);
+            window.removeEventListener("resize", updatePlacement);
+            window.removeEventListener("scroll", updatePlacement, true);
+        };
+    }, [open, view]);
 
     const handleMonthSelect = (monthIndex: number) => {
         setCalendarDate(
@@ -337,11 +395,12 @@ function DatePickerCalendar({
     );
 
     return (
-        <>
+        <div ref={containerRef} className="relative w-full">
             {/* Input */}
             <button
                 type="button"
                 id={String(value)}
+                ref={triggerRef}
                 disabled={disabled || readOnly}
                 onClick={handleOpen}
                 className={`
@@ -355,6 +414,9 @@ function DatePickerCalendar({
           px-3
           text-sm
           transition-colors
+          focus:border-primary
+            focus:ring-2
+            focus:ring-primary/20
           hover:bg-accent
           disabled:cursor-not-allowed
           disabled:opacity-50
@@ -382,7 +444,13 @@ function DatePickerCalendar({
 
             {/* Calendar popup */}
             {open && !disabled && !readOnly && (
-                <div className="absolute left-0 top-full z-50 mt-2 w-[300px] rounded-lg border bg-background p-3 shadow-lg">
+                <div
+                    ref={calendarRef}
+                    className={`absolute left-0 z-50 w-[min(300px,calc(100vw-2rem))] rounded-lg border bg-background p-3 shadow-lg ${placement === "above"
+                        ? "bottom-full mb-2"
+                        : "top-full mt-2"
+                        }`}
+                >
 
                     {/* -------------------------------------------------------------- */}
                     {/* MONTH VIEW                                                     */}
@@ -601,6 +669,6 @@ function DatePickerCalendar({
                     )}
                 </div>
             )}
-        </>
+        </div>
     );
 }

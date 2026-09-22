@@ -68,6 +68,26 @@ export interface IPartner {
 }
 
 export interface ISubscription {
+  id: string;
+  planId: string;
+  planCode: string;
+  planName: string;
+  planTag: string;
+  planDuration: number;
+  status: string;
+  ownerUserId: string;
+  isOwner: boolean;
+  isShared: boolean;
+  platform: string;
+  startDate: string;
+  endDate: string;
+  isTrial: boolean;
+  trialDays: number;
+  trialStartDate: string;
+  trialEndDate: string;
+  hasUsedFirstPurchaseTrial: boolean;
+  autoRenew: boolean;
+  transactionId: string;
   subscriptionEligibility: ISubscriptionEligibility;
 }
 

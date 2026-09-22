@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   setCheckinAnswer,
   setCheckinCurrentQuestion,
@@ -49,9 +49,8 @@ function isCheckinResponse(
 export default function WeeklyCheckInPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user_data } = usePosterReducers();
+  const { user_data, checkin } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
-  const checkin = useAppSelector((state) => state.combinedReducer.checkin);
   const pendingAction = useRef<"next" | "review" | null>(null);
 
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";

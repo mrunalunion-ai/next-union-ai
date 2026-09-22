@@ -81,7 +81,7 @@ export function TaskModal({
         aria-labelledby="task-modal-title"
         className="max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto scrollbar-hidden rounded-3xl border border-border bg-surface p-6 shadow-2xl sm:p-8"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 mb-3">
           <div>
             <h2 id="task-modal-title" className="text-xl font-extrabold">
               {task ? "Update Relationship Task" : "Add Relationship Task"}
@@ -100,7 +100,7 @@ export function TaskModal({
 
         <form
           onSubmit={handleSubmit(submit)}
-          className="space-y-6"
+          className="space-y-5"
           noValidate
         >
           <InputField<TaskFormValues>
@@ -110,6 +110,7 @@ export function TaskModal({
             register={register}
             error={errors.title}
             placeholder="e.g. Plan a date night"
+            labelClassName="auth-field-label"
             inputClassName="auth-input"
           />
 
@@ -122,10 +123,11 @@ export function TaskModal({
             useFor="textarea"
             rows={4}
             placeholder="What specifically needs to be done?"
+            labelClassName="auth-field-label"
             inputClassName="auth-input"
           />
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2 grid-col-1">
             <DropdownSelect
               name="assignedTo"
               label="Assign to"

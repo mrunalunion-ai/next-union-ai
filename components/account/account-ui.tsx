@@ -58,10 +58,12 @@ export function AccountPageHeader({
   title,
   description,
   showBack = false,
+  backHref = APP_URL.LINKS.ACCOUNT,
 }: {
   title: string;
   description?: string;
   showBack?: boolean;
+  backHref?: string;
 }) {
   const router = useRouter();
 
@@ -70,7 +72,7 @@ export function AccountPageHeader({
       {showBack && (
         <button
           type="button"
-          onClick={() => router.push(APP_URL.LINKS.ACCOUNT)}
+          onClick={() => router.push(backHref)}
           className="mb-3 inline-flex items-center gap-2 rounded-lg py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:underline hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />

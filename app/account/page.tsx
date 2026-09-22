@@ -9,28 +9,26 @@ import {
   LogOut,
   Moon,
   ReceiptText,
-  Settings,
   Sun,
   Trash2,
-  UserCog,
-  UserRound,
+  UserRound
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { AccountPageHeader, AccountRow, AccountSection, SettingRow, Toggle } from "@/components/account/account-ui";
-import { Card } from "@/components/ui/card";
-import { APP_URL } from "@/constant/static";
-import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useTheme } from "next-themes";
-import { useAppDispatch } from "@/redux/hooks";
-import { useEffect, useState } from "react";
 import { Popup } from "@/components/common/popup";
-import { useWebSocket } from "@/services/socket/WebSocketContext";
-import { postData } from "@/services/rest/fetchData";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
+import { Card } from "@/components/ui/card";
+import { API_BASE_URL, APP_URL } from "@/constant/static";
+import { usePosterReducers } from "@/redux/getdata/usePostReducer";
+import { useAppDispatch } from "@/redux/hooks";
+import { setAccountSaving } from "@/redux/modules/account";
 import { logoutUser } from "@/redux/modules/common/user_data/action";
 import { setReduxClear } from "@/redux/modules/main/action";
-import { setAccountSaving } from "@/redux/modules/account";
+import { postData } from "@/services/rest/fetchData";
+import { useWebSocket } from "@/services/socket/WebSocketContext";
+import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -45,6 +43,7 @@ export default function AccountPage() {
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const hasObservedSocketEvent = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -55,30 +54,22 @@ export default function AccountPage() {
 
 
   useEffect(() => {
-    const raw = lastEvent?.data;
-    let message = raw;
-
-    if (typeof raw === "string") {
-      try {
-        message = JSON.parse(raw);
-      } catch {
-        return;
-      }
-    }
-
-    if (
-      message?.request?.type !== "userService" ||
-      message.request.action !== "deleteAccount" ||
-      message.status !== true
-    ) {
+    if (!hasObservedSocketEvent.current) {
+      hasObservedSocketEvent.current = true;
       return;
     }
 
-    sessionStorage.clear();
-    localStorage.clear();
-    dispatch(logoutUser());
-    dispatch(setReduxClear());
-    router.push(APP_URL.LINKS.HOME);
+    if (
+      lastEvent?.data?.request?.type === "userService" &&
+      lastEvent?.data?.request?.action === "deleteAccount" &&
+      lastEvent?.data?.status === true
+    ) {
+      sessionStorage.clear();
+      localStorage.clear();
+      dispatch(logoutUser());
+      dispatch(setReduxClear());
+      router.replace(APP_URL.LINKS.LOGIN);
+    }
   }, [dispatch, lastEvent, router]);
 
   const handleLogout = async () => {
@@ -89,7 +80,7 @@ export default function AccountPage() {
       localStorage.clear();
       dispatch(logoutUser());
       dispatch(setReduxClear());
-      router.push(APP_URL.LINKS.HOME);
+      router.replace(APP_URL.LINKS.LOGIN);
     }
   };
 
@@ -112,13 +103,21 @@ export default function AccountPage() {
 
           <Card className="mb-6 rounded-3xl border-border/70 bg-surface p-5 shadow-sm sm:p-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-xl font-extrabold text-primary">
-                {`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "U"}
+              <div className="flex h-20 w-20 items-center overflow-hidden rounded-full justify-center bg-primary/10 text-3xl font-semibold text-primary">
+                {user?.profileImage ? (
+                  <img
+                    src={API_BASE_URL + user.profileImage}
+                    alt={`${user?.firstName ?? ""}${user?.lastName ?? ""}`.toUpperCase() || "U"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || "U"
+                )}
               </div>
               <div className="min-w-0">
                 <h2 className="truncate text-lg font-extrabold">{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "Your account"}</h2>
                 <p className="truncate text-sm text-muted-foreground">{user?.email || "Manage your account details"}</p>
-                {partner && <p className="mt-1 text-xs font-semibold text-primary">Connected with {`${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()}</p>}
+                {partner && <p className="mt-1 text-sm font-semibold text-primary">Connected with {`${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()}</p>}
               </div>
             </div>
           </Card>

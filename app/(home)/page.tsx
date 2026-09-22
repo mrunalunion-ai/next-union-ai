@@ -22,7 +22,10 @@ import { Footer } from "@/components/common/Footer";
 import { Button } from "@/components/ui/button";
 import { APP_URL } from "@/constant/static";
 import { AnimatedCounter, Reveal } from "./components/reveal";
-import { Header } from "./components/headers";
+import { Header } from "@/components/common/Header";
+import { useEffect } from "react";
+import { useWebSocket } from "@/services/socket/WebSocketContext";
+import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 
 const featureCards = [
   { icon: BrainCircuit, title: "AI Relationship Analysis", text: "Understand patterns and strengthen your connection with intelligent insights." },
@@ -135,9 +138,19 @@ function InterestsMarquee() {
 }
 
 export default function HomePage() {
+  const { isConnected, lastEvent, sendMessage } = useWebSocket();
+  const { user_data } = usePosterReducers();
+
+  const isAuthenticated = Boolean(user_data?.access_token);
+  console.log("isAuthenticated",isAuthenticated)
+  useEffect(() => {
+    if (!isConnected || isAuthenticated === false) return;
+    sendMessage("action", { type: "userService", action: "get", payload: {} });
+  }, [isConnected, isAuthenticated]);
+
   return (
     <div className="min-h-screen overflow-hidden bg-background text-foreground">
-      <Header />
+      <Header variant="marketing" />
       <main>
         <section className="relative overflow-hidden px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-8 lg:pt-14">
           <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -147,7 +160,7 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.4)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.4)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_30%,black,transparent)]" />
           </div>
 
-          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
+          <div className="relative mx-auto grid w-full items-center gap-10 sm:gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
             <Reveal>
               <SectionEyebrow>AI-powered relationship intelligence</SectionEyebrow>
               <h1 className="mt-5 max-w-xl text-4xl font-extrabold leading-[1.05] tracking-[-0.055em] sm:text-6xl">
@@ -223,9 +236,9 @@ export default function HomePage() {
 
         <InterestsMarquee />
 
-        <section id="insights" className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <section id="insights" className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
           <Reveal>
-            <div className="mx-auto grid max-w-6xl grid-cols-2 divide-x divide-border rounded-2xl border border-border/50 bg-surface py-6 shadow-sm sm:grid-cols-4">
+            <div className="mx-auto grid grid-cols-2 divide-x divide-border rounded-2xl border border-border/50 bg-surface py-6 shadow-sm sm:grid-cols-4">
               {stats.map((stat) => (
                 <div key={stat.label} className="px-3 text-center">
                   <p className="text-xl font-extrabold text-primary sm:text-2xl">
@@ -238,8 +251,8 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section id="features" className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
-          <div className="mx-auto max-w-6xl">
+        <section id="features" className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
+          <div className="mx-auto">
             <Reveal>
               <div className="mx-auto max-w-xl text-center">
                 <SectionEyebrow>Everything you need</SectionEyebrow>
@@ -257,9 +270,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <section className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
           <Reveal>
-            <div className="mx-auto max-w-6xl rounded-3xl bg-[#100b2d] p-6 text-white shadow-2xl shadow-primary/15 sm:p-10 lg:p-14">
+            <div className="mx-auto rounded-3xl bg-[#100b2d] p-6 text-white shadow-2xl shadow-primary/15 sm:p-10 lg:p-14">
               <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
                 <div>
                   <SectionEyebrow>See the bigger picture</SectionEyebrow>
@@ -294,8 +307,8 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
-          <div className="mx-auto max-w-6xl">
+        <section className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
+          <div className="mx-auto ">
             <Reveal>
               <div className="mx-auto max-w-xl text-center">
                 <SectionEyebrow>Your relationship companion</SectionEyebrow>
@@ -311,9 +324,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="methodology" className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <section id="methodology" className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
           <Reveal>
-            <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="mx-auto grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
               <div className="rounded-2xl bg-[#160b35] p-6 text-white shadow-xl sm:p-8">
                 <SectionEyebrow>Understand what matters</SectionEyebrow>
                 <h3 className="mt-4 text-2xl font-extrabold">Neural Sentiment &amp; Conflict Prediction</h3>
@@ -350,9 +363,9 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <section className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
           <Reveal>
-            <div className="mx-auto max-w-5xl rounded-3xl border border-border/60 bg-surface p-6 shadow-sm sm:p-10 lg:p-14">
+            <div className="mx-auto rounded-3xl border border-border/60 bg-surface p-6 shadow-sm sm:p-10 lg:p-14">
               <div className="mx-auto max-w-xl text-center">
                 <SectionEyebrow>Measure what matters</SectionEyebrow>
                 <h2 className="mt-4 text-3xl font-extrabold tracking-tight">Quantifying What Matters Most</h2>
@@ -390,15 +403,15 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
-          <div className="mx-auto max-w-6xl">
+        <section className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
+          <div className="mx-auto ">
             <Reveal>
               <div className="mx-auto max-w-xl text-center">
                 <SectionEyebrow>Loved by 12,000+ couples worldwide</SectionEyebrow>
                 <h2 className="mt-4 text-3xl font-extrabold tracking-tight">Real couples. Real growth.</h2>
               </div>
             </Reveal>
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
               {testimonials.map(([quote, name, detail], index) => (
                 <Reveal key={name} delay={index * 100}>
                   <div className="flex h-full flex-col rounded-2xl border border-border/60 bg-surface p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/10">
@@ -418,8 +431,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="pricing" className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
-          <div className="mx-auto max-w-6xl">
+        <section id="pricing" className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
+          <div className="mx-auto">
             <Reveal>
               <div className="mx-auto max-w-xl text-center">
                 <SectionEyebrow>Invest in your shared future</SectionEyebrow>
@@ -450,9 +463,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="faq" className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <section id="faq" className="px-5 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">
           <Reveal>
-            <div className="mx-auto max-w-3xl">
+            <div className="mx-auto">
               <div className="text-center">
                 <SectionEyebrow>Frequently asked</SectionEyebrow>
                 <h2 className="mt-4 text-3xl font-extrabold tracking-tight">Everything You Need to Know</h2>
@@ -472,9 +485,9 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section className="px-5 pb-20 sm:px-8 lg:px-12">
+        <section className="px-5 pb-16 sm:px-6 sm:pb-20 md:px-8 md:pb-24 lg:px-12">
           <Reveal>
-            <div className="anim-gradient-shift relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-[#51228e] via-[#7138b0] to-[#8b42c8] px-6 py-12 text-center text-white shadow-2xl shadow-primary/20 sm:px-10">
+            <div className="anim-gradient-shift relative mx-auto overflow-hidden rounded-3xl bg-gradient-to-br from-[#51228e] via-[#7138b0] to-[#8b42c8] px-6 py-12 text-center text-white shadow-2xl shadow-primary/20 sm:px-10">
               <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/20" />
               <SectionEyebrow>Start your next chapter</SectionEyebrow>
               <h2 className="mx-auto mt-4 max-w-xl text-3xl font-extrabold tracking-tight sm:text-4xl">Start Building Stronger Relationships Today</h2>

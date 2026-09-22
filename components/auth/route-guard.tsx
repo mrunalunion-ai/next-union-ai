@@ -3,15 +3,14 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { PUBLIC_ROUTES } from "@/constant/routeConfig";
-import { useAppSelector } from "@/redux/hooks";
+import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { APP_URL } from "@/constant/static";
 
 export default function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isAuthenticated = useAppSelector(
-    (state) => state.combinedReducer.user_data.is_Login,
-  );
+  const { user_data } = usePosterReducers();
+  const isAuthenticated = user_data?.is_Login;
 
   useEffect(() => {
     const isPublic = PUBLIC_ROUTES.some((route) => pathname === route);

@@ -145,7 +145,7 @@ export default function ResetPasswordContent() {
             </p>
           </div>
         </div>
-        <AuthInfoPanel />
+        <AuthInfoPanel mode="recovery" />
       </div>
     </AuthLayout>
   );

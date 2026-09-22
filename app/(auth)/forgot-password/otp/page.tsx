@@ -181,7 +181,7 @@ export default function OtpVerificationContent() {
             </p>
           </div>
         </div>
-        <AuthInfoPanel />
+        <AuthInfoPanel mode="recovery" />
       </div>
     </AuthLayout>
   );

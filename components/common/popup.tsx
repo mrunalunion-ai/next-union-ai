@@ -82,6 +82,7 @@ export interface PopupProps {
   description: React.ReactNode;
   confirmText: string;
   cancelText?: string;
+  hideCancel?: boolean;
   variant?: PopupVariant;
   onConfirm?: () => void | Promise<void>;
   onCancel?: () => void;
@@ -100,6 +101,7 @@ export function Popup({
   description,
   confirmText,
   cancelText = "Cancel",
+  hideCancel = false,
   variant = "info",
   onConfirm,
   onCancel,
@@ -145,17 +147,19 @@ export function Popup({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-6 grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            {...cancelButtonProps}
-            className={cn("h-10 rounded-lg", style.cancelClassName, cancelButtonProps?.className)}
-            onClick={handleCancel}
-            disabled={isConfirming || cancelButtonProps?.disabled}
-          >
-            {cancelText}
-          </Button>
+        <div className={cn("mt-6 grid gap-2", hideCancel ? "grid-cols-1" : "grid-cols-2")}>
+          {!hideCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              {...cancelButtonProps}
+              className={cn("h-10 rounded-lg", style.cancelClassName, cancelButtonProps?.className)}
+              onClick={handleCancel}
+              disabled={isConfirming || cancelButtonProps?.disabled}
+            >
+              {cancelText}
+            </Button>
+          )}
           <Button
             type="button"
             variant={style.confirmVariant}

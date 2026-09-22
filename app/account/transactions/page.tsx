@@ -8,7 +8,7 @@ import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useAppDispatch } from "@/redux/hooks";
 import { setAccountLoading } from "@/redux/modules/account";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 
@@ -20,9 +20,8 @@ function formatDate(value?: string) {
 
 export default function TransactionsPage() {
   const dispatch = useAppDispatch();
-  const { user_data } = usePosterReducers();
+  const { user_data, account } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const account = useAppSelector((state) => state.combinedReducer.account);
   const userId = user_data?.user?.id ?? "";
   const loadTransactions = useCallback(() => {
     if (!isConnected || !userId) return;

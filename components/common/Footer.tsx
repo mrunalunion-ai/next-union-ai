@@ -23,47 +23,44 @@ const columns = [
     ],
   },
   {
-    title: "Resources",
+    title: "Legal",
     links: [
-      { label: "Methodology", href: "#methodology" },
-      { label: "About Union AI", href: APP_URL.LINKS.ABOUT },
-      { label: "Sign in", href: APP_URL.LINKS.LOGIN },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "Get started", href: APP_URL.LINKS.REGISTER },
-      { label: "Contact us", href: "mailto:hello@unionai.app" },
-      { label: "Privacy & Terms", href: "#" },
+      { label: "Terms & Conditions", href: `${APP_URL.LINKS.LEGAL}/terms` },
+      { label: "Privacy Policy", href: `${APP_URL.LINKS.LEGAL}/privacy` },
+      { label: "Subscription Policy", href: `${APP_URL.LINKS.LEGAL}/subscription` },
     ],
   },
 ];
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-border/60 bg-surface">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl" />
+    <footer className="relative overflow-hidden border-t border-white/10 bg-[#121225] text-white">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#9b75f4] to-transparent" />
+      <div className="pointer-events-none absolute -right-32 -top-32 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 left-1/4 h-72 w-72 rounded-full bg-[#e85d9e]/10 blur-3xl" />
 
-      <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-5 py-14 sm:px-8 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:px-12">
-        <div className="max-w-sm">
+      <div className="relative mx-auto grid w-full gap-10 px-5 py-12 sm:grid-cols-2 sm:px-8 sm:py-14 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-12 lg:px-12">
+        <div className="sm:col-span-2 lg:col-span-1">
           <Link
             href={APP_URL.LINKS.HOME}
             className="inline-flex items-center gap-2.5"
             aria-label={`${APP_NAME} home`}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#9b75f4] shadow-lg shadow-primary/20">
-              <Heart className="h-5 w-5 text-white" fill="currentColor" />
-            </span>
-            <span className="text-xl font-extrabold tracking-tight text-foreground">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
+              <img
+                src={APP_URL.IMAGES.LOGO_BADGE}
+                alt="UnionAI"
+                className="h-12 w-12 object-contain sm:h-14 sm:w-14"
+              />
+            </div>
+            <span className="text-xl font-extrabold tracking-tight text-white">
               Union
               <span className="bg-gradient-to-r from-[#5741c7] via-[#7253e5] to-[#e85d9e] bg-clip-text text-transparent">
                 AI
               </span>
             </span>
           </Link>
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">
+          <p className="mt-4 max-w-sm text-xs leading-6 text-white/60 sm:text-sm">
             Union AI empowers modern couples to master emotional connection and resolution through real-time communication analysis.
           </p>
 
@@ -75,7 +72,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-all duration-300 hover:-translate-y-0.5 hover:border-transparent hover:text-white hover:shadow-lg hover:shadow-primary/25"
+                className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/65 transition-all duration-300 hover:-translate-y-0.5 hover:border-transparent hover:text-white hover:shadow-lg hover:shadow-primary/25"
               >
                 <span className="absolute inset-0 rounded-full bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#e85d9e] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <Icon className="relative h-4 w-4" />
@@ -86,7 +83,7 @@ export function Footer() {
 
         {columns.map((column) => (
           <div key={column.title}>
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-foreground">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-white">
               {column.title}
             </p>
             <ul className="mt-4 space-y-3">
@@ -94,7 +91,7 @@ export function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    className="group inline-flex items-center gap-1.5 text-sm text-white/60 transition-colors hover:text-white"
                   >
                     <span className="h-px w-0 bg-gradient-to-r from-primary to-[#e85d9e] transition-all duration-300 group-hover:w-3" />
                     {link.label}
@@ -106,8 +103,8 @@ export function Footer() {
         ))}
       </div>
 
-      <div className="relative border-t border-border/60">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-5 py-5 text-[11px] text-muted-foreground sm:flex-row sm:px-8 lg:px-12">
+      <div className="relative border-t border-white/10">
+        <div className="mx-auto flex w-full flex-col items-center justify-between gap-3 px-5 py-5 text-center text-[11px] text-white/50 sm:flex-row sm:px-8 sm:text-left lg:px-12">
           <p>
             © 2026 Union Tech Inc. All rights reserved.
           </p>

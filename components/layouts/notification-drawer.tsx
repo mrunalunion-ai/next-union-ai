@@ -9,7 +9,8 @@ import {
 } from "@/app/notifications/components/notification-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { usePosterReducers } from "@/redux/getdata/usePostReducer";
+import { useAppDispatch } from "@/redux/hooks";
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -24,10 +25,8 @@ interface NotificationDrawerProps {
 
 export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const dispatch = useAppDispatch();
+  const { notifications } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const notifications = useAppSelector(
-    (state) => state.combinedReducer.notifications,
-  );
 
   const loadNotifications = useCallback(() => {
     if (!isConnected) return;
@@ -160,7 +159,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             </Card>
           ) : (
             <div className="space-y-3">
-              {notifications.items.map((notification) => (
+              {notifications.items.map((notification: any) => (
                 <NotificationCard
                   key={notification.id}
                   notification={notification}

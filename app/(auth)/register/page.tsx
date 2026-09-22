@@ -1,6 +1,7 @@
 "use client";
 
 import AuthLayout from "@/components/auth/auth-layout";
+import { PasswordRequirementsDialog } from "@/components/auth/password-requirements-dialog";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
 import { Button } from "@/components/ui/button";
 import DatePicker from "@/components/ui/datePicker";
@@ -16,14 +17,16 @@ import {
   getCountryCallingCode,
   type CountryCode,
 } from "libphonenumber-js";
-import { LockKeyhole, Mail, UserRound } from "lucide-react";
+import { Info, LockKeyhole, Mail, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
 import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+const REGISTER_DRAFT_KEY = "unionai_register_draft";
 
 export const countryFlag = (country: CountryCode): ReactNode => {
   const Flag = CountryFlags[country] as
@@ -78,6 +81,7 @@ function errorMessage(error: unknown) {
 export default function RegisterPage() {
   const currentStep = 1;
   const router = useRouter();
+  const [isPasswordInfoOpen, setIsPasswordInfoOpen] = useState(false);
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -100,8 +104,30 @@ export default function RegisterPage() {
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors, isValid, isSubmitting },
   } = form;
+
+  useEffect(() => {
+    const savedDraft = sessionStorage.getItem(REGISTER_DRAFT_KEY);
+    if (!savedDraft) return;
+
+    try {
+      reset(JSON.parse(savedDraft) as RegisterFormValues);
+    } catch {
+      sessionStorage.removeItem(REGISTER_DRAFT_KEY);
+    }
+  }, [reset]);
+
+  const openLegalPage = (type: "terms" | "privacy") => {
+    sessionStorage.setItem(
+      REGISTER_DRAFT_KEY,
+      JSON.stringify(form.getValues()),
+    );
+    router.push(
+      `${APP_URL.LINKS.LEGAL}/${type}?returnTo=${encodeURIComponent(APP_URL.LINKS.REGISTER)}`,
+    );
+  };
 
   const onSubmit = async (values: RegisterFormValues) => {
     try {
@@ -121,6 +147,7 @@ export default function RegisterPage() {
         toast.error(response?.message || "Could not create account.");
         return;
       }
+      sessionStorage.removeItem(REGISTER_DRAFT_KEY);
       sessionStorage.setItem(
         "unionai_signup_payload",
         JSON.stringify(signupPayload),
@@ -195,6 +222,7 @@ export default function RegisterPage() {
                 labelClassName="auth-field-label"
                 inputClassName="auth-input"
                 leftAdornment={<Mail className="h-5 w-5" />}
+                helperText="A verification code will be sent to this email to verify your account"
               />
               <div>
                 <DropdownSelect
@@ -205,7 +233,7 @@ export default function RegisterPage() {
                   required
                   isClearable={false}
                   labelClassName="auth-field-label"
-                  formClassName="mt-1 h-11 rounded-[10px] border-input bg-background"
+                  formClassName="mt-1 h-11 rounded-[10px] border-input"
                   placeholder="Select country"
                   onSelect={(option) => {
                     const country = countryOptions.find(
@@ -232,7 +260,7 @@ export default function RegisterPage() {
                     options={phoneCodeOptions}
                     isClearable={false}
                     labelClassName="auth-field-label"
-                    formClassName="mt-1 h-11 rounded-[10px] border-input bg-background"
+                    formClassName="mt-1 h-11 rounded-[10px] border-input"
                     placeholder="Code"
                     onSelect={(option) =>
                       form.setValue(
@@ -260,6 +288,17 @@ export default function RegisterPage() {
                 <InputField<RegisterFormValues>
                   name="password"
                   label="Password"
+                  labelAdornment={
+                    <button
+                      type="button"
+                      aria-label="Show password requirements"
+                      title="Show password requirements"
+                      onClick={() => setIsPasswordInfoOpen(true)}
+                      className="rounded-full text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    >
+                      <Info className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  }
                   type="password"
                   placeholder="••••••"
                   register={register}
@@ -294,7 +333,7 @@ export default function RegisterPage() {
                     options={genderOptions}
                     placeholder="Select Gender"
                     labelClassName="auth-field-label"
-                    formClassName="mt-1 h-11 rounded-[10px] border-input bg-background"
+                    formClassName="mt-1 h-11 rounded-[10px] border-input"
                     errors={errors.gender?.message && errors.gender.message}
                   />
                 </div>
@@ -314,7 +353,7 @@ export default function RegisterPage() {
               <label className="flex items-start gap-3 text-base leading-6 text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="mt-1 h-5 w-5 shrink-0 rounded border-2 border-foreground accent-primary"
+                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-2 border-foreground accent-primary"
                   {...register("termsAccepted")}
                 />
                 <span>
@@ -322,11 +361,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     className="font-semibold text-primary hover:underline"
-                    onClick={() =>
-                      toast.info(
-                        "Terms & Conditions page is not included in this conversion.",
-                      )
-                    }
+                    onClick={() => openLegalPage("terms")}
                   >
                     Terms &amp; Conditions
                   </button>{" "}
@@ -334,11 +369,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     className="font-semibold text-primary hover:underline"
-                    onClick={() =>
-                      toast.info(
-                        "Privacy Policy page is not included in this conversion.",
-                      )
-                    }
+                    onClick={() => openLegalPage("privacy")}
                   >
                     Privacy Policy
                   </button>
@@ -368,6 +399,10 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
+        <PasswordRequirementsDialog
+          open={isPasswordInfoOpen}
+          onOpenChange={setIsPasswordInfoOpen}
+        />
       </div>
     </AuthLayout>
   );
