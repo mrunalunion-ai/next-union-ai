@@ -46,6 +46,8 @@ export const APP_URL = {
   IMAGES: {
     LOGO: '/assets/images/logo.svg',
     LIGHT_LOGO: '/assets/images/LightLogo.svg',
-    LOGO_BADGE: '/assets/images/logo-badge.svg'
+    LOGO_BADGE: '/assets/images/logo-badge.svg',
+    APPLE_STORE: '/assets/images/apple_store.svg',
+    PLAY_STORE: '/assets/images/play_store.svg'
   }
 }

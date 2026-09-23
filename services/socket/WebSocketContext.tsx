@@ -18,6 +18,10 @@ import { useDispatch } from "react-redux";
 import { io, Socket } from "socket.io-client";
 import { toast } from "react-toastify";
 import { ws_response } from "./ws_response";
+import {
+  getFcmToken,
+  onForegroundMessage,
+} from "@/services/firebase/firebase";
 
 // Singleton socket reference
 let singletonSocket: Socket | null = null;
@@ -163,6 +167,23 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const eventType =
       lastEvent.event === "data" ? lastEvent.data?.type : lastEvent.event;
     const request = lastEvent.data?.request;
+
+    if (
+      request?.type === "userService" &&
+      request?.action === "update" &&
+      request?.payload?.fcmToken
+    ) {
+      const accepted = lastEvent.data?.status === true;
+      console.log(
+        `[PUSH] fcmToken registration ${accepted ? "✅ accepted by server" : "❌ rejected by server"}:`,
+        {
+          msg: lastEvent.data?.msg,
+          errors: lastEvent.data?.errors,
+          userId: request?.payload?.id,
+        },
+      );
+    }
+
     const directAccountEvents = new Set([
       "ws_send_request_event",
       "ws_accept_request_event",
@@ -231,7 +252,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   // Re-initialize socket whenever token changes
   useEffect(() => {
-    if (!accessToken && !guestAccessToken) return;
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) return;
 
     if (singletonSocket) {
       console.log("♻️ Reconnecting socket due to token change...");
@@ -241,7 +263,59 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     }
 
     initializeSocket();
-  }, [accessToken, guestAccessToken, initializeSocket]);
+  }, [accessToken, initializeSocket]);
+
+  // Register the device's FCM token after authentication and surface
+  // foreground notifications as toasts.
+  useEffect(() => {
+    if (!isConnected || !accessToken) return;
+    const userId = user_data?.user?.id;
+    if (!userId) return;
+
+    console.log("[PUSH] FCM registration effect running:", {
+      isConnected,
+      hasAccessToken: Boolean(accessToken),
+      userId,
+      hasForegroundListener: true,
+    });
+
+    let active = true;
+    const unsubscribe = onForegroundMessage((payload) => {
+      console.log("[PUSH] 📩 Foreground message received:", payload);
+      if (localStorage.getItem("unionai_notifications_enabled") === "false") {
+        console.log("[PUSH] Foreground message ignored: notifications disabled");
+        return;
+      }
+      const { title, body } = payload?.notification || {};
+      if (title || body) toast.info(body || title);
+    });
+
+    getFcmToken().then((fcmToken) => {
+      if (!active) return;
+      if (!fcmToken) {
+        console.warn(
+          "[PUSH] ❌ No FCM token obtained — nothing to register. Check the [firebase] logs above (config/VAPID/permission).",
+        );
+        return;
+      }
+      console.log("[PUSH] Registering fcmToken with backend…", {
+        userId,
+        action: "userService/update",
+        fcmToken: `${fcmToken.slice(0, 16)}…`,
+      });
+      localStorage.setItem("unionai_fcm_token", fcmToken);
+      sendMessage("action", {
+        type: "userService",
+        action: "update",
+        payload: { id: userId, fcmToken },
+      });
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [accessToken, isConnected, sendMessage, user_data?.user?.id]);
 
   return (
     <WebSocketContext.Provider

@@ -84,7 +84,12 @@ export default function AccountPage() {
 
   const handleLogout = async () => {
     try {
-      await postData(APP_URL.ENDPOINT_URL.LOGOUT, {}, user_data?.access_token);
+      const fcmToken = localStorage.getItem("unionai_fcm_token") ?? undefined;
+      await postData(
+        APP_URL.ENDPOINT_URL.LOGOUT,
+        { fcmToken },
+        user_data?.access_token,
+      );
     } finally {
       sessionStorage.clear();
       localStorage.clear();

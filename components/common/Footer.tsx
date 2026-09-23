@@ -1,16 +1,22 @@
 "use client";
-import { Heart, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
+import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { APP_URL } from "@/constant/static";
 
 const APP_NAME = "UnionAI";
 
-const socialLinks = [
-  { label: "Instagram", href: "https://instagram.com", icon: Instagram },
-  { label: "Twitter", href: "https://x.com", icon: Twitter },
-  { label: "LinkedIn", href: "https://linkedin.com", icon: Linkedin },
-  { label: "YouTube", href: "https://youtube.com", icon: Youtube },
+const appLinks = [
+  {
+    label: "Google Play",
+    href: "https://play.google.com/store/apps",
+    image: "/assets/images/play_store.svg",
+  },
+  {
+    label: "App Store",
+    href: "https://www.apple.com/app-store/",
+    image: "/assets/images/apple_store.svg",
+  },
 ];
 
 const columns = [
@@ -56,29 +62,28 @@ export function Footer() {
                 className="h-12 w-12 object-contain sm:h-14 sm:w-14"
               />
             </div>
-            <span className="text-xl font-extrabold tracking-tight text-white">
-              Union
-              <span className="bg-gradient-to-r from-[#5741c7] via-[#7253e5] to-[#e85d9e] bg-clip-text text-transparent">
-                AI
-              </span>
-            </span>
+              <Image
+                width={110}
+                height={110}
+                src={APP_URL.IMAGES.LIGHT_LOGO}
+                alt="UnionAI"
+              />
           </Link>
           <p className="mt-4 max-w-sm text-xs leading-6 text-white/60 sm:text-sm">
             Union AI empowers modern couples to master emotional connection and resolution through real-time communication analysis.
           </p>
 
-          <div className="mt-6 flex items-center gap-2">
-            {socialLinks.map(({ label, href, icon: Icon }) => (
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {appLinks.map(({ label, href, image }) => (
               <a
                 key={label}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/65 transition-all duration-300 hover:-translate-y-0.5 hover:border-transparent hover:text-white hover:shadow-lg hover:shadow-primary/25"
+                className="group inline-flex h-10 w-[135px] overflow-hidden rounded-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20 sm:h-11 sm:w-[148px]"
               >
-                <span className="absolute inset-0 rounded-full bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#e85d9e] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <Icon className="relative h-4 w-4" />
+                <Image src={image} alt={`Download UnionAI on ${label}`} width={135} height={40} className="h-full w-full object-fill" />
               </a>
             ))}
           </div>
