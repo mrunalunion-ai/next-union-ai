@@ -245,7 +245,8 @@ export default function RelationshipDetailsContent() {
     if (
       lastEvent?.data?.status &&
       lastEvent?.data?.request?.type === "userService" &&
-      lastEvent?.data?.request?.action === "update"
+      lastEvent?.data?.request?.action === "update" &&
+      lastEvent?.data?.data?.onboardingStep === "relationshipDetailsCompleted"
     ) {
       router.push(APP_URL.LINKS.CREATE_UNION);
     }
