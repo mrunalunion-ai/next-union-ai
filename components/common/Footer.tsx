@@ -9,13 +9,13 @@ const APP_NAME = "UnionAI";
 const appLinks = [
   {
     label: "Google Play",
-    href: "https://play.google.com/store/apps",
-    image: "/assets/images/play_store.svg",
+    href: process.env.NEXT_PUBLIC_GOOGLE_PLAY_STORE_URL,
+    image: APP_URL.IMAGES.PLAY_STORE,
   },
   {
     label: "App Store",
-    href: "https://www.apple.com/app-store/",
-    image: "/assets/images/apple_store.svg",
+    href: process.env.NEXT_PUBLIC_APPLE_STORE_URL,
+    image: APP_URL.IMAGES.APPLE_STORE,
   },
 ];
 
