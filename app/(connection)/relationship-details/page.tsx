@@ -248,6 +248,7 @@ export default function RelationshipDetailsContent() {
       lastEvent?.data?.request?.action === "update" &&
       lastEvent?.data?.data?.onboardingStep === "relationshipDetailsCompleted"
     ) {
+      // toast.success(ws_onmessage?.msg ?? "Profile updated successfully.");
       router.push(APP_URL.LINKS.CREATE_UNION);
     }
   }, [lastEvent]);

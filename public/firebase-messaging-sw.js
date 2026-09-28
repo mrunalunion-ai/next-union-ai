@@ -35,6 +35,7 @@ function parseData(payload) {
 }
 
 messaging.onBackgroundMessage((payload) => {
+  console.info("[SW] 📬 ",payload)
   const { data, meta } = parseData(payload);
   const notification = payload?.notification || {};
   const messageId = String(

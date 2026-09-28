@@ -10,7 +10,9 @@ type RevealProps = {
 
 export function Reveal({ children, className = "", delay = 0 }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  // Keep the server-rendered HTML visible even when JavaScript is disabled.
+  // The observer still handles the hydrated scroll state for interactive users.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const el = ref.current;

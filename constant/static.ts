@@ -1,6 +1,10 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
+export const LEGAL_PAGE_SOURCE = {
+  ACCOUNT: "account",
+} as const;
+
 export const APP_URL = {
   LINKS: {
     HOME: "/",
@@ -42,6 +46,7 @@ export const APP_URL = {
     RESET_PASSWORD: '/api/auth/reset-password',
     LOGOUT: '/api/auth/logout',
     UPLOAD_FILE: '/api/upload',
+    LEGAL_PAGE: '/api/legal-page',
   },
   IMAGES: {
     LOGO: '/assets/images/logo.svg',

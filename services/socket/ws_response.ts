@@ -35,9 +35,8 @@ import {
   setAccountSaving,
   setAccountTransactions,
   setActiveSubscription,
-  setAccountLegal,
-  type LegalPageType,
 } from "@/redux/modules/account";
+
 import { toast } from "react-toastify";
 
 function getInsightPayload(message: Record<string, any>) {
@@ -235,7 +234,6 @@ export const ws_response = (
                 toAccountSubscription(user?.relationships?.[0]?.subscription),
               ),
             );
-            toast.success(ws_onmessage?.msg ?? "Profile updated successfully.");
           } else {
             const message = ws_onmessage?.msg ?? "Unable to update your profile.";
             dispatch(setAccountError(message));
@@ -448,31 +446,6 @@ export const ws_response = (
           const subscription = toAccountSubscription(data);
           if (subscription) dispatch(setActiveSubscription(subscription));
           toast.success(ws_onmessage?.msg ?? "Payment recorded successfully.");
-        }
-        break;
-      }
-
-      case "legalPageService": {
-        if (ws_onmessage?.status === false) {
-          dispatch(setAccountError(ws_onmessage?.msg ?? "Unable to load legal page."));
-          break;
-        }
-        if (ws_onmessage?.request?.action === "get") {
-          const data = getInsightPayload(ws_onmessage);
-          const type = String(data.type ?? ws_onmessage?.request?.payload?.type) as LegalPageType;
-          if (["terms", "privacy", "subscription"].includes(type)) {
-            dispatch(
-              setAccountLegal({
-                type,
-                page: {
-                  id: String(data.id ?? ""),
-                  type,
-                  pageContent: String(data.pageContent ?? ""),
-                  active: data.active === true,
-                },
-              }),
-            );
-          }
         }
         break;
       }

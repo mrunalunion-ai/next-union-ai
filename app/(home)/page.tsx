@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowRight,
   BarChart3,
@@ -15,6 +13,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
@@ -37,7 +36,7 @@ const steps = [
   { number: "03", icon: Sparkles, title: "Understand and act", text: "Review your score, insights, and recommendations, then turn them into meaningful habits." },
 ];
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children }: { children: ReactNode }) {
   return <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary"><span className="h-1.5 w-1.5 rounded-full bg-primary" />{children}</span>;
 }
 

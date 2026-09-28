@@ -52,7 +52,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const router = useRouter();
   const { user_data } = usePosterReducers();
   const accessToken = user_data?.access_token;
-  const guestAccessToken = process.env.NEXT_PUBLIC_GUEST_ACCESS_TOKEN;
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<{
     event: string;
@@ -60,11 +59,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   } | null>(null);
   const [isConnectionDeletedPopupOpen, setIsConnectionDeletedPopupOpen] =
     useState(false);
-
-  const buildAuthPayload = () => {
-    const token = accessToken || guestAccessToken;
-    return token ? { token } : {};
-  };
 
   const sendMessage = useCallback((event: string, data?: any) => {
     if (singletonSocket && singletonSocket.connected) {
@@ -77,24 +71,16 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   const initializeSocket = useCallback(() => {
     if (isSocketInitialized) return;
-
-    // const tokenToUse = accessToken || guestAccessToken;
-    // if (!tokenToUse) {
-    //   console.warn('⚠️ No token available for WebSocket connection');
-    //   return;
-    // }
+    if (!accessToken) return;
 
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!baseUrl) {
       console.log("⚠️ NEXT_PUBLIC_ENDPOINT_API_URL is not set");
       return;
     }
-    const socketUrl = accessToken
-      ? baseUrl
-      : `${baseUrl.replace(/\/$/, "")}/guest`;
 
-    singletonSocket = io(socketUrl, {
-      auth: buildAuthPayload(),
+    singletonSocket = io(baseUrl, {
+      auth: { token: accessToken },
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -154,13 +140,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     });
 
     isSocketInitialized = true;
-  }, [accessToken, guestAccessToken, dispatch, router, sendMessage]);
+  }, [accessToken, dispatch, router, sendMessage]);
 
   useEffect(() => {
-    // Do not process stale socket events after the authenticated session has
-    // been cleared. This prevents logout from triggering another userService
-    // get request while the guest socket is being initialized.
-    if (!lastEvent || !isConnected || !accessToken) return;
+    if (!lastEvent || !isConnected) return;
 
     const relationship = user_data?.user?.relationships?.[0];
     const relationshipId = relationship?.id;

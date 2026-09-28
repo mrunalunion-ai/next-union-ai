@@ -21,7 +21,7 @@ import { Popup } from "@/components/common/popup";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { API_BASE_URL, APP_URL } from "@/constant/static";
+import { API_BASE_URL, APP_URL, LEGAL_PAGE_SOURCE } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import { setAccountSaving } from "@/redux/modules/account";
@@ -196,9 +196,9 @@ export default function AccountPage() {
             </AccountSection>
 
             <AccountSection title="Legal">
-              <AccountRow icon={FileText} label="Terms & Conditions" onClick={() => router.push(`${APP_URL.LINKS.LEGAL}/terms`)} />
-              <AccountRow icon={LockKeyhole} label="Privacy Policy" onClick={() => router.push(`${APP_URL.LINKS.LEGAL}/privacy`)} />
-              <AccountRow icon={ReceiptText} label="Subscription Policy" onClick={() => router.push(`${APP_URL.LINKS.LEGAL}/subscription`)} />
+              <AccountRow icon={FileText} label="Terms & Conditions" onClick={() => router.push(`${APP_URL.LINKS.LEGAL}/terms?from=${LEGAL_PAGE_SOURCE.ACCOUNT}`)} />
+              <AccountRow icon={LockKeyhole} label="Privacy Policy" onClick={() => router.push(`${APP_URL.LINKS.LEGAL}/privacy?from=${LEGAL_PAGE_SOURCE.ACCOUNT}`)} />
+              <AccountRow icon={ReceiptText} label="Subscription Policy" onClick={() => router.push(`${APP_URL.LINKS.LEGAL}/subscription?from=${LEGAL_PAGE_SOURCE.ACCOUNT}`)} />
             </AccountSection>
 
             <AccountSection title="App Settings">
