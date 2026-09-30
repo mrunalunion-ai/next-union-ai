@@ -1,13 +1,14 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, MessageCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type ChangeEvent } from "react";
 import { toast } from "react-toastify";
 
-import RouteGuard from "@/components/auth/route-guard";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import InputField from "@/components/ui/InputField";
 import { APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
@@ -18,8 +19,6 @@ import {
   setCheckinSubmitting,
 } from "@/redux/modules/checkin";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
-import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-import InputField from "@/components/ui/InputField";
 
 function parseMessage(rawMessage: unknown): Record<string, any> | null {
   if (!rawMessage) return null;
@@ -52,13 +51,12 @@ export default function WeeklyCheckInPage() {
   const { user_data, checkin } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const pendingAction = useRef<"next" | "review" | null>(null);
-
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
-  const question = checkin.questions[checkin.currentQuestion];
-  const answer = checkin.answers[checkin.currentQuestion];
+  const question = checkin?.questions[checkin?.currentQuestion];
+  const answer = checkin?.answers[checkin?.currentQuestion];
 
   useEffect(() => {
-    if (!relationshipId || !isConnected || checkin.questions.length > 0) {
+    if (!relationshipId || !isConnected || checkin?.questions?.length > 0) {
       return;
     }
     dispatch(setCheckinLoading(true));
@@ -68,7 +66,7 @@ export default function WeeklyCheckInPage() {
       payload: { relationshipId },
     });
   }, [
-    checkin.questions.length,
+    checkin?.questions?.length,
     dispatch,
     isConnected,
     relationshipId,
@@ -101,15 +99,15 @@ export default function WeeklyCheckInPage() {
       dispatch(
         setCheckinCurrentQuestion(
           Math.min(
-            checkin.currentQuestion + 1,
-            checkin.questions.length - 1,
+            checkin?.currentQuestion + 1,
+            checkin?.questions.length - 1,
           ),
         ),
       );
     }
   }, [
-    checkin.currentQuestion,
-    checkin.questions.length,
+    checkin?.currentQuestion,
+    checkin?.questions?.length,
     dispatch,
     lastEvent,
     router,
@@ -120,10 +118,10 @@ export default function WeeklyCheckInPage() {
 
     dispatch(
       setCheckinAnswer({
-        index: checkin.currentQuestion,
+        index: checkin?.currentQuestion,
         answer: {
           id: answer?.id,
-          questionId: question.questionId,
+          questionId: question?.questionId,
           score,
           comment: answer?.comment ?? "",
         },
@@ -136,19 +134,19 @@ export default function WeeklyCheckInPage() {
 
     dispatch(
       setCheckinAnswer({
-        index: checkin.currentQuestion,
+        index: checkin?.currentQuestion,
         answer: { ...answer, comment },
       }),
     );
   };
 
   const saveAndContinue = () => {
-    if (!question || !answer?.score || !isConnected || checkin.submitting) {
+    if (!question || !answer?.score || !isConnected || checkin?.submitting) {
       return;
     }
 
     pendingAction.current =
-      checkin.currentQuestion === checkin.questions.length - 1
+      checkin?.currentQuestion === checkin?.questions?.length - 1
         ? "review"
         : "next";
 
@@ -157,14 +155,14 @@ export default function WeeklyCheckInPage() {
       type: "checkinService",
       action: "submit",
       payload: {
-        relationshipId: checkin.relationshipId || relationshipId,
+        relationshipId: checkin?.relationshipId || relationshipId,
         answers: [
           {
-            ...(answer.id ? { id: answer.id } : {}),
-            questionId: answer.questionId,
-            score: answer.score,
-            ...(answer.comment?.trim()
-              ? { comment: answer.comment.trim() }
+            ...(answer?.id ? { id: answer?.id } : {}),
+            questionId: answer?.questionId,
+            score: answer?.score,
+            ...(answer?.comment?.trim()
+              ? { comment: answer?.comment?.trim() }
               : {}),
           },
         ],
@@ -174,7 +172,7 @@ export default function WeeklyCheckInPage() {
   };
 
   const isLoading =
-    checkin.loading || (!checkin.questions.length && isConnected);
+    checkin?.loading || (!checkin?.questions?.length && isConnected);
 
   return (
     <DashboardLayout>
@@ -221,12 +219,12 @@ export default function WeeklyCheckInPage() {
             <>
               <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-[0.14em] text-primary">
                 <span>
-                  Question {checkin.currentQuestion + 1} of {checkin.questions.length}
+                  Question {checkin?.currentQuestion + 1} of {checkin?.questions?.length}
                 </span>
                 <span>
                   {Math.round(
-                    ((checkin.currentQuestion + 1) /
-                      checkin.questions.length) *
+                    ((checkin?.currentQuestion + 1) /
+                      checkin?.questions?.length) *
                     100,
                   )}% complete
                 </span>
@@ -235,14 +233,14 @@ export default function WeeklyCheckInPage() {
                 <div
                   className="h-full rounded-full bg-primary transition-all"
                   style={{
-                    width: `${((checkin.currentQuestion + 1) / checkin.questions.length) * 100}%`,
+                    width: `${((checkin?.currentQuestion + 1) / checkin?.questions?.length) * 100}%`,
                   }}
                 />
               </div>
 
               <Card className="mt-8 rounded-3xl border-border/70 bg-surface p-6 shadow-sm sm:p-8">
                 <h2 className="text-xl font-extrabold text-foreground leading-tight">
-                  {question.title}
+                  {question?.title}
                 </h2>
 
                 <div className="mt-8 flex justify-between text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
@@ -292,12 +290,12 @@ export default function WeeklyCheckInPage() {
                     variant="outline"
                     className="flex-1"
                     disabled={
-                      checkin.currentQuestion === 0 || checkin.submitting
+                      checkin?.currentQuestion === 0 || checkin?.submitting
                     }
                     onClick={() =>
                       dispatch(
                         setCheckinCurrentQuestion(
-                          checkin.currentQuestion - 1,
+                          checkin?.currentQuestion - 1,
                         ),
                       )
                     }
@@ -307,12 +305,12 @@ export default function WeeklyCheckInPage() {
                   </Button>
                   <Button
                     className="flex-1"
-                    disabled={!answer?.score || checkin.submitting || !isConnected}
+                    disabled={!answer?.score || checkin?.submitting || !isConnected}
                     onClick={saveAndContinue}
                   >
-                    {checkin.submitting
+                    {checkin?.submitting
                       ? "Saving…"
-                      : checkin.currentQuestion === checkin.questions.length - 1
+                      : checkin?.currentQuestion === checkin?.questions?.length - 1
                         ? "Review answers"
                         : "Next question"}
                     <ArrowRight className="ml-2 h-4 w-4" />

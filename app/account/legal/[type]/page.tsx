@@ -68,12 +68,12 @@ export default async function LegalPage({ params, searchParams }: LegalPageProps
   const returnToRegister = !returnToAccount && returnTo === APP_URL.LINKS.REGISTER;
 
   const legalContent = (
-    <main className="h-full min-h-0 overflow-y-auto overscroll-contain bg-background px-4 py-6 text-foreground sm:px-6 sm:py-8 lg:px-10 lg:py-8">
+    <main className="h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-6 text-foreground sm:px-6 sm:py-8 lg:px-10 lg:py-8">
       <div className="mx-auto">
         <div className="flex items-start justify-between gap-4">
           <AccountPageHeader
             title={title}
-            description="Review the latest UnionAI policy information."
+            description="Review the latest UnionAI policy information"
             showBack
             backHref={
               returnToAccount

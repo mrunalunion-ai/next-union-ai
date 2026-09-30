@@ -3,9 +3,10 @@
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
 import RouteGuard from "@/components/auth/route-guard";
+import { ShareUnionCodeDialog } from "@/components/auth/share-union-code-dialog";
 import { Popup } from "@/components/common/popup";
 import { Button } from "@/components/ui/button";
-import { APP_URL } from "@/constant/static";
+import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { ArrowBigUpDash, Copy, RefreshCw, UserRoundCheck } from "lucide-react";
@@ -22,11 +23,12 @@ export default function CodeCreate() {
     const relationship = currentUser?.relationships?.[0];
     const partner = relationship?.partner;
     const partnerName = partner
-        ? `${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()
+        ? `${partner?.firstName ?? ""} ${partner?.lastName ?? ""}`.trim()
         : "";
     const [confirmation, setConfirmation] = useState<
         "accept" | "reject" | "delete" | null
     >(null);
+    const [showSharePopup, setShowSharePopup] = useState(false);
 
     useEffect(() => {
         if (!isConnected) return;
@@ -41,6 +43,52 @@ export default function CodeCreate() {
     const copyCode = async () => {
         await navigator.clipboard?.writeText(UNIONCODE);
         toast.success("Union Code copied.");
+    };
+
+    const shareText = `Join me on Union AI! My Union Code is: ${UNIONCODE} 
+    ${`${API_BASE_URL}/invite?code=${UNIONCODE}`}
+    Download the app and enter this code to connect.`;
+
+    const webLink = `${API_BASE_URL}/invite?code=${UNIONCODE}`;
+    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    const emailSubject = encodeURIComponent("Join me on Union AI");
+    const emailBody = encodeURIComponent(shareText);
+    const emailLink = `mailto:?subject=${emailSubject}&body=${emailBody}`;
+
+    const copyLink = async () => {
+        await navigator.clipboard?.writeText(shareText);
+        toast.success("Share text copied to clipboard.");
+        setShowSharePopup(false);
+    };
+
+    const openWhatsApp = () => {
+        window.open(whatsappLink, "_blank");
+        setShowSharePopup(false);
+    };
+
+    const openEmail = () => {
+        window.open(emailLink, "_blank");
+        setShowSharePopup(false);
+    };
+
+    const nativeShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: "Join me on UnionAI",
+                    text: `Join me on UnionAI! My Union Code is ${UNIONCODE}. Use this link to connect: ${webLink}`,
+                    url: webLink,
+                });
+                toast.success("Shared successfully.");
+            } catch (err: any) {
+                if (err?.name !== "AbortError") {
+                    toast.error("Failed to share.");
+                }
+            }
+        } else {
+            toast.error("Share not supported on this browser.");
+        }
+        setShowSharePopup(false);
     };
 
     const deleteUnionCode = () => {
@@ -97,7 +145,7 @@ export default function CodeCreate() {
                                 Union Connection
                             </h1>
                             <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                                 Share this Union Code with your partner. Once they enter the code, you&apos;ll receive a connection request. Accept the request to link your accounts and start using the app together.
+                                Share this Union Code with your partner. Once they enter the code, you&apos;ll receive a connection request. Accept the request to link your accounts and start using the app together.
                             </p>
                         </header>
                         <RegistrationStepIndicator
@@ -126,7 +174,7 @@ export default function CodeCreate() {
                                         type="button"
                                         variant="outline"
                                         className="mt-5 h-10 rounded-lg !px-10"
-                                        onClick={copyCode}
+                                        onClick={() => setShowSharePopup(true)}
                                     >
                                         <ArrowBigUpDash className="mr-2 h-5 w-5" />
                                         Invite
@@ -205,7 +253,7 @@ export default function CodeCreate() {
                                             className="auth-submit !mt-5"
                                             disabled={true}
                                         >
-                                             Let&apos;s Start
+                                            Let&apos;s Start
                                         </Button>
                                     </section>
                                     <Button
@@ -221,38 +269,50 @@ export default function CodeCreate() {
                     </div>
                 </div>
             </AuthLayout>
-                <Popup
-                    open={confirmation !== null}
-                    onOpenChange={(open) => !open && setConfirmation(null)}
-                    variant={confirmation === "accept" ? "success" : "warning"}
-                    title={
-                        confirmation === "accept"
-                            ? "Accept connection?"
-                            : confirmation === "reject"
-                                ? "Reject connection?"
-                                : "Cancel This Union Code?"
-                    }
-                    description={
-                        confirmation === "accept"
-                            ? `Are you sure you want to connect with ${partnerName || "this person"} ?`
-                            : confirmation === "reject"
-                                ? `Are you sure ${partnerName || "this person"} is not your partner ?`
-                                : "Are you sure you want to cancel this Union Code? You will need to create a new one."
-                    }
-                    confirmText={
-                        confirmation === "accept"
-                            ? "Yes, connect"
-                            : confirmation === "reject"
-                                ? "Yes, reject"
-                                : "Yes, cancel code"
-                    }
-                    onConfirm={() => {
-                        if (confirmation === "accept") acceptConnection();
-                        if (confirmation === "reject") rejectConnection();
-                        if (confirmation === "delete") deleteUnionCode();
-                        setConfirmation(null);
-                    }}
-                />
+            <Popup
+                open={confirmation !== null}
+                onOpenChange={(open) => !open && setConfirmation(null)}
+                variant={confirmation === "accept" ? "success" : "warning"}
+                title={
+                    confirmation === "accept"
+                        ? "Accept connection?"
+                        : confirmation === "reject"
+                            ? "Reject connection?"
+                            : "Cancel This Union Code?"
+                }
+                description={
+                    confirmation === "accept"
+                        ? `Are you sure you want to connect with ${partnerName || "this person"} ?`
+                        : confirmation === "reject"
+                            ? `Are you sure ${partnerName || "this person"} is not your partner ?`
+                            : "Are you sure you want to cancel this Union Code? You will need to create a new one."
+                }
+                confirmText={
+                    confirmation === "accept"
+                        ? "Yes, connect"
+                        : confirmation === "reject"
+                            ? "Yes, reject"
+                            : "Yes, cancel code"
+                }
+                onConfirm={() => {
+                    if (confirmation === "accept") acceptConnection();
+                    if (confirmation === "reject") rejectConnection();
+                    if (confirmation === "delete") deleteUnionCode();
+                    setConfirmation(null);
+                }}
+            />
+            <ShareUnionCodeDialog
+                open={showSharePopup}
+                onOpenChange={setShowSharePopup}
+                copyLink={copyLink}
+                openWhatsApp={openWhatsApp}
+                openEmail={openEmail}
+                nativeShare={nativeShare}
+            />
         </RouteGuard >
     );
 }
+
+
+
+

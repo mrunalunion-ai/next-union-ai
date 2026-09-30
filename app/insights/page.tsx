@@ -1,6 +1,6 @@
 "use client";
 
-import { Hourglass, RefreshCw, Sparkles } from "lucide-react";
+import { Hourglass, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect } from "react";
 
@@ -46,24 +46,24 @@ export default function InsightsPage() {
     loadInsights();
   }, [loadInsights]);
 
-  const latest = insights.analyses[0];
+  const latest = insights?.analyses[0];
   const recommendations = (
-    latest?.recommendations.length
-      ? latest.recommendations
-      : insights.dashboard?.recommendations ?? []
+    latest?.recommendations?.length
+      ? latest?.recommendations
+      : insights?.dashboard?.recommendations ?? []
   ).slice(0, 3);
   const currentScore =
-    insights.trend.at(-1)?.overallScore ?? latest?.overallScore ?? 0;
+    insights?.trend?.at(-1)?.overallScore ?? latest?.overallScore ?? 0;
   const isWaitingForCheckIns = Boolean(
-    insights.dashboard?.user1 &&
-    insights.dashboard.user2 &&
-    (!insights.dashboard.user1.checkedIn ||
-      !insights.dashboard.user2.checkedIn),
+    insights?.dashboard?.user1 &&
+    insights?.dashboard.user2 &&
+    (!insights?.dashboard?.user1?.checkedIn ||
+      !insights?.dashboard?.user2?.checkedIn),
   );
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
           <header className="mb-8">
             <h1 className="text-xl font-extrabold tracking-tight">
@@ -73,12 +73,12 @@ export default function InsightsPage() {
               Deep AI analysis of your relationship alignment metrics
             </p>
           </header>
-          {insights.loading && !latest ? (
+          {insights?.loading && !latest ? (
             <InsightsSkeleton />
-          ) : insights.error ? (
+          ) : insights?.error ? (
             <Card className="rounded-3xl border-destructive/30 bg-surface p-10 text-center">
               <p className="text-sm font-semibold text-destructive">
-                {insights.error}
+                {insights?.error}
               </p>
               <Button className="mt-5" onClick={loadInsights}>
                 Try again
@@ -90,7 +90,7 @@ export default function InsightsPage() {
                 <Hourglass className="h-12 w-12" strokeWidth={1.8} />
               </div>
               <h2 className="mt-5 text-lg font-extrabold sm:text-xl">
-                Once you both complete your check-ins, <br/>Insights &amp; Trends will appear
+                Once you both complete your check-ins, <br />Insights &amp; Trends will appear
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
                 For insights and trends, you can view graphs of your score trend,
@@ -125,7 +125,7 @@ export default function InsightsPage() {
                 <AlignmentCards analysis={latest} />
               </section>
 
-              {recommendations.length > 0 && (
+              {recommendations?.length > 0 && (
                 <section aria-labelledby="coach-recommendations-title">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <h2

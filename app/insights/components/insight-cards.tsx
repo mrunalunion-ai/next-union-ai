@@ -19,9 +19,10 @@ import {
 } from "@/redux/modules/insights";
 
 function scoreColor(score: number) {
-  if (score >= 80) return "bg-emerald-500";
-  if (score >= 60) return "bg-amber-500";
-  return "bg-rose-500";
+  if (score > 75) return "bg-[#9B67F9]";
+  if (score >= 50) return "bg-[#22C55E]";
+  if (score >= 25) return "bg-[#EAB308]";
+  return "bg-[#EF4444]";
 }
 
 function formatScore(score: number) {

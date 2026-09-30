@@ -25,7 +25,7 @@ const notificationsReducer = (
       };
     }
     case NotificationActionTypes.SET_UNREAD_COUNT:
-      return state;
+      return { ...state, unreadCount: action.payload };
     case NotificationActionTypes.MARK_READ: {
       const item = state.items.find((notification) => notification.id === action.payload);
       return {

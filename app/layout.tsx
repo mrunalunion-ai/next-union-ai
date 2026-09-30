@@ -2,11 +2,12 @@
 // @ts-ignore
 import '../styles/globals.css';
 import { AppProviders } from "@/components/provider/provider";
+import { API_BASE_URL } from '@/constant/static';
 import { inter } from '@/lib/fonts';
 import { Metadata } from 'next';
 
 const APP_NAME = 'UnionAI';
-const APP_URL = 'https://unionai.org';
+const APP_URL = API_BASE_URL;
 const APP_DESCRIPTION = 'The intelligent Relationship Union Score and wellness app built to secure your lifetime bond.'
 
 export const metadata: Metadata = {
@@ -58,7 +59,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${APP_URL}/assets/icons/metadata-image-og.jpg`,
+        url: `${APP_URL}/assets/images/metadata-image.jpeg"`,
         width: 1200,
         height: 630,
         alt: APP_NAME,
@@ -70,8 +71,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    images: [`${APP_URL}/assets/icons/metadata-image-og.jpg`],
-    creator: '@we-are-everywhere',
+    images: [`${APP_URL}/assets/images/metadata-image.jpeg`],
+    creator: '@unionai',
   },
 
   alternates: {
@@ -80,7 +81,7 @@ export const metadata: Metadata = {
   other: {
     'og:title': APP_NAME,
     'og:description': APP_DESCRIPTION,
-    'og:image': `${APP_URL}/assets/icons/metadata-image-og.jpg`,
+    'og:image': `${APP_URL}/assets/images/metadata-image.jpeg`,
     'og:image:width': '1200',
     'og:image:height': '630',
     'og:url': APP_URL,

@@ -165,7 +165,7 @@ export default function RegisterPage() {
   return (
     <AuthLayout>
       <div className="h-full overflow-y-auto scrollbar-hidden">
-        <div className="mx-auto flex w-full max-w-[900px] flex-col items-center px-1 py-8 sm:px-4 sm:py-10 lg:py-12">
+        <div className="mx-auto w-full max-w-[900px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
           <header className="mb-7 text-center">
             <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-foreground sm:text-3xl">
               Create Account
@@ -350,10 +350,10 @@ export default function RegisterPage() {
                   inputClassName="auth-input"
                 />
               </div>
-              <label className="flex items-start gap-3 text-base leading-6 text-muted-foreground">
+              <label className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-2 border-foreground accent-primary"
+                  className="mt-1 h-4 w-4 shrink-0 border-2 border-foreground accent-primary"
                   {...register("termsAccepted")}
                 />
                 <span>

@@ -138,6 +138,7 @@ export const accountPersonalSchema = z
     phoneCountry: z.string().trim().min(1, "Phone country is required"),
     mobileNumber: z.string().trim().regex(/^\d+$/, "Enter a valid phone number"),
     email: z.string().optional(),
+    profileImage: z.string().optional(),
   })
   .superRefine((data, context) => {
     const dialingCode = data.phoneDialingCode.trim();

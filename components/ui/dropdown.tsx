@@ -197,6 +197,8 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                 : 'hsl(var(--foreground))',
             padding: '10px',
             cursor: 'pointer',
+            fontSize: '0.875rem',
+            lineHeight: '1.25rem',
         }),
         singleValue: (provided: any) => ({
             ...provided,
@@ -391,7 +393,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                 </label>
             )}
             <div
-                className={`flex  ${inline ? 'items-center space-x-2' : 'flex flex-col'}  ${formClassName} mt-1 h-11 rounded-[10px] border-input border-[1px] ${isRounded ? 'rounded-full' : ' rounded-md'}   overflow-hidden ${errors ? 'border-red-600' : 'border-input focus-within:border-primary'}`}
+                className={`flex text-sm  ${inline ? 'items-center space-x-2' : 'flex flex-col'}  ${formClassName} mt-1 h-11 rounded-[10px] border-input border-[1px] ${isRounded ? 'rounded-full' : ' rounded-md'}   overflow-hidden ${errors ? 'border-red-600' : 'border-input focus-within:border-primary'}`}
             >
                 <Controller
                     name={name!}

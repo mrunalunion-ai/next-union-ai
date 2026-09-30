@@ -286,6 +286,11 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         action: "userService/update",
         fcmToken: `${fcmToken.slice(0, 16)}…`,
       });
+      const previousToken = localStorage.getItem("unionai_fcm_token");
+      if (previousToken === fcmToken) {
+        console.log("[PUSH] FCM token unchanged, skipping update");
+        return;
+      }
       localStorage.setItem("unionai_fcm_token", fcmToken);
       sendMessage("action", {
         type: "userService",
@@ -327,3 +332,5 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 };
 
 export const useWebSocket = () => useContext(WebSocketContext);
+
+

@@ -39,11 +39,12 @@ export default function AccountPage() {
   const user = user_data?.user;
   const relationship = user?.relationships?.[0];
   const partner = relationship?.partner;
+  const isUser1 = relationship?.user1Id === user?.id;
   const subscriptionCandidate = account?.activeSubscription ?? relationship?.subscription;
   const activeSubscription = subscriptionCandidate?.planId &&
     subscriptionCandidate?.status &&
-    subscriptionCandidate.status.toUpperCase() !== "EXPIRED" &&
-    subscriptionCandidate.isActive !== false
+    subscriptionCandidate?.status?.toUpperCase() !== "EXPIRED" &&
+    subscriptionCandidate?.isActive !== false
     ? subscriptionCandidate
     : null;
   const dispatch = useAppDispatch();
@@ -112,11 +113,9 @@ export default function AccountPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
-          <AccountPageHeader title="Account" description="Manage your profile, relationship, plans, and preferences." />
-
-
+          <AccountPageHeader title="Account" description="Manage profile details, privacy parameters, and notifications" />
           <Card className="mb-6 rounded-3xl border-border/70 bg-surface p-5 shadow-sm sm:p-6">
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-3xl font-semibold text-primary">
@@ -124,7 +123,7 @@ export default function AccountPage() {
                   <Image
                     width={80}
                     height={80}
-                    src={API_BASE_URL + user.profileImage}
+                    src={API_BASE_URL + user?.profileImage}
                     alt={
                       `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() ||
                       "User profile"
@@ -149,7 +148,7 @@ export default function AccountPage() {
                 {partner && (
                   <p className="mt-1 truncate text-sm font-semibold text-primary">
                     Connected with{" "}
-                    {`${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()}
+                    {`${partner?.firstName ?? ""} ${partner?.lastName ?? ""}`.trim()}
                   </p>
                 )}
               </div>
@@ -164,12 +163,12 @@ export default function AccountPage() {
                     </p>
 
                     <p className="mt-1 truncate text-base font-bold">
-                      {activeSubscription.planName || "Subscription"}
+                      {activeSubscription?.planName || "Subscription"}
                     </p>
 
                     <p className="mt-1 text-sm font-semibold text-muted-foreground">
-                      {activeSubscription.endDate
-                        ? `Active until ${formatDate(activeSubscription.endDate)}`
+                      {activeSubscription?.endDate
+                        ? `Active until ${formatDate(activeSubscription?.endDate)}`
                         : "Active plan"}
                     </p>
                   </div>
@@ -191,7 +190,9 @@ export default function AccountPage() {
               <AccountRow icon={UserRound} label="My Account" onClick={() => router.push(APP_URL.LINKS.MY_ACCOUNT)} />
               <AccountRow icon={HeartHandshake} label="Connected Partner" onClick={() => router.push(APP_URL.LINKS.CONNECTED_PARTNER)} />
               {/* <AccountRow icon={CreditCard} label="Current Plan" onClick={() => router.push(APP_URL.LINKS.CURRENT_PLAN)} /> */}
-              <AccountRow icon={CreditCard} label="Explore Plans" onClick={() => router.push(APP_URL.LINKS.EXPLORE_PLANS)} />
+              {isUser1 && (
+                <AccountRow icon={CreditCard} label="Explore Plans" onClick={() => router.push(APP_URL.LINKS.EXPLORE_PLANS)} />
+              )}
               <AccountRow icon={ReceiptText} label="Transaction History" onClick={() => router.push(APP_URL.LINKS.TRANSACTIONS)} />
             </AccountSection>
 

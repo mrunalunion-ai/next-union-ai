@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 
 import { AccountPageHeader } from "@/components/account/account-ui";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
@@ -34,6 +33,7 @@ export default function TransactionsPage() {
   const { user_data, account } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
   const userId = user_data?.user?.id ?? "";
+  const transactions = Array.isArray(account?.transactions) ? account?.transactions : [];
   const loadTransactions = useCallback(() => {
     if (!isConnected || !userId) return;
     dispatch(setAccountLoading(true));
@@ -50,21 +50,21 @@ export default function TransactionsPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
           <AccountPageHeader
             title="Transaction History"
-            description="Review subscription payments made for your relationship space."
+            description="Review subscription payments made for your relationship space"
             showBack
           />
 
-          {account.loading && account.transactions.length === 0 ? (
+          {account?.loading && transactions?.length === 0 ? (
             <div className="space-y-4">
-              {[1, 2].map((item) => (
+              {[1, 2]?.map((item) => (
                 <div key={item} className="h-36 animate-pulse rounded-2xl bg-muted" />
               ))}
             </div>
-          ) : account.transactions.length === 0 ? (
+          ) : transactions?.length === 0 ? (
             <Card className="rounded-3xl p-10 text-center">
               <ReceiptText className="mx-auto h-10 w-10 text-primary/50" />
               <h2 className="mt-4 font-extrabold">No transactions yet</h2>
@@ -74,13 +74,13 @@ export default function TransactionsPage() {
             </Card>
           ) : (
             <div className="">
-              {account.transactions.map((transaction: any) => {
-                const isPaid = transaction.status?.toLowerCase() === "success";
-                const transactionId = transaction.transactionId || "";
+              {transactions?.map((transaction: any) => {
+                const isPaid = transaction?.status?.toLowerCase() === "success";
+                const transactionId = transaction?.transactionId || "";
 
                 return (
                   <Card
-                    key={transaction.id}
+                    key={transaction?.id}
                     className="rounded-2xl border-border/70 bg-surface p-3 shadow-sm transition-shadow hover:shadow-md sm:p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
@@ -89,29 +89,28 @@ export default function TransactionsPage() {
                         Partner
                       </span>
                       <span
-                        className={`inline-flex uppercase items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ${
-                          isPaid
+                        className={`inline-flex uppercase items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ${isPaid
                             ? "bg-emerald-500/10 text-emerald-600"
                             : "bg-muted text-muted-foreground"
-                        }`}
+                          }`}
                       >
                         {isPaid && <Check className="h-3.5 w-3.5" />}
-                        {transaction.status || "Pending"}
+                        {transaction?.status || "Pending"}
                       </span>
                     </div>
 
                     <div className="mt-4 flex items-end justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-foreground">
-                          {transaction.planName || "Subscription"}
+                          {transaction?.planName || "Subscription"}
                         </p>
                         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                           <CalendarDays className="h-3.5 w-3.5" />
-                          {formatDate(transaction.date)}
+                          {formatDate(transaction?.date)}
                         </p>
                       </div>
                       <p className="shrink-0 text-sm font-bold text-foreground">
-                        {formatAmount(transaction.amount, transaction.currency)}
+                        {formatAmount(transaction?.amount, transaction?.currency)}
                       </p>
                     </div>
 

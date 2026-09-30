@@ -60,6 +60,12 @@ export interface IAccountPartner {
   loveLanguages?: Array<{ id?: string; title?: string; icon?: string }>;
 }
 
+export interface IPlanFeature {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export interface IAccountLegalPage {
   id: string;
   type: string;
@@ -69,6 +75,7 @@ export interface IAccountLegalPage {
 
 export interface IAccountState {
   plans: IAccountPlan[];
+  planFeatures: IPlanFeature[];
   activeSubscription: IAccountSubscription | null;
   transactions: IAccountTransaction[];
   partner: IAccountPartner | null;
@@ -80,6 +87,7 @@ export interface IAccountState {
 
 export const initialAccountState: IAccountState = {
   plans: [],
+  planFeatures: [],
   activeSubscription: null,
   transactions: [],
   partner: null,
@@ -88,3 +96,4 @@ export const initialAccountState: IAccountState = {
   saving: false,
   error: "",
 };
+

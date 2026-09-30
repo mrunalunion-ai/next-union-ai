@@ -51,7 +51,7 @@ export default function NotificationsPage() {
   };
 
   const markAllRead = () => {
-    if (!isConnected || notifications.unreadCount === 0) return;
+    if (!isConnected || notifications?.unreadCount === 0) return;
 
     dispatch(markAllNotificationsRead());
     sendMessage("action", {
@@ -63,7 +63,7 @@ export default function NotificationsPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto max-w-2xl">
           <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -81,7 +81,7 @@ export default function NotificationsPage() {
               type="button"
               variant="outline"
               className="rounded-xl"
-              disabled={!isConnected || notifications.loading}
+              disabled={!isConnected || notifications?.loading}
               onClick={loadNotifications}
               title="Refresh notifications"
             >
@@ -92,13 +92,13 @@ export default function NotificationsPage() {
 
           <div className="mb-5 flex items-center justify-between gap-3">
             <span className="text-sm font-bold text-muted-foreground">
-              {notifications.unreadCount} unread
+              {notifications?.unreadCount} unread
             </span>
             <Button
               type="button"
               variant="ghost"
               className="gap-2 text-xs text-primary"
-              disabled={!isConnected || notifications.unreadCount === 0}
+              disabled={!isConnected || notifications?.unreadCount === 0}
               onClick={markAllRead}
             >
               <CheckCheck className="h-4 w-4" />
@@ -106,18 +106,18 @@ export default function NotificationsPage() {
             </Button>
           </div>
 
-          {notifications.loading && notifications.items.length === 0 ? (
+          {notifications?.loading && notifications?.items?.length === 0 ? (
             <NotificationsSkeleton />
-          ) : notifications.error ? (
+          ) : notifications?.error ? (
             <Card className="rounded-3xl border-destructive/30 bg-surface p-10 text-center">
               <p className="text-sm font-semibold text-destructive">
-                {notifications.error}
+                {notifications?.error}
               </p>
               <Button className="mt-5" onClick={loadNotifications}>
                 Try again
               </Button>
             </Card>
-          ) : notifications.items.length === 0 ? (
+          ) : notifications?.items?.length === 0 ? (
             <Card className="rounded-3xl border-border/70 bg-surface p-10 text-center shadow-sm">
               <Bell className="mx-auto h-10 w-10 text-primary/50" />
               <h2 className="mt-4 text-lg font-extrabold">No notifications yet</h2>
@@ -128,7 +128,7 @@ export default function NotificationsPage() {
           ) : (
             <div className="space-y-3" role="list">
               {notifications?.items?.map((notification: any) => (
-                <div key={notification.id} role="listitem">
+                <div key={notification?.id} role="listitem">
                   <NotificationCard
                     notification={notification}
                     onMarkRead={markRead}

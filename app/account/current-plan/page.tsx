@@ -89,26 +89,26 @@ export default function CurrentPlanPage() {
   const totalDays = daysBetween(subscription?.startDate, subscription?.endDate);
   const isActive = Boolean(
     subscription &&
-    subscription.status &&
-    typeof subscription.isActive === "boolean"
-      ? subscription.isActive
+      subscription?.status &&
+      typeof subscription?.isActive === "boolean"
+      ? subscription?.isActive
       : subscription?.status?.toUpperCase() !== "EXPIRED",
   );
   const purchaser = subscription?.ownerUserId === user_data?.user?.id ? "You" : "Partner";
 
   const copyTransactionId = async () => {
     if (!subscription?.transactionId) return;
-    await navigator.clipboard?.writeText(subscription.transactionId);
+    await navigator.clipboard?.writeText(subscription?.transactionId);
     toast.success("Transaction ID copied");
   };
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
           <AccountPageHeader
             title="Current Plan"
-            description="View your active subscription and relationship access."
+            description="View your active subscription and relationship access"
             showBack
           />
 

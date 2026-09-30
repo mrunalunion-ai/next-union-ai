@@ -17,18 +17,16 @@ import {
   type JoinUnionFormValues,
 } from "@/utils/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Key, UserRound, Users } from "lucide-react";
+import { Key, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 function CreateUnionContent() {
   const router = useRouter();
-  const { mainReducer, user_data } = usePosterReducers();
+  const { mainReducer } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const [mode, setMode] = useState<"create" | "join">("create");
-  const [joinState, setJoinState] = useState<"initial" | "verified">("initial");
-  const [partner, setPartner] = useState({ name: "", email: "" });
   const pendingAction = useRef<
     | "create"
     | "joinVerify"
@@ -116,19 +114,6 @@ function CreateUnionContent() {
     }
   }, [lastEvent]);
 
-
-  const continueToJoinUnion = () => {
-    // pendingAction.current = "partnerVerified";
-    // sendMessage("action", {
-    //   type: "userService",
-    //   action: "update",
-    //   payload: {
-    //     id: user_data?.user?.id,
-    //     onboardingStep: "partnerVerified",
-    //   },
-    // });
-  };
-
   return (
     <RouteGuard>
       <AuthLayout>
@@ -177,9 +162,9 @@ function CreateUnionContent() {
                     control={control}
                     options={
                       mainReducer?.relationStatusList?.data?.map((item: any) => ({
-                        value: item.id,
-                        label: item.title,
-                        key: item.id,
+                        value: item?.id,
+                        label: item?.title,
+                        key: item?.id,
                       })) || []
                     }
                     required
@@ -284,11 +269,11 @@ function CreateUnionContent() {
                     required
                     autoComplete="off"
                     labelClassName="auth-field-label"
-                    inputClassName="auth-input tracking-[0.18em] pl-[120px]"
+                    inputClassName="auth-input tracking-[0.18em] pl-[115px]"
                     leftAdornment={
-                      <div className="flex items-center gap-2">
-                        <Key className="h-5 w-5" />
-                        <span className="font-medium tracking-[0.18em]">UNION-</span>
+                      <div className="flex items-center gap-4">
+                        <Key className="h-4 w-4" />
+                        <span className="text-sm font-semibold tracking-[0.18em]">UNION-</span>
                       </div>
                     }
                   />

@@ -415,8 +415,8 @@ function DatePickerCalendar({
           text-sm
           transition-colors
           focus:border-primary
-            focus:ring-2
-            focus:ring-primary/20
+          focus:ring-2
+          focus:ring-primary/20
           hover:bg-accent
           disabled:cursor-not-allowed
           disabled:opacity-50

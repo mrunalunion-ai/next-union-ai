@@ -99,10 +99,11 @@ export default function InputField<T extends FieldValues>({
         w-full
         rounded-md
         border
+        text-sm
         text-foreground
         outline-none
         transition-colors
-        placeholder:text-muted-foreground
+        hover:bg-accent
         focus:border-primary
         focus:ring-2
         focus:ring-primary/20

@@ -55,7 +55,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   };
 
   const markAllRead = () => {
-    if (!isConnected || notifications.unreadCount === 0) return;
+    if (!isConnected || notifications?.unreadCount === 0) return;
 
     dispatch(markAllNotificationsRead());
     sendMessage("action", {
@@ -89,7 +89,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             <div>
               <h2 className="text-lg font-extrabold">Notifications</h2>
               <p className="text-xs text-muted-foreground">
-                {notifications.unreadCount} unread
+                {notifications?.unreadCount} unread
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             variant="ghost"
             size="sm"
             className="gap-2 px-2 text-xs text-primary"
-            disabled={!isConnected || notifications.unreadCount === 0}
+            disabled={!isConnected || notifications?.unreadCount === 0}
             onClick={markAllRead}
           >
             <CheckCheck className="h-4 w-4" />
@@ -123,7 +123,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             size="icon"
             aria-label="Refresh notifications"
             title="Refresh notifications"
-            disabled={!isConnected || notifications.loading}
+            disabled={!isConnected || notifications?.loading}
             onClick={loadNotifications}
           >
             <RefreshCw className="h-4 w-4" />
@@ -131,18 +131,18 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {notifications.loading && notifications.items.length === 0 ? (
+          {notifications?.loading && notifications?.items?.length === 0 ? (
             <NotificationsSkeleton />
-          ) : notifications.error ? (
+          ) : notifications?.error ? (
             <Card className="rounded-2xl border-destructive/30 p-6 text-center">
               <p className="text-sm font-semibold text-destructive">
-                {notifications.error}
+                {notifications?.error}
               </p>
               <Button className="mt-4" onClick={loadNotifications}>
                 Try again
               </Button>
             </Card>
-          ) : notifications.items.length === 0 ? (
+          ) : notifications?.items?.length === 0 ? (
             <Card className="rounded-2xl border-border/70 p-8 text-center">
               <Bell className="mx-auto h-9 w-9 text-primary/50" />
               <h3 className="mt-3 text-sm font-extrabold">
@@ -154,9 +154,9 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
             </Card>
           ) : (
             <div className="space-y-3">
-              {notifications.items.map((notification: any) => (
+              {notifications?.items?.map((notification: any) => (
                 <NotificationCard
-                  key={notification.id}
+                  key={notification?.id}
                   notification={notification}
                   onMarkRead={markRead}
                 />

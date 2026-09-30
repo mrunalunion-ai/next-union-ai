@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type ChangeEvent } from "react";
 import { toast } from "react-toastify";
@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import InputField from "@/components/ui/InputField";
 import { APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
@@ -16,7 +17,6 @@ import {
   setCheckinSubmitting,
 } from "@/redux/modules/checkin";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
-import InputField from "@/components/ui/InputField";
 
 function parseMessage(rawMessage: unknown): Record<string, any> | null {
   if (!rawMessage) return null;
@@ -82,21 +82,21 @@ export default function CheckInCompletedPage() {
       type: "checkinService",
       action: "submit",
       payload: {
-        relationshipId: checkin.relationshipId,
+        relationshipId: checkin?.relationshipId,
         answers: checkin?.questions?.map((question: any, index: any) => {
-          const answer = checkin.answers[index];
+          const answer = checkin?.answers[index];
 
           return {
-            ...(answer?.id ? { id: answer.id } : {}),
-            questionId: question.questionId,
+            ...(answer?.id ? { id: answer?.id } : {}),
+            questionId: question?.questionId,
             score: answer?.score,
             ...(answer?.comment?.trim()
-              ? { comment: answer.comment.trim() }
+              ? { comment: answer?.comment?.trim() }
               : {}),
           };
         }),
-        ...(checkin.partnerMessage.trim()
-          ? { message: checkin.partnerMessage.trim() }
+        ...(checkin?.partnerMessage?.trim()
+          ? { message: checkin?.partnerMessage?.trim() }
           : {}),
         finalSubmit: true,
       },
@@ -119,14 +119,14 @@ export default function CheckInCompletedPage() {
             <div className="max-h-[360px] overflow-y-auto">
               {checkin?.questions?.map((question: any, index: any) => (
                 <div
-                  key={question.questionId}
+                  key={question?.questionId}
                   className="flex items-center gap-4 border-b border-border/70 px-5 py-4 last:border-0"
                 >
                   <p className="flex-1 text-sm font-bold">
-                    {question.title}
+                    {question?.title}
                   </p>
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-extrabold text-primary">
-                    {checkin.answers[index]?.score ?? "–"}
+                    {checkin?.answers[index]?.score ?? "–"}
                   </span>
                 </div>
               ))}
@@ -140,7 +140,7 @@ export default function CheckInCompletedPage() {
               useFor="textarea"
               rows={5}
               placeholder="Anything else you want to share this week…"
-              value={checkin.partnerMessage}
+              value={checkin?.partnerMessage}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                 dispatch(setCheckinPartnerMessage(event.target.value))
               }
@@ -162,12 +162,12 @@ export default function CheckInCompletedPage() {
               className="submit flex-1"
               disabled={
                 !isConnected ||
-                checkin.submitting ||
-                checkin.questions.length === 0
+                checkin?.submitting ||
+                checkin?.questions?.length === 0
               }
               onClick={submit}
             >
-              {checkin.submitting ? (
+              {checkin?.submitting ? (
                 "Submitting…"
               ) : (
                 <>

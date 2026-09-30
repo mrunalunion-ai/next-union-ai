@@ -18,13 +18,14 @@ interface PasswordRequirementsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+
 export function PasswordRequirementsDialog({
   open,
   onOpenChange,
 }: PasswordRequirementsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-[380px] rounded-2xl border-border/70 bg-surface p-5 shadow-xl sm:p-6">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-[390px] rounded-2xl border-border/70 bg-surface p-5 shadow-xl sm:p-6">
         <DialogHeader className="items-start pr-6 text-left">
           <DialogTitle className="text-base font-semibold text-foreground">
             Password must contain

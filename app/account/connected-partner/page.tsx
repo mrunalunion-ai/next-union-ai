@@ -6,15 +6,16 @@ import {
   LockKeyhole,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
 import { AccountPageHeader } from "@/components/account/account-ui";
-import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Popup } from "@/components/common/popup";
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { API_BASE_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import {
@@ -22,10 +23,9 @@ import {
   setAccountLoading,
   setAccountSaving,
 } from "@/redux/modules/account";
+import { ILoveLanguage } from "@/redux/modules/main/types";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { formatDateDDMMYYYY } from "@/utils/common";
-import { ILoveLanguage } from "@/redux/modules/main/types";
-import { API_BASE_URL } from "@/constant/static";
 
 function InfoRow({ label, value }: { label: string; value?: string | number }) {
   return (
@@ -62,7 +62,7 @@ export default function ConnectedPartnerPage() {
   const accountState = account ?? initialAccountState;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const relationship = user_data?.user?.relationships?.[0];
-  const partner = accountState.partner ?? relationship?.partner;
+  const partner = accountState?.partner ?? relationship?.partner;
 
   useEffect(() => {
     if (!isConnected) return;
@@ -85,7 +85,7 @@ export default function ConnectedPartnerPage() {
     sendMessage("action", {
       type: "userService",
       action: "deleteConnection",
-      payload: { unionCode: relationship.unionCode },
+      payload: { unionCode: relationship?.unionCode },
     });
     setConfirmOpen(false);
   };
@@ -100,7 +100,7 @@ export default function ConnectedPartnerPage() {
     .toUpperCase();
   const loveLanguages = partner?.loveLanguages ?? [];
   const phoneNumber = partner?.mobileNumber
-    ? `${partner.phoneDialingCode ?? ""}${partner.mobileNumber}`
+    ? `${partner?.phoneDialingCode ?? ""}${partner?.mobileNumber}`
     : undefined;
   const hasChildren = Boolean(relationship?.children);
   const relationType = relationship?.relationStatus?.title;
@@ -112,11 +112,11 @@ export default function ConnectedPartnerPage() {
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
           <AccountPageHeader
             title="Connected Partner"
-            description="View the details of your connected partner and relationship."
+            description="View the details of your connected partner and relationship"
             showBack
           />
 
@@ -150,7 +150,7 @@ export default function ConnectedPartnerPage() {
                       <Image
                         width={80}
                         height={80}
-                        src={API_BASE_URL + partner.profileImage}
+                        src={API_BASE_URL + partner?.profileImage}
                         alt={partnerName}
                         className="h-full w-full object-cover"
                       />
@@ -182,10 +182,10 @@ export default function ConnectedPartnerPage() {
                 <SectionCard title="Personal Information">
                   <dl className="space-y-4">
                     <InfoRow label="First Name" value={partnerName} />
-                    <InfoRow label="Email Address" value={partner.email} />
-                    <InfoRow label="Gender" value={partner.gender} />
-                    <InfoRow label="DOB" value={formatDateDDMMYYYY(partner.dob)} />
-                    <InfoRow label="Country" value={partner.country} />
+                    <InfoRow label="Email Address" value={partner?.email} />
+                    <InfoRow label="Gender" value={partner?.gender} />
+                    <InfoRow label="DOB" value={formatDateDDMMYYYY(partner?.dob)} />
+                    <InfoRow label="Country" value={partner?.country} />
                     <InfoRow label="Phone Number" value={phoneNumber} />
                   </dl>
                 </SectionCard>
@@ -211,14 +211,14 @@ export default function ConnectedPartnerPage() {
                     <div>
                       <p className="mb-3 text-muted-foreground">Love Languages</p>
                       <div className="flex flex-wrap gap-3">
-                        {loveLanguages.length ? (
-                          loveLanguages.map((language: ILoveLanguage) => (
+                        {loveLanguages?.length ? (
+                          loveLanguages?.map((language: ILoveLanguage) => (
                             <span
-                              key={language.id ?? language.title}
+                              key={language?.id ?? language?.title}
                               className="rounded-full border-2 border-primary/70 bg-primary/5 px-4 py-2 text-sm font-medium text-primary"
                             >
-                              {language.icon ? `${language.icon} ` : ""}
-                              {language.title}
+                              {language?.icon ? `${language?.icon} ` : ""}
+                              {language?.title}
                             </span>
                           ))
                         ) : (
@@ -254,7 +254,7 @@ export default function ConnectedPartnerPage() {
                     variant="outline"
                     className="h-11 w-full rounded-lg border-destructive/30 bg-destructive/10 text-sm font-semibold text-destructive hover:bg-destructive/15 hover:text-destructive"
                     onClick={() => setConfirmOpen(true)}
-                    disabled={accountState.saving}
+                    disabled={accountState?.saving}
                   >
                     <Trash2 className="mr-2 h-5 w-5" />
                     Delete connection

@@ -23,8 +23,8 @@ import {
   X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -104,7 +104,10 @@ export function Header({ variant = "auth" }: HeaderProps) {
       action: "list",
       payload: { page: 1, limit: 10 },
     });
-  }, [isConnected, lastEvent, notificationUserKey, sendMessage, showNotifications, user_data?.access_token]);
+    if (isDashboard) {
+      sendMessage("notificationService", { action: "unreadCount", payload: {} });
+    }
+  }, [isConnected, lastEvent, notificationUserKey, sendMessage, showNotifications, isDashboard, user_data?.access_token]);
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -146,19 +149,19 @@ export function Header({ variant = "auth" }: HeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
-        <div className={`mx-auto flex min-h-16 w-full items-center gap-4 px-4 py-2 sm:px-6 lg:px-8 ${isDashboard ? "justify-between lg:justify-end" : "justify-between"}`}>
+      <header className="sticky top-0 z-50 border-b border-border/70 backdrop-blur-xl">
+        <div className={`mx-auto flex min-h-16 w-full min-w-0 items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6 lg:px-8 ${isDashboard ? "justify-between lg:justify-end" : "justify-between"}`}>
           <Link
             href={APP_URL.LINKS.HOME}
             aria-label="UnionAI home"
-            className={`inline-flex shrink-0 items-center ${isDashboard ? "lg:hidden" : ""}`}
+            className={`inline-flex min-w-0 shrink items-center ${isDashboard ? "lg:hidden" : ""}`}
           >
             <Image
               width={160}
               height={40}
               src={isDark ? APP_URL.IMAGES.LIGHT_LOGO : APP_URL.IMAGES.LOGO}
               alt="UnionAI"
-              className="h-8 w-auto sm:h-9"
+              className="h-7 w-auto max-w-[120px] sm:h-9 sm:max-w-none"
             />
           </Link>
 
@@ -198,15 +201,15 @@ export function Header({ variant = "auth" }: HeaderProps) {
             {isDashboard ? (
               <>
                 <div className="hidden h-7 w-px bg-border/70 sm:block" />
-                <button type="button" aria-label="Open account" onClick={() => router.push(APP_URL.LINKS.ACCOUNT)} className="group flex h-10 items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-primary/5">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#e85d9e] text-xs font-bold text-white">{initials}</span>
+                <button type="button" aria-label="Open account" onClick={() => router.push(APP_URL.LINKS.ACCOUNT)} className="group flex h-10 w-10 items-center justify-center rounded-full p-0 hover:bg-primary/5 sm:w-auto sm:justify-start sm:gap-2 sm:py-1 sm:pl-1 sm:pr-3">
+                  <span className="flex h-8 w-8 shrink-0 aspect-square items-center justify-center rounded-full bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#e85d9e] text-xs font-bold text-white">{initials}</span>
                   <span className="hidden max-w-[120px] truncate text-sm font-semibold sm:block">{displayName}</span>
                 </button>
               </>
             ) : isAuthenticated ? (
               <div className="relative" ref={profileRef}>
-                <button type="button" aria-label="Open account menu" aria-expanded={profileOpen} onClick={() => setProfileOpen((open) => !open)} className="group flex h-10 items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3 shadow-sm hover:border-primary/40">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#e85d9e] text-xs font-bold text-white">{initials}</span>
+                <button type="button" aria-label="Open account menu" aria-expanded={profileOpen} onClick={() => setProfileOpen((open) => !open)} className="group flex h-10 w-10 items-center justify-center rounded-full border-0 bg-transparent p-0 shadow-none hover:bg-primary/5 sm:w-auto sm:justify-start sm:gap-2 sm:border sm:border-border sm:bg-surface sm:py-1 sm:pl-1 sm:pr-3 sm:shadow-sm sm:hover:border-primary/40">
+                  <span className="flex h-8 w-8 shrink-0 aspect-square items-center justify-center rounded-full bg-gradient-to-br from-[#5741c7] via-[#7253e5] to-[#e85d9e] text-xs font-bold text-white">{initials}</span>
                   <span className="hidden max-w-[120px] truncate text-sm font-semibold sm:block">{displayName}</span>
                   <ChevronDown className={`hidden h-4 w-4 text-muted-foreground transition-transform sm:block ${profileOpen ? "rotate-180" : ""}`} />
                 </button>
@@ -222,7 +225,7 @@ export function Header({ variant = "auth" }: HeaderProps) {
           </div>
         </div>
 
-        {isMarketing && mobileOpen && <MobileMarketingMenu onClose={() => setMobileOpen(false)} isAuthenticated={isAuthenticated} onLogout={() => setIsLogoutOpen(true)} />}
+        {isMarketing && mobileOpen && <MobileMarketingMenu onClose={() => setMobileOpen(false)} isAuthenticated={isAuthenticated} />}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
       </header>
 
@@ -237,7 +240,7 @@ function ProfileMenu({ user, displayName, onLogout, onClose }: { user?: any; dis
   const href = connected ? APP_URL.LINKS.ACCOUNT : onboardingRoutes[user?.onboardingStep as OnboardingStep];
   return (
     <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-2xl border border-border bg-surface p-2 shadow-2xl animate-in fade-in-0 zoom-in-95">
-      <div className="mb-1.5 flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2.5"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{getInitials(user?.firstName, user?.lastName)}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{displayName}</p><p className="truncate text-[11px] text-muted-foreground">{user?.email || "Subscriber"}</p></div></div>
+      <div className="mb-1.5 flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2.5"><span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{getInitials(user?.firstName, user?.lastName)}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{displayName}</p><p className="truncate text-[11px] text-muted-foreground">{user?.email || "Subscriber"}</p></div></div>
       {connected && <Link href={APP_URL.LINKS.DASHBOARD} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted"><LayoutDashboard className="h-4 w-4 text-primary" />Dashboard</Link>}
       <Link href={href || APP_URL.LINKS.ACCOUNT} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted">{connected ? <User className="h-4 w-4 text-primary" /> : <LayoutDashboard className="h-4 w-4 text-primary" />}{connected ? "Profile" : "Complete Connection"}</Link>
       <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10"><LogOut className="h-4 w-4" />Logout</button>
@@ -245,11 +248,11 @@ function ProfileMenu({ user, displayName, onLogout, onClose }: { user?: any; dis
   );
 }
 
-function MobileMarketingMenu({ onClose, isAuthenticated, onLogout }: { onClose: () => void; isAuthenticated: boolean; onLogout: () => void }) {
+function MobileMarketingMenu({ onClose, isAuthenticated }: { onClose: () => void; isAuthenticated: boolean }) {
   return (
     <div className="border-t border-border/60 bg-background px-4 pb-6 pt-4 lg:hidden">
       <nav aria-label="Mobile" className="flex flex-col gap-1">{NAV_LINKS.map((link) => <a key={link.href} href={link.href} onClick={onClose} className="rounded-xl px-4 py-3 text-sm font-medium hover:bg-accent">{link.label}</a>)}</nav>
-      {!isAuthenticated ? <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border/60 pt-4"><Link href={APP_URL.LINKS.LOGIN} onClick={onClose} className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-surface text-sm font-semibold">Log in</Link><Link href={APP_URL.LINKS.REGISTER} onClick={onClose} className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-semibold text-white"><Heart className="h-4 w-4 fill-current" />Get Started</Link></div> : <div className="mt-4 space-y-1 border-t border-border/60 pt-4"><Link href={APP_URL.LINKS.DASHBOARD} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium hover:bg-accent"><LayoutDashboard className="h-4 w-4 text-primary" />Dashboard</Link><Link href={APP_URL.LINKS.ACCOUNT} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium hover:bg-accent"><User className="h-4 w-4 text-primary" />Profile</Link><button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-red-500 hover:bg-red-500/10"><LogOut className="h-4 w-4" />Logout</button></div>}
+      {!isAuthenticated && <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border/60 pt-4"><Link href={APP_URL.LINKS.LOGIN} onClick={onClose} className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-surface text-sm font-semibold">Log in</Link><Link href={APP_URL.LINKS.REGISTER} onClick={onClose} className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-semibold text-white"><Heart className="h-4 w-4 fill-current" />Get Started</Link></div>}
     </div>
   );
 }

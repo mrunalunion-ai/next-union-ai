@@ -55,7 +55,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <Header variant="dashboard" />
-          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hidden">
+          <div className="min-h-0 flex-1 overflow-y-auto pb-24 scrollbar-hidden lg:pb-0">
             {children}
           </div>
           <DashboardMobileNav />

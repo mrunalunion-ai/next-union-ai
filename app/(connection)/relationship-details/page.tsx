@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
 import { Check, Heart, ImagePlus, X } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -54,6 +54,16 @@ export default function RelationshipDetailsContent() {
     formState: { errors, isValid, isSubmitting },
   } = form;
   const watchedLanguages = useWatch({ control, name: "loveLanguages" });
+  const summaryValue = useWatch({ control, name: "summary" });
+  const wordCount = summaryValue ? summaryValue.trim().split(/\s+/).filter(Boolean).length : 0;
+  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const words = value.trim().split(/\s+/).filter(Boolean);
+    if (words.length > 100) {
+      e.target.value = words.slice(0, 100).join(" ");
+    }
+    form.setValue("summary", e.target.value, { shouldDirty: true, shouldValidate: true });
+  };
   const selectedLanguages = Array.isArray(watchedLanguages)
     ? watchedLanguages
     : [];
@@ -159,41 +169,41 @@ export default function RelationshipDetailsContent() {
   useEffect(() => {
     const data = user_data?.user ?? {};
     if (data && typeof data === "object") {
-      const selected = Array.isArray(data.loveLanguages)
+      const selected = Array.isArray(data?.loveLanguages)
         ? data?.loveLanguages?.map((item: any) =>
           String(item.id ?? item._id ?? item),
         )
         : [];
-      const selectedNotSure = selected.find((item: string) =>
-        item.toLowerCase().includes("not-sure"),
+      const selectedNotSure = selected?.find((item: string) =>
+        item?.toLowerCase()?.includes("not-sure"),
       );
       reset({
-        summary: String(data.summary ?? ""),
+        summary: String(data?.summary ?? ""),
         loveLanguages: selectedNotSure ? [selectedNotSure] : selected,
-        profileImage: String(data.profileImage ?? ""),
+        profileImage: String(data?.profileImage ?? ""),
       });
-      setUploadedImageUrl(data.profileImage ?? null);
+      setUploadedImageUrl(data?.profileImage ?? null);
     }
     setIsFetching(false);
   }, [isConnected, reset, user_data?.user]);
 
   const toggleLanguage = (id: string) => {
     const languages = Array.isArray(mainReducer?.loveLanguageList?.data)
-      ? mainReducer.loveLanguageList.data
+      ? mainReducer?.loveLanguageList?.data
       : [];
 
-    const selectedLanguage = languages.find(
-      (language: ILoveLanguage) => language.id === id,
+    const selectedLanguage = languages?.find(
+      (language: ILoveLanguage) => language?.id === id,
     );
 
     if (!selectedLanguage) return;
 
     const isNotSure = isNotSureLanguage(selectedLanguage);
-    const isAlreadySelected = selectedLanguages.includes(id);
+    const isAlreadySelected = selectedLanguages?.includes(id);
     if (isAlreadySelected) {
       setValue(
         "loveLanguages",
-        selectedLanguages.filter((item) => item !== id),
+        selectedLanguages?.filter((item) => item !== id),
         {
           shouldDirty: true,
           shouldValidate: true,
@@ -209,14 +219,14 @@ export default function RelationshipDetailsContent() {
 
       return;
     }
-    const withoutNotSure = selectedLanguages.filter(
+    const withoutNotSure = selectedLanguages?.filter(
       (item) =>
-        !languages.some(
+        !languages?.some(
           (language: ILoveLanguage) =>
-            language.id === item && isNotSureLanguage(language),
+            language?.id === item && isNotSureLanguage(language),
         ),
     );
-    if (withoutNotSure.length >= 3) {
+    if (withoutNotSure?.length >= 3) {
       toast.error("You can select up to 3 love languages.");
       return;
     }
@@ -233,9 +243,9 @@ export default function RelationshipDetailsContent() {
       action: "update",
       payload: {
         id: user_data?.user?.id,
-        summary: values.summary.trim(),
-        loveLanguages: values.loveLanguages,
-        profileImage: values.profileImage || "",
+        summary: values?.summary?.trim(),
+        loveLanguages: values?.loveLanguages,
+        profileImage: values?.profileImage || "",
         onboardingStep: "relationshipDetailsCompleted",
       },
     });
@@ -248,7 +258,7 @@ export default function RelationshipDetailsContent() {
       lastEvent?.data?.request?.action === "update" &&
       lastEvent?.data?.data?.onboardingStep === "relationshipDetailsCompleted"
     ) {
-      // toast.success(ws_onmessage?.msg ?? "Profile updated successfully.");
+      toast.success(lastEvent?.data?.msg ?? "Profile updated successfully.");
       router.push(APP_URL.LINKS.CREATE_UNION);
     }
   }, [lastEvent]);
@@ -320,7 +330,7 @@ export default function RelationshipDetailsContent() {
                           Add a profile image <span className="font-normal text-muted-foreground">(optional)</span>
                         </p>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          JPG, JPEG, or PNG up to 5MB.
+                          JPG, JPEG, PNG, etc.
                         </p>
                         <label
                           htmlFor="profile-image-input"
@@ -340,18 +350,25 @@ export default function RelationshipDetailsContent() {
                       </div>
                     </div>
                   </div>
-                  <InputField<RelationshipDetailsFormValues>
-                    name="summary"
-                    label="Provide a Short Summary of Your Relationship"
-                    required
-                    useFor="textarea"
-                    rows={4}
-                    placeholder="Tell us a bit about yourself..."
-                    register={register}
-                    error={errors.summary?.message}
-                    labelClassName="auth-field-label"
-                    inputClassName="auth-input"
-                  />
+                  <div>
+                    <InputField<RelationshipDetailsFormValues>
+                      name="summary"
+                      label="Provide a Short Summary of Your Relationship"
+                      required
+                      useFor="textarea"
+                      rows={4}
+                      placeholder="Tell us a bit about yourself..."
+                      register={register}
+                      error={errors.summary?.message}
+                      labelClassName="auth-field-label"
+                      inputClassName="auth-input"
+                      maxLength={1000}
+                      onChange={handleSummaryChange}
+                    />
+                    <div className="mt-1 text-right text-xs text-muted-foreground">
+                      {wordCount}/100
+                    </div>
+                  </div>
                   <input type="hidden" {...register("loveLanguages")} />
                   <div>
                     <div className="mb-1 flex items-center gap-2">
@@ -368,7 +385,7 @@ export default function RelationshipDetailsContent() {
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
                       {[
                         ...(Array.isArray(mainReducer?.loveLanguageList?.data)
-                          ? mainReducer.loveLanguageList.data
+                          ? mainReducer?.loveLanguageList?.data
                           : []),
                       ]
                         .sort(
@@ -377,15 +394,15 @@ export default function RelationshipDetailsContent() {
                             Number(isNotSureLanguage(b)),
                         )
                         .map((language: ILoveLanguage) => {
-                          const isSelected = selectedLanguages.includes(
-                            language.id,
+                          const isSelected = selectedLanguages?.includes(
+                            language?.id,
                           );
 
                           return (
                             <button
-                              key={language.id}
+                              key={language?.id}
                               type="button"
-                              onClick={() => toggleLanguage(language.id)}
+                              onClick={() => toggleLanguage(language?.id)}
                               aria-pressed={isSelected}
                               className={`
               group relative flex min-w-0 gap-3 rounded-xl border
@@ -437,7 +454,7 @@ export default function RelationshipDetailsContent() {
                                   }
               `}
                               >
-                                {language.icon || (
+                                {language?.icon || (
                                   <Heart
                                     size={20}
                                     className={
@@ -457,12 +474,12 @@ export default function RelationshipDetailsContent() {
                   ${isSelected ? "text-primary" : "text-foreground"}
                 `}
                                 >
-                                  {language.title}
+                                  {language?.title}
                                 </h4>
 
-                                {language.description && (
+                                {language?.description && (
                                   <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                                    {language.description}
+                                    {language?.description}
                                   </p>
                                 )}
                               </div>
@@ -473,7 +490,7 @@ export default function RelationshipDetailsContent() {
 
                     {errors.loveLanguages?.message && (
                       <p className="mt-2 text-sm text-destructive">
-                        {errors.loveLanguages.message}
+                        {errors.loveLanguages?.message}
                       </p>
                     )}
                   </div>
@@ -493,3 +510,4 @@ export default function RelationshipDetailsContent() {
     </RouteGuard>
   );
 }
+

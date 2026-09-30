@@ -27,7 +27,7 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ onLogout }: DashboardSidebarProps) {
   const pathname = usePathname();
   return (
-    <aside className="hidden h-full w-[248px] shrink-0 flex-col border-r border-border/60 bg-background/80 px-4 py-5 lg:flex">
+    <aside className="hidden h-full w-[248px] shrink-0 flex-col border-r border-border/60 px-4 py-5 lg:flex">
       <Link
         href={APP_URL.LINKS.HOME}
         aria-label="UnionAI home"

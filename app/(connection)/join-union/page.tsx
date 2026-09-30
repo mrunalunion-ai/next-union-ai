@@ -1,11 +1,9 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Key, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
@@ -16,41 +14,26 @@ import InputField from "@/components/ui/InputField";
 import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
-import { joinUnionSchema, type JoinUnionFormValues } from "@/utils/schema";
 
 function JoinUnionContent() {
   const router = useRouter();
   const { user_data } = usePosterReducers();
-  const { isConnected, lastEvent, sendMessage } = useWebSocket();
-  const [mode, setMode] = useState<"send" | "info">("info");
+  const { lastEvent, sendMessage } = useWebSocket();
   const [confirmation, setConfirmation] = useState<"send" | "cancel" | "notPartner" | null>(null);
-  const form = useForm<JoinUnionFormValues>({
-    resolver: zodResolver(joinUnionSchema),
-    defaultValues: { unionCode: "" },
-    mode: "onChange",
-  });
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors, isValid, isSubmitting },
-  } = form;
 
   const currentUser = user_data?.user;
   const relationship = currentUser?.relationship;
   const partner = relationship?.partner;
   const partnerName = partner
-    ? `${partner.firstName ?? ""} ${partner.lastName ?? ""}`.trim()
+    ? `${partner?.firstName ?? ""} ${partner?.lastName ?? ""}`.trim()
     : "";
   const partnerInitial = partnerName
-    ? partnerName.charAt(0).toUpperCase()
+    ? partnerName?.charAt(0)?.toUpperCase()
     : "?";
   const unionCode = relationship?.unionCode ?? "";
-  const unionCodeDigits = unionCode.replace(/^UNION-/, "");
+  const unionCodeDigits = unionCode?.replace(/^UNION-/, "");
 
   const sendRequest = () => {
-    setMode("send");
     sendMessage("action", {
       type: "userService",
       action: "sendRequest",
@@ -109,13 +92,11 @@ function JoinUnionContent() {
                   disabled
                   autoComplete="off"
                   labelClassName="auth-field-label"
-                  inputClassName="auth-input tracking-[0.18em] pl-[120px]"
+                  inputClassName="auth-input tracking-[0.18em] pl-[115px]"
                   leftAdornment={
-                    <div className="flex items-center gap-2">
-                      <Key className="h-5 w-5" />
-                      <span className="font-medium tracking-[0.18em]">
-                        UNION-
-                      </span>
+                    <div className="flex items-center gap-4">
+                      <Key className="h-4 w-4" />
+                      <span className="text-sm font-semibold tracking-[0.18em]">UNION-</span>
                     </div>
                   }
                 />
@@ -129,7 +110,7 @@ function JoinUnionContent() {
                               <Image
                                 width={48}
                                 height={48}
-                                src={API_BASE_URL + partner.profileImage}
+                                src={API_BASE_URL + partner?.profileImage}
                                 alt={partnerName}
                                 className="h-full w-full rounded-full object-cover"
                               />
@@ -140,9 +121,9 @@ function JoinUnionContent() {
                           <h2 className="mt-5 text-sm font-semibold text-foreground">
                             Partner Profile Found!
                           </h2>
-                          <p className="text-[13px] text-muted-foreground">
+                          <p className="mt-1 text-sm text-muted-foreground">
                             {partnerName}
-                            {partner?.email ? ` (${partner.email})` : ""}
+                            {partner?.email ? ` (${partner?.email})` : ""}
                           </p>
                         </div>
                       </div>
@@ -175,9 +156,9 @@ function JoinUnionContent() {
 
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="redOutline"
                         className="h-11 w-full rounded-lg shadow-sm"
-                            onClick={() => setConfirmation("cancel")}
+                        onClick={() => setConfirmation("cancel")}
                       >
                         Cancel Connection
                       </Button></div>
@@ -191,7 +172,7 @@ function JoinUnionContent() {
                             <Image
                               width={48}
                               height={48}
-                              src={API_BASE_URL + partner.profileImage}
+                              src={API_BASE_URL + partner?.profileImage}
                               alt={partnerName}
                               className="h-full w-full rounded-full object-cover"
                             />
@@ -202,9 +183,9 @@ function JoinUnionContent() {
                         <h2 className="mt-5 text-sm font-semibold text-foreground">
                           Partner Profile Found!
                         </h2>
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {partnerName}
-                          {partner?.email ? ` (${partner.email})` : ""}
+                          {partner?.email ? ` (${partner?.email})` : ""}
                         </p>
                         <div className="space-y-4 mt-3">
                           <Button
@@ -236,14 +217,14 @@ function JoinUnionContent() {
           variant={confirmation === "send" ? "info" : "warning"}
           title={
             confirmation === "send"
-              ? "Send connection request?"
+              ? "Send connection request ?"
               : confirmation === "cancel"
                 ? "Cancel connection request?"
                 : "This is not my partner?"
           }
           description={
             confirmation === "send"
-              ? `Send a request to ${partnerName || "this partner"}? They will need to accept before your accounts are connected.`
+              ? `Send a request to ${partnerName || "this partner"}? They will need to accept your request.`
               : confirmation === "cancel"
                 ? "This will cancel your pending connection request. You can join again later with a Union Code."
                 : "You will leave this partner match and return to the Union connection setup."

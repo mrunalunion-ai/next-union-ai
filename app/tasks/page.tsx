@@ -72,7 +72,7 @@ export default function TasksPage() {
 
     const filters = filter ? [filter] : taskFilters;
 
-    filters.forEach((taskFilter) => {
+    filters?.forEach((taskFilter) => {
       sendMessage("action", {
         type: "tasksService",
         action: "list",
@@ -98,7 +98,7 @@ export default function TasksPage() {
     const request = message?.request ?? message;
     const action = request?.action;
 
-    if (!["create", "update", "delete"].includes(action)) return;
+    if (!["create", "update", "delete"]?.includes(action)) return;
 
     if (message?.status === false) {
       dispatch(setTasksError(message.msg ?? "Unable to update this task."));
@@ -124,12 +124,12 @@ export default function TasksPage() {
       type: "tasksService",
       action: modalTask ? "update" : "create",
       payload: {
-        ...(modalTask ? { id: modalTask.id } : {}),
-        title: values.title,
-        description: values.description,
-        assignedTo: values.assignedTo,
-        priority: values.priority,
-        dueDate: values.dueDate,
+        ...(modalTask ? { id: modalTask?.id } : {}),
+        title: values?.title,
+        description: values?.description,
+        assignedTo: values?.assignedTo,
+        priority: values?.priority,
+        dueDate: values?.dueDate,
         relationshipId,
       },
     });
@@ -143,8 +143,8 @@ export default function TasksPage() {
       type: "tasksService",
       action: "update",
       payload: {
-        id: task.id,
-        status: task.status === "completed" ? "pending" : "completed",
+        id: task?.id,
+        status: task?.status === "completed" ? "pending" : "completed",
       },
     });
   };
@@ -156,20 +156,20 @@ export default function TasksPage() {
     sendMessage("action", {
       type: "tasksService",
       action: "delete",
-      payload: { id: deleteTask.id },
+      payload: { id: deleteTask?.id },
     });
   };
 
   return (
     <DashboardLayout>
-      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-10">
+      <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
         <div className="mx-auto">
           <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-xl font-extrabold tracking-tight">
                 Relationship Tasks
               </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-muted-foreground max-w-40 sm:max-w-full">
                 Proactive milestones for your connections.
               </p>
             </div>
@@ -186,9 +186,9 @@ export default function TasksPage() {
           </header>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex w-full flex-1 gap-8 overflow-x-auto border-b border-border/70">
-              {taskTabs.map(({ label, value }) => {
-                const isActive = tasks.activeFilter === value;
+            <div className="flex w-full flex-1 sm:gap-8 gap-3 overflow-x-auto border-b border-border/70">
+              {taskTabs?.map(({ label, value }) => {
+                const isActive = tasks?.activeFilter === value;
 
                 return (
                   <button
@@ -203,8 +203,8 @@ export default function TasksPage() {
                   >
                     {label}
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[10px]">
-                      {tasks.counts?.[value] ??
-                        tasks.byFilter[value]?.length ??
+                      {tasks?.counts?.[value] ??
+                        tasks?.byFilter[value]?.length ??
                         0}
                     </span>
                   </button>
@@ -215,13 +215,13 @@ export default function TasksPage() {
           </div>
 
           <div className="mt-6">
-            {tasks.loading && tasks.byFilter[tasks.activeFilter].length === 0 ? (
+            {tasks?.loading && tasks?.byFilter[tasks?.activeFilter]?.length === 0 ? (
               <div className="grid gap-4 md:grid-cols-2" aria-busy="true">
-                {[1, 2, 3, 4].map((item) => (
+                {[1, 2, 3, 4]?.map((item) => (
                   <Card key={item} className="h-40 animate-pulse rounded-2xl bg-surface" />
                 ))}
               </div>
-            ) : tasks.byFilter[tasks.activeFilter].length === 0 ? (
+            ) : tasks?.byFilter[tasks?.activeFilter]?.length === 0 ? (
               <Card className="p-12 text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <CheckCircle className="h-10 w-10 text-primary" />
@@ -233,9 +233,9 @@ export default function TasksPage() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
-                {tasks?.byFilter[tasks?.activeFilter].map((task: any) => (
+                {tasks?.byFilter[tasks?.activeFilter]?.map((task: any) => (
                   <TaskCard
-                    key={task.id}
+                    key={task?.id}
                     task={task}
                     currentUserId={userId}
                     onToggle={toggleTask}
@@ -252,7 +252,7 @@ export default function TasksPage() {
       {modalTask !== undefined && (
         <TaskModal
           task={modalTask}
-          saving={tasks.saving}
+          saving={tasks?.saving}
           onClose={() => setModalTask(undefined)}
           onSave={saveTask}
         />

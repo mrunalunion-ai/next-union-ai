@@ -63,9 +63,9 @@ export function RegistrationStepIndicator({
                   className={cn(
                     "relative flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300",
                     isComplete &&
-                      "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/25",
+                      "bg-gradient-to-br from-primary to-primary text-primary-foreground shadow-md shadow-primary/25",
                     isCurrent &&
-                      "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground ring-4 ring-primary/15",
+                      "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground ring-4 ring-primary/15",
                     !isCurrent &&
                       !isComplete &&
                       "border border-border bg-secondary text-muted-foreground",

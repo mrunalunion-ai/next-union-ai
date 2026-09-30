@@ -42,11 +42,11 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 function RelationshipPreview() {
   return (
-    <div className="relative mx-auto w-full max-w-[520px] px-3 sm:px-0">
+    <div className="relative mx-auto min-w-0 w-full max-w-full px-0 sm:max-w-[520px] sm:px-0">
       <div className="absolute -inset-8 rounded-[2.5rem] bg-primary/15 blur-3xl motion-safe:animate-pulse" />
       <div className="relative overflow-hidden rounded-[1.75rem] border border-border/80 bg-surface p-3 shadow-2xl shadow-primary/10 sm:p-5">
-        <div className="flex items-center justify-between border-b border-border/70 px-2 pb-4">
-          <div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Your Union</p><p className="mt-1 text-sm font-bold">A shared space for both of you</p></div>
+        <div className="flex min-w-0 items-center justify-between border-b border-border/70 px-2 pb-4">
+          <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Your Union</p><p className="mt-1 break-words text-sm font-bold">A shared space for both of you</p></div>
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary"><Heart className="h-4 w-4 fill-current" /></div>
         </div>
         <div className="grid gap-3 pt-3 sm:grid-cols-[1.05fr_0.95fr]">
@@ -73,13 +73,13 @@ function RelationshipPreview() {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen overflow-hidden bg-background text-foreground">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background text-foreground">
       <Header variant="marketing" />
       <main>
-        <section className="relative overflow-hidden px-5 pb-20 pt-14 sm:px-8 sm:pb-28 sm:pt-20 lg:px-12 lg:pt-12 2xl:pt-20">
+        <section className="relative w-full max-w-full overflow-hidden px-4 pb-14 pt-9 sm:px-8 sm:pb-28 sm:pt-20 lg:px-12 lg:pt-12 2xl:pt-20">
           <div aria-hidden className="pointer-events-none absolute inset-0"><div className="anim-blob absolute left-1/2 top-[-12rem] h-[34rem] w-[55rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" /><div className="anim-blob absolute -right-32 top-72 h-80 w-80 rounded-full bg-rose-400/10 blur-3xl [animation-delay:2s]" /><div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.35)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.35)_1px,transparent_1px)] bg-[size:52px_52px] [mask-image:radial-gradient(ellipse_70%_55%_at_50%_15%,black,transparent)]" /></div>
-          <div className="relative mx-auto grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
-            <Reveal><SectionLabel>AI-powered relationship intelligence</SectionLabel><h1 className="mt-6 max-w-2xl pb-1 text-4xl font-extrabold leading-[1.1] tracking-[-0.055em] sm:text-5xl lg:text-5xl 2xl:text-7xl">Build Stronger<span className="block bg-gradient-to-r from-primary via-violet-500 to-rose-400 bg-clip-text text-transparent motion-safe:animate-[pulse_5s_ease-in-out_infinite]">Relationships with <br /> AI Intelligence</span></h1><p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">UnionAI gives couples one shared place to connect, check in, understand their relationship, and take the next small step together.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button asChild className="h-12 rounded-xl px-6 shadow-lg shadow-primary/20"><Link href={APP_URL.LINKS.REGISTER}>Create your Union<ArrowRight className="ml-2 h-4 w-4" /></Link></Button><Button asChild variant="outline" className="h-12 rounded-xl px-6"><a href="#how-it-works">See how it works</a></Button></div><div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500" />Private relationship space</span><span className="inline-flex items-center gap-2"><Heart className="h-4 w-4 fill-rose-400 text-rose-400" />Built for both partners</span></div></Reveal>
+          <div className="relative mx-auto grid w-full min-w-0 max-w-full items-center gap-9 sm:gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+            <Reveal className="min-w-0"><SectionLabel>AI-powered relationship intelligence</SectionLabel><h1 className="mt-5 max-w-2xl pb-1 text-3xl font-extrabold leading-[1.1] tracking-[-0.045em] sm:mt-6 sm:text-5xl sm:tracking-[-0.055em] lg:text-5xl 2xl:text-7xl">Build Stronger<span className="block bg-gradient-to-r from-primary via-violet-500 to-rose-400 bg-clip-text text-transparent motion-safe:animate-[pulse_5s_ease-in-out_infinite]">Relationships with <br /> AI Intelligence</span></h1><p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:mt-6 sm:text-lg sm:leading-7">UnionAI gives couples one shared place to connect, check in, understand their relationship, and take the next small step together.</p><div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row"><Button asChild className="h-12 rounded-xl px-6 shadow-lg shadow-primary/20"><Link href={APP_URL.LINKS.REGISTER}>Create your Union<ArrowRight className="ml-2 h-4 w-4" /></Link></Button><Button asChild variant="outline" className="h-12 rounded-xl px-6"><a href="#how-it-works">See how it works</a></Button></div><div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground sm:mt-7"><span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-500" />Private relationship space</span><span className="inline-flex items-center gap-2"><Heart className="h-4 w-4 fill-rose-400 text-rose-400" />Built for both partners</span></div></Reveal>
             <Reveal delay={140}><RelationshipPreview /></Reveal>
           </div>
         </section>

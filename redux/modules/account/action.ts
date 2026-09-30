@@ -4,6 +4,7 @@ import {
   IAccountPlan,
   IAccountSubscription,
   IAccountTransaction,
+  IPlanFeature,
   LegalPageType,
 } from "./types";
 
@@ -11,6 +12,7 @@ export const AccountActionTypes = {
   SET_LOADING: "ACCOUNT_SET_LOADING",
   SET_SAVING: "ACCOUNT_SET_SAVING",
   SET_PLANS: "ACCOUNT_SET_PLANS",
+  SET_PLAN_FEATURES: "ACCOUNT_SET_PLAN_FEATURES",
   SET_ACTIVE_SUBSCRIPTION: "ACCOUNT_SET_ACTIVE_SUBSCRIPTION",
   SET_TRANSACTIONS: "ACCOUNT_SET_TRANSACTIONS",
   SET_PARTNER: "ACCOUNT_SET_PARTNER",
@@ -22,6 +24,7 @@ export const AccountActionTypes = {
 export const setAccountLoading = (payload: boolean) => ({ type: AccountActionTypes.SET_LOADING, payload });
 export const setAccountSaving = (payload: boolean) => ({ type: AccountActionTypes.SET_SAVING, payload });
 export const setAccountPlans = (payload: IAccountPlan[]) => ({ type: AccountActionTypes.SET_PLANS, payload });
+export const setAccountPlanFeatures = (payload: IPlanFeature[]) => ({ type: AccountActionTypes.SET_PLAN_FEATURES, payload });
 export const setActiveSubscription = (payload: IAccountSubscription | null) => ({ type: AccountActionTypes.SET_ACTIVE_SUBSCRIPTION, payload });
 export const setAccountTransactions = (payload: IAccountTransaction[]) => ({ type: AccountActionTypes.SET_TRANSACTIONS, payload });
 export const setAccountPartner = (payload: IAccountPartner | null) => ({ type: AccountActionTypes.SET_PARTNER, payload });

@@ -7,7 +7,6 @@ import { useEffect } from "react";
 
 import AuthLayout from "@/components/auth/auth-layout";
 import RouteGuard from "@/components/auth/route-guard";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
@@ -26,16 +25,16 @@ export default function ConnectedPage() {
     const relationship = user?.relationships?.[0];
     const partner = relationship?.partner;
 
-    const userName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "You";
+    const userName = `${user?.firstName ?? ""}`.trim() || "You";
     const userInitial = userName
-        ? userName.charAt(0).toUpperCase()
+        ? userName?.charAt(0)?.toUpperCase()
         : "?";
     const partnerName =
-        `${partner?.firstName ?? ""} ${partner?.lastName ?? ""}`.trim() ||
+        `${partner?.firstName ?? ""}`.trim() ||
         "Your Partner";
 
     const partnerInitial = partnerName
-        ? partnerName.charAt(0).toUpperCase()
+        ? partnerName?.charAt(0)?.toUpperCase()
         : "?";
 
     return (
@@ -50,25 +49,24 @@ export default function ConnectedPage() {
                                     height={80}
                                     src={APP_URL.IMAGES.LOGO_BADGE}
                                     alt="UnionAI"
-                                    className="h-12 w-12 object-contain sm:h-16 sm:w-16"
                                 />
                             </div>
 
-                            <p className="mt-2 text-sm font-medium text-muted-foreground">
+                            <p className="mt-2 text-base font-medium text-muted-foreground">
                                 Union Created Successfully
                             </p>
-                            <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                            <h1 className="mt-3 text-2xl font-extrabold tracking-wide text-foreground sm:text-3xl">
                                 You&apos;re Connected!
                             </h1>
 
                             <div className="mx-auto mt-8 grid w-full max-w-md grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
                                 <div className="min-w-0">
-                                    <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-semibold text-primary ring-4 ring-primary/5 sm:h-20 sm:w-20">
+                                    <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-semibold text-primary ring-4 ring-primary/5">
                                         {user?.profileImage ? (
                                             <Image
-                                                width={80}
-                                                height={80}
-                                                src={API_BASE_URL + user.profileImage}
+                                                width={70}
+                                                height={70}
+                                                src={API_BASE_URL + user?.profileImage}
                                                 alt={userName}
                                                 className="h-full w-full object-cover"
                                             />
@@ -76,7 +74,7 @@ export default function ConnectedPage() {
                                             userInitial
                                         )}
                                     </div>
-                                    <p className="mt-3 truncate text-base font-bold text-foreground sm:text-lg" style={{ fontFamily: '"Kaushan Script", cursive' }}>
+                                    <p className="mt-3 truncate sm:text-xl text-lg font-bold text-muted-foreground" style={{ fontFamily: '"Kaushan Script", cursive' }}>
                                         {userName}
                                     </p>
                                 </div>
@@ -86,12 +84,12 @@ export default function ConnectedPage() {
                                 </div>
 
                                 <div className="min-w-0">
-                                    <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-semibold text-primary ring-4 ring-primary/5 sm:h-20 sm:w-20">
+                                    <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-xl font-semibold text-primary ring-4 ring-primary/5">
                                         {partner?.profileImage ? (
                                             <Image
                                                 width={80}
                                                 height={80}
-                                                src={API_BASE_URL + partner.profileImage}
+                                                src={API_BASE_URL + partner?.profileImage}
                                                 alt={partnerName}
                                                 className="h-full w-full object-cover"
                                             />
@@ -99,13 +97,13 @@ export default function ConnectedPage() {
                                             partnerInitial
                                         )}
                                     </div>
-                                    <p className="mt-3 truncate text-base font-bold text-foreground sm:text-lg" style={{ fontFamily: '"Kaushan Script", cursive' }}>
+                                    <p className="mt-3 truncate sm:text-xl text-lg font-bold text-muted-foreground" style={{ fontFamily: '"Kaushan Script", cursive' }}>
                                         {partnerName}
                                     </p>
                                 </div>
                             </div>
 
-                            <p className="mx-auto mt-7 max-w-md text-sm leading-6 text-muted-foreground sm:mt-8">
+                            <p className="mx-auto mt-7 max-w-sm text-sm leading-6 text-muted-foreground sm:mt-8">
                                 The foundation of your shared sanctuary is set. Today marks the beginning of a deeper, more intentional journey together.
                             </p>
 
