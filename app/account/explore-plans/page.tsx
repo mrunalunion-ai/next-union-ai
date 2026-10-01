@@ -186,8 +186,8 @@ export default function ExplorePlansPage() {
   }, [accountState.plans, activeSubscription, selectedPlanId]);
 
   const selectedPlan = useMemo(
-    () => accountState?.plans?.find((plan: any) => plan?.id === selectedPlanId),
-    [accountState?.plans, selectedPlanId],
+    () => accountState.plans?.find((plan: any) => plan.id === selectedPlanId),
+    [accountState.plans, selectedPlanId],
   );
 
   const subscribe = () => {
