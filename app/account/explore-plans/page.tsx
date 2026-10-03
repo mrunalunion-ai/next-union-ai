@@ -13,13 +13,7 @@ import { AccountPageHeader } from "@/components/account/account-ui";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { StripeCheckoutModal } from "@/components/payment";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import {
@@ -122,8 +116,6 @@ export default function ExplorePlansPage() {
     ? subscriptionCandidate
     : null;
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
-  const paymentPending = useRef(false);
 
   const loadPlans = useCallback(() => {
     if (!isConnected || !isUser1) return;
@@ -145,27 +137,7 @@ export default function ExplorePlansPage() {
     loadPlans();
   }, [loadPlans]);
 
-  useEffect(() => {
-    const message = lastEvent?.data;
-    if (!paymentPending?.current) return;
 
-    if (
-      message?.request?.type !== "paymentService" ||
-      message?.request?.action !== "recordPayment"
-    ) {
-      return;
-    }
-
-    paymentPending.current = false;
-    setProcessingPayment(false);
-    if (message.status === true) {
-      setCheckoutOpen(false);
-      toast.success(message.msg ?? "Subscription activated successfully.");
-      sendMessage("action", { type: "userService", action: "get", payload: {} });
-    } else {
-      toast.error(message.msg ?? "Unable to complete the subscription.");
-    }
-  }, [lastEvent, sendMessage]);
 
   useEffect(() => {
     const selectablePlans = activeSubscription
@@ -196,26 +168,8 @@ export default function ExplorePlansPage() {
   };
 
   const confirmSubscription = () => {
-    if (!isUser1 || !selectedPlan || processingPayment) return;
-
-    setProcessingPayment(true);
-    paymentPending.current = true;
-    const transactionId = globalThis.crypto?.randomUUID?.() ?? `WEB-${Date.now()}`;
-    sendMessage("action", {
-      type: "paymentService",
-      action: "recordPayment",
-      payload: {
-        planId: selectedPlan?.id,
-        ownerUserId: userId,
-        otherUserId: relationship?.partner?.id ?? "",
-        platform: "MANUAL",
-        productId: selectedPlan?.code,
-        transactionId,
-        originalTransactionId: transactionId,
-        currency,
-        amount: getPlanPrice(selectedPlan, currency),
-      },
-    });
+    if (!isUser1 || !selectedPlan) return;
+    setCheckoutOpen(true);
   };
 
   const currentPlan = accountState?.plans?.find((plan: any) => plan?.id === activeSubscription?.planId);
@@ -384,54 +338,16 @@ export default function ExplorePlansPage() {
           )}
         </div>
 
-        <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-          <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] max-w-xl overflow-y-auto scrollbar-hidden rounded-3xl bg-surface p-5 shadow-2xl sm:p-7">
-            {selectedPlan && (
-              <>
-                <DialogHeader className="items-start text-left">
-                  <DialogTitle className="text-xl font-bold">You selected</DialogTitle>
-                  <DialogDescription className="text-sm text-muted-foreground">
-                    Review your plan details before continuing.
-                  </DialogDescription>
-                </DialogHeader>
-                <Card className="mt-2 rounded-2xl border-2 border-primary bg-primary/[0.03] p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-base font-extrabold uppercase text-primary">{formatDuration(selectedPlan)}</p>
-                    <span className="rounded-lg bg-muted px-3 py-1 text-sm font-bold">Basic</span>
-                  </div>
-                  <p className="mt-4 text-3xl font-extrabold">
-                    {currency === "USD" ? "$" : "£"}{getPlanPrice(selectedPlan, currency)?.toFixed(2)} total
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {selectedPlan.duration * 30} days · /mo {currency === "USD" ? "$" : "£"}{(getPlanPrice(selectedPlan, currency) / Math.max(selectedPlan?.duration, 1))?.toFixed(2)}
-                  </p>
-                </Card>
-                <p className="text-base text-muted-foreground">
-                  Renews automatically unless cancelled before {activeSubscription?.endDate ? new Date(activeSubscription?.endDate)?.toLocaleDateString() : "the next billing date"}.
-                </p>
-                <div className="rounded-2xl border border-border bg-background p-5 text-sm">
-                  <div className="flex justify-between gap-4"><span className="text-muted-foreground">Plan</span><strong>{formatDuration(selectedPlan)}</strong></div>
-                  <div className="mt-3 flex justify-between gap-4"><span className="font-bold text-muted-foreground">Due today</span><strong>{currency === "USD" ? "$" : "£"}{getPlanPrice(selectedPlan, currency)?.toFixed(2)}</strong></div>
-                  <p className="mt-4 text-muted-foreground">Payment method on file will be charged through the configured payment provider. Cancel anytime.</p>
-                </div>
-                <div className="flex gap-5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setCheckoutOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button className="submit flex-1" onClick={confirmSubscription} disabled={processingPayment}>
-                    <LockKeyhole className="mr-2 h-4 w-4" />
-                    {processingPayment ? "Processing..." : "Subscribe"}
-                  </Button>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+        {selectedPlan && (
+          <StripeCheckoutModal
+            open={checkoutOpen}
+            onOpenChange={setCheckoutOpen}
+            planId={selectedPlan.id}
+            customerId={account?.activeSubscription?.customerId || user_data?.user?.id || ''}
+            amount={getPlanPrice(selectedPlan, currency)}
+            currency={currency}
+          />
+        )}
       </main>
     </DashboardLayout>
   );
