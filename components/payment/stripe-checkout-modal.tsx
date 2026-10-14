@@ -37,7 +37,6 @@ export function StripeCheckoutModal({
     const result = await checkout({
       planId,
       customerId,
-      returnUrl: window.location.origin,
     });
     if (result) {
       onOpenChange(false);
