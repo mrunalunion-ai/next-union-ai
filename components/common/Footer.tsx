@@ -114,7 +114,7 @@ export function Footer() {
       <div className="relative border-t border-white/10">
         <div className="mx-auto flex w-full flex-col items-center justify-between gap-3 px-5 py-5 text-center text-[11px] text-white/50 sm:flex-row sm:px-8 sm:text-left lg:px-12">
           <p>
-            © 2026 Union Tech Inc. All rights reserved.
+            © 2026 UnionAI. All rights reserved.
           </p>
           <p className="flex items-center gap-1.5">
             Made with

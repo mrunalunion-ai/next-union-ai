@@ -7,7 +7,7 @@ import { inter } from '@/lib/fonts';
 import { Metadata } from 'next';
 
 const APP_NAME = 'UnionAI App';
-const APP_URL = API_BASE_URL;
+const APP_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://unionaiapp.com";
 const APP_DESCRIPTION = 'The intelligent Relationship Union Score and wellness app built to secure your lifetime bond.'
 
 export const metadata: Metadata = {
