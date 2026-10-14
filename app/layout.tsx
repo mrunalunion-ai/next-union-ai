@@ -2,12 +2,11 @@
 // @ts-ignore
 import '../styles/globals.css';
 import { AppProviders } from "@/components/provider/provider";
-import { API_BASE_URL } from '@/constant/static';
 import { inter } from '@/lib/fonts';
 import { Metadata } from 'next';
 
 const APP_NAME = 'UnionAI App';
-const APP_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://unionaiapp.com";
+const APP_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://unionai.appristine.co.in";
 const APP_DESCRIPTION = 'The intelligent Relationship Union Score and wellness app built to secure your lifetime bond.'
 
 export const metadata: Metadata = {
@@ -78,17 +77,6 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-video-preview': -1,
     },
-  },
-  other: {
-    'og:locale': 'en_GB',
-    'og:title': APP_NAME,
-    'og:description': APP_DESCRIPTION,
-    'og:image': `${APP_URL}/assets/images/metadata-image-og.jpg`,
-    'og:image:width': '1200',
-    'og:image:height': '630',
-    'og:url': APP_URL,
-    'og:type': 'website',
-    'og:site_name': APP_NAME,
   },
 };
 
