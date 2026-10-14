@@ -81,7 +81,7 @@ export default function TransactionsPage() {
                 return (
                   <Card
                     key={transaction?.id}
-                    className="rounded-2xl border-border/70 bg-surface p-3 shadow-sm transition-shadow hover:shadow-md sm:p-4"
+                    className="rounded-2xl border-border/70 bg-surface p-3 shadow-sm mb-2 transition-shadow hover:shadow-md sm:p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
@@ -99,7 +99,7 @@ export default function TransactionsPage() {
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-end justify-between gap-3">
+                    <div className="mt-1 flex items-end justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-foreground">
                           {transaction?.planName || "Subscription"}

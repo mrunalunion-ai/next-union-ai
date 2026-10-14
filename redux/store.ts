@@ -10,6 +10,7 @@ import { tasksReducer } from "./modules/tasks";
 import { insightsReducer } from "./modules/insights";
 import { notificationsReducer } from "./modules/notifications";
 import { accountReducer } from "./modules/account";
+import { paymentReducer } from "./modules/payment";
 
 const combinedReducer = combineReducers({
   user_data: userDataReducers,
@@ -21,6 +22,7 @@ const combinedReducer = combineReducers({
   insights: insightsReducer,
   notifications: notificationsReducer,
   account: accountReducer,
+  payment: paymentReducer,
 });
 
 const BUILD_ID =
