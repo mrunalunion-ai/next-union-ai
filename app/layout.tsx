@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     locale: 'en_GB',
     images: [
       {
-        url: `${APP_URL}/assets/icons/metadata-image-og.jpg`,
+        url: `${APP_URL}/assets/images/metadata-image-og.jpg`,
         width: 1200,
         height: 630,
         alt: APP_NAME,
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    images: [`${APP_URL}/assets/icons/metadata-image-og.jpg`],
+    images: [`${APP_URL}/assets/images/metadata-image-og.jpg`],
     creator: '@unionaiapp',
   },
   robots: {
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     'og:locale': 'en_GB',
     'og:title': APP_NAME,
     'og:description': APP_DESCRIPTION,
-    'og:image': `${APP_URL}/assets/icons/metadata-image-og.jpg`,
+    'og:image': `${APP_URL}/assets/images/metadata-image-og.jpg`,
     'og:image:width': '1200',
     'og:image:height': '630',
     'og:url': APP_URL,
