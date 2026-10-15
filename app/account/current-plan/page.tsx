@@ -38,7 +38,10 @@ function formatDate(value?: string) {
 
 function daysBetween(start?: string, end?: string) {
   if (!start || !end) return 0;
-  const difference = new Date(end).getTime() - new Date(start).getTime();
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) return 0;
+  const difference = endTime - startTime;
   return Math.max(0, Math.ceil(difference / (1000 * 60 * 60 * 24)));
 }
 
@@ -88,11 +91,7 @@ export default function CurrentPlanPage() {
   );
   const totalDays = daysBetween(subscription?.startDate, subscription?.endDate);
   const isActive = Boolean(
-    subscription &&
-      subscription?.status &&
-      typeof subscription?.isActive === "boolean"
-      ? subscription?.isActive
-      : subscription?.status?.toUpperCase() !== "EXPIRED",
+    subscription?.status?.toUpperCase() === "ACTIVE" && subscription?.isActive !== false,
   );
   const purchaser = subscription?.ownerUserId === user_data?.user?.id ? "You" : "Partner";
 
@@ -145,12 +144,20 @@ export default function CurrentPlanPage() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <DetailCard icon={CalendarDays} label="Start date" value={formatDate(subscription?.startDate)} />
-                  <DetailCard icon={CalendarDays} label="End date" value={formatDate(subscription?.endDate)} />
-                  <DetailCard icon={Clock3} label="Duration" value={durationLabel(totalDays)} />
+                  {subscription?.isTrial && subscription?.trialEndDate ? (
+                    <DetailCard icon={CalendarDays} label="Trial ends" value={formatDate(subscription.trialEndDate)} />
+                  ) : (
+                    <DetailCard icon={CalendarDays} label={subscription?.autoRenew ? "Next renewal" : "Access through"} value={formatDate(subscription?.endDate)} />
+                  )}
                   <DetailCard
                     icon={Clock3}
-                    label="Remaining"
-                    value={`${remainingDays} day${remainingDays === 1 ? "" : "s"}`}
+                    label={subscription?.isTrial ? "Trial duration" : "Billing period"}
+                    value={durationLabel(totalDays)}
+                  />
+                  <DetailCard
+                    icon={Clock3}
+                    label={subscription?.isTrial ? "Days until first payment" : subscription?.autoRenew ? "Days until renewal" : "Access remaining"}
+                    value={subscription?.endDate ? `${remainingDays} day${remainingDays === 1 ? "" : "s"}` : "—"}
                     valueClassName={remainingDays <= 7 ? "text-destructive" : undefined}
                   />
                 </div>
@@ -197,13 +204,17 @@ export default function CurrentPlanPage() {
               <div className="mt-5 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
                 <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                 <p>
-                  Upgrades are queued for the next billing period. Your current access remains active until {formatDate(subscription?.endDate)}.
+                  {subscription?.isTrial
+                    ? `Your trial ends and first payment is scheduled for ${formatDate(subscription?.trialEndDate ?? subscription?.endDate)}.`
+                    : subscription?.autoRenew
+                    ? `Your next renewal date is ${formatDate(subscription?.endDate)}.`
+                    : `Auto-renewal is off. Access remains available through ${formatDate(subscription?.endDate)}.`}
                 </p>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Button onClick={() => router.push(APP_URL.LINKS.EXPLORE_PLANS)}>
-                  Upgrade Plan
+                  Explore Plans
                 </Button>
                 <Button variant="outline" onClick={() => router.push(APP_URL.LINKS.TRANSACTIONS)}>
                   View Transactions

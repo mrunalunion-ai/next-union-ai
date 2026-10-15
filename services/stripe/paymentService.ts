@@ -25,16 +25,18 @@ class PaymentService {
 
   async createCheckoutSession(
     planId: string,
-    customerId: string,
     successUrl: string,
     cancelUrl: string,
+    currency: 'USD' | 'GBP',
+    checkoutRequestId: string,
   ): Promise<CheckoutSessionResponse> {
     const token = this.getToken();
     const response = await axios.post(
       `${this.baseURL}/api/stripe/checkout`,
       {
         planId,
-        customerId,
+        currency,
+        checkoutRequestId,
         successUrl,
         cancelUrl,
       },
@@ -52,7 +54,7 @@ class PaymentService {
       id: response.data.data.sessionId,
       url: response.data.data.checkoutUrl,
       status: 'open',
-      customer: customerId,
+      customer: response.data.data.customerId,
     };
   }
 

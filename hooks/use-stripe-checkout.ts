@@ -4,7 +4,8 @@ import { toast } from 'react-toastify';
 
 interface UseStripeCheckoutOptions {
   planId: string;
-  customerId: string;
+  currency: 'USD' | 'GBP';
+  checkoutRequestId: string;
 }
 
 export function useStripeCheckout() {
@@ -27,9 +28,10 @@ export function useStripeCheckout() {
 
         const session = await paymentService.createCheckoutSession(
           options.planId,
-          options.customerId,
           successUrl,
           cancelUrl,
+          options.currency,
+          options.checkoutRequestId,
         );
 
         // Redirect to Stripe's hosted checkout page where user enters card details

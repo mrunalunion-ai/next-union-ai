@@ -16,9 +16,9 @@ export interface StripeCheckoutProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   planId: string;
-  customerId: string;
   amount: number;
   currency: 'USD' | 'GBP';
+  checkoutRequestId: string;
   onSuccess?: () => void;
 }
 
@@ -26,9 +26,9 @@ export function StripeCheckoutModal({
   open,
   onOpenChange,
   planId,
-  customerId,
   amount,
   currency,
+  checkoutRequestId,
   onSuccess,
 }: StripeCheckoutProps) {
   const { checkout, isProcessing, error } = useStripeCheckout();
@@ -36,7 +36,8 @@ export function StripeCheckoutModal({
   const handleCheckout = async () => {
     const result = await checkout({
       planId,
-      customerId,
+      currency,
+      checkoutRequestId,
     });
     if (result) {
       onOpenChange(false);

@@ -26,15 +26,29 @@ import { useWebSocket } from "@/services/socket/WebSocketContext";
 type Currency = "USD" | "GBP";
 
 function getPlanPrice(plan: IAccountPlan, currency: Currency) {
-  const price = currency === "GBP" ? plan.priceGBP : plan.priceUSD;
-  const numericPrice = Number(price);
+  if (plan.availableCurrencies && !plan.availableCurrencies.includes(currency)) return null;
+  const numericPrice = Number(currency === "USD" ? plan.priceUSD : plan.priceGBP);
 
-  return Number.isFinite(numericPrice) ? numericPrice : 0;
+  return Number.isFinite(numericPrice) && numericPrice > 0 ? numericPrice : null;
 }
 
 function formatDuration(plan: IAccountPlan) {
-  const unit = plan.durationUnit?.toLowerCase() || "month";
-  return `${plan.duration} ${unit}`;
+  const unit = (plan.durationUnit || "MONTHS").toLowerCase().replace(/s$/, "");
+  const duration = Number.isFinite(Number(plan.duration)) && Number(plan.duration) > 0 ? Number(plan.duration) : 1;
+  return `${duration} ${unit}${duration === 1 ? "" : "s"}`;
+}
+
+function formatBillingInterval(plan: IAccountPlan) {
+  const rawDuration = Number(plan.duration);
+  const duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
+  const rawUnit = (plan.durationUnit || "MONTHS").toLowerCase().replace(/s$/, "");
+  const unit = ["day", "month"].includes(rawUnit) ? rawUnit : "month";
+  return `/${duration > 1 ? `${duration} ` : ""}${unit}${duration > 1 ? "s" : ""}`;
+}
+
+function createCheckoutRequestId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0").slice(-12)}`;
 }
 
 function PlanCard({
@@ -42,12 +56,14 @@ function PlanCard({
   currency,
   selected,
   current = false,
+  trialEligible = false,
   onSelect,
 }: {
   plan: IAccountPlan;
   currency: Currency;
   selected: boolean;
   current?: boolean;
+  trialEligible?: boolean;
   onSelect: () => void;
 }) {
   const price = getPlanPrice(plan, currency);
@@ -56,8 +72,9 @@ function PlanCard({
     <button
       type="button"
       onClick={onSelect}
+      disabled={price === null}
       aria-pressed={selected}
-      className="group w-full text-left"
+      className="group w-full text-left disabled:cursor-not-allowed disabled:opacity-60"
     >
       <Card
         className={`relative flex min-h-[142px] h-full flex-col rounded-3xl bg-surface p-5 shadow-sm transition-all duration-200 ${selected
@@ -67,10 +84,10 @@ function PlanCard({
       >
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-base font-bold uppercase leading-6 text-primary">
-            {formatDuration(plan)}
+            {plan.name || formatDuration(plan)}
           </p>
           <span className="rounded-lg bg-muted px-3 py-1 text-sm font-bold text-muted-foreground">
-            Basic
+            {plan.tag || "Subscription"}
           </span>
           {current && (
             <span className="rounded-lg bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
@@ -80,12 +97,12 @@ function PlanCard({
         </div>
         <div className="mt-5 flex items-baseline">
           <span className="text-[25px] font-bold leading-none tracking-tight text-foreground">
-            {currency === "USD" ? "$" : "£"}{price?.toFixed(2)}
+            {price === null ? "Unavailable" : `${currency === "USD" ? "$" : "£"}${price.toFixed(2)}`}
           </span>
-          <span className="ml-1 text-sm font-medium text-muted-foreground">/mo</span>
+          <span className="ml-1 text-sm font-medium text-muted-foreground">{formatBillingInterval(plan)}</span>
         </div>
         <div className="mt-2 min-h-5">
-          {plan?.trialDays > 0 && (
+          {trialEligible && plan?.trialDays > 0 && (
             <p className="text-sm font-medium leading-5 text-muted-foreground">
               + {plan.trialDays} days free trial
             </p>
@@ -100,22 +117,38 @@ export default function ExplorePlansPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user_data, account } = usePosterReducers();
-  const { isConnected, lastEvent, sendMessage } = useWebSocket();
+  const { isConnected, sendMessage } = useWebSocket();
   const accountState = account ?? initialAccountState;
   const planFeatures: IPlanFeature[] = accountState?.planFeatures ?? [];
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [checkoutReturn, setCheckoutReturn] = useState<string | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+  const [currency, setCurrency] = useState<Currency>("USD");
+  const checkoutRequestId = useRef<string | null>(null);
   const userId = user_data?.user?.id ?? "";
   const relationship = user_data?.user?.relationships?.[0];
   const isUser1 = relationship?.user1Id === userId;
+  const trialEligible = relationship?.subscription?.subscriptionEligibility?.canUseFirstPurchaseTrial === true;
   const subscriptionCandidate = accountState?.activeSubscription ?? relationship?.subscription;
+  const subscriptionStatus = String(subscriptionCandidate?.status ?? "").toUpperCase();
+  const hasBlockingSubscription = ["ACTIVE", "PENDING", "GRACE_PERIOD", "BILLING_RETRY", "ON_HOLD"].includes(subscriptionStatus);
   const activeSubscription = subscriptionCandidate?.planId &&
-    subscriptionCandidate?.status &&
-    subscriptionCandidate?.status.toUpperCase() !== "EXPIRED" &&
+    subscriptionCandidate?.status?.toUpperCase() === "ACTIVE" &&
     subscriptionCandidate?.isActive !== false
     ? subscriptionCandidate
     : null;
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const availablePlans = useMemo(
+    () => accountState.plans.filter((plan: IAccountPlan) => {
+      const price = getPlanPrice(plan, currency);
+      const duration = Number(plan.duration);
+      const unit = plan.durationUnit?.toUpperCase();
+      return Boolean(plan.id) && price !== null && Number.isFinite(duration) && duration > 0 &&
+        ["DAY", "DAYS", "MONTH", "MONTHS"].includes(unit ?? "");
+    }),
+    [accountState.plans, currency],
+  );
+  const selectedPlanForPrice = accountState.plans.find((plan: IAccountPlan) => plan.id === selectedPlanId);
+  const selectedPlanPrice = selectedPlanForPrice ? getPlanPrice(selectedPlanForPrice, currency) : null;
 
   const loadPlans = useCallback(() => {
     if (!isConnected || !isUser1) return;
@@ -137,12 +170,37 @@ export default function ExplorePlansPage() {
     loadPlans();
   }, [loadPlans]);
 
+  useEffect(() => {
+    const result = new URLSearchParams(window.location.search).get("checkout");
+    if (result === "success" || result === "cancelled") setCheckoutReturn(result);
+  }, []);
+
+  useEffect(() => {
+    if (!checkoutReturn || !isConnected) return;
+    sendMessage("action", { type: "userService", action: "get", payload: {} });
+    const refresh = window.setInterval(() => {
+      sendMessage("action", { type: "userService", action: "get", payload: {} });
+    }, 2500);
+    const stop = window.setTimeout(() => window.clearInterval(refresh), 30000);
+    return () => {
+      window.clearInterval(refresh);
+      window.clearTimeout(stop);
+    };
+  }, [checkoutReturn, isConnected, sendMessage]);
+
+  useEffect(() => {
+    if (checkoutReturn !== "success" || !activeSubscription) return;
+    toast.success("Your subscription is active.");
+    router.replace("/account/explore-plans");
+  }, [activeSubscription, checkoutReturn, router]);
+
 
 
   useEffect(() => {
+    const plansWithValidPrice = availablePlans;
     const selectablePlans = activeSubscription
-      ? accountState?.plans?.filter((plan: any) => plan?.id !== activeSubscription?.planId)
-      : accountState?.plans;
+      ? plansWithValidPrice.filter((plan: IAccountPlan) => plan?.id !== activeSubscription?.planId)
+      : plansWithValidPrice;
 
     if (!selectablePlans?.length) {
       if (selectedPlanId) setSelectedPlanId("");
@@ -155,25 +213,26 @@ export default function ExplorePlansPage() {
         selectablePlans[0];
       setSelectedPlanId(preferredPlan?.id);
     }
-  }, [accountState.plans, activeSubscription, selectedPlanId]);
+  }, [availablePlans, activeSubscription, selectedPlanId]);
 
   const selectedPlan = useMemo(
-    () => accountState.plans?.find((plan: any) => plan.id === selectedPlanId),
-    [accountState.plans, selectedPlanId],
+    () => availablePlans.find((plan: IAccountPlan) => plan.id === selectedPlanId),
+    [availablePlans, selectedPlanId],
   );
 
   const subscribe = () => {
     if (!isUser1 || !selectedPlan) return;
-    setCheckoutOpen(true);
+    void confirmSubscription();
   };
 
   const confirmSubscription = () => {
     if (!isUser1 || !selectedPlan) return;
+    checkoutRequestId.current ??= createCheckoutRequestId();
     setCheckoutOpen(true);
   };
 
   const currentPlan = accountState?.plans?.find((plan: any) => plan?.id === activeSubscription?.planId);
-  const otherPlans = accountState?.plans?.filter((plan: any) => plan?.id !== activeSubscription?.planId);
+  const otherPlans = availablePlans.filter((plan: IAccountPlan) => plan?.id !== activeSubscription?.planId);
 
   if (!isUser1) {
     return (
@@ -216,7 +275,7 @@ export default function ExplorePlansPage() {
               What will you get
             </h1>
             <p className="mt-2 text-sm text-muted-foreground sm:text-sm">
-              All features included in every plan &amp; free trial
+              Explore the features included with a subscription
             </p>
 
             <Card className="mt-6 rounded-3xl border-border/70 bg-surface p-5 text-left shadow-sm sm:p-7 lg:p-8">
@@ -246,22 +305,52 @@ export default function ExplorePlansPage() {
               >
                 {activeSubscription ? "Current Plan" : "Choose your duration"}
               </h2>
-              <div className="flex w-full rounded-xl border border-border bg-surface p-1 sm:w-auto">
-                {(["USD", "GBP"] as Currency[])?.map((option) => (
+              <div className="flex w-full rounded-xl border border-border bg-surface p-1 sm:w-auto" role="group" aria-label="Subscription currency">
+                {(["USD", "GBP"] as Currency[]).map((option) => (
                   <button
                     key={option}
                     type="button"
-                    onClick={() => setCurrency(option)}
+                    aria-pressed={currency === option}
+                    onClick={() => {
+                      if (currency === option) return;
+                      setCurrency(option);
+                      setSelectedPlanId("");
+                      checkoutRequestId.current = null;
+                    }}
                     className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors ${currency === option
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-muted"
                       }`}
                   >
-                    $ {option}
+                    {option === "USD" ? "$" : "£"} {option}
                   </button>
                 ))}
               </div>
             </div>
+
+            {checkoutReturn === "cancelled" && (
+              <Card className="mb-5 rounded-2xl border-amber-500/30 bg-amber-500/5 p-4 text-sm" role="status">
+                Checkout was cancelled. No payment was confirmed and your existing subscription has not been changed.
+              </Card>
+            )}
+            {checkoutReturn === "success" && !activeSubscription && (
+              <Card className="mb-5 rounded-2xl border-primary/30 bg-primary/5 p-4 text-sm" role="status">
+                Payment return received. We’re confirming your subscription with the server; this can take a short time. You can safely leave this page and return later.
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-3"
+                  onClick={() => sendMessage("action", { type: "userService", action: "get", payload: {} })}
+                >
+                  Check status again
+                </Button>
+              </Card>
+            )}
+            {hasBlockingSubscription && !activeSubscription && (
+              <Card className="mb-5 rounded-2xl border-amber-500/30 bg-amber-500/5 p-4 text-sm" role="status">
+                Your subscription is {subscriptionStatus.toLowerCase()}. We’ll confirm its latest status before another checkout can start.
+              </Card>
+            )}
 
             {accountState?.loading && accountState?.plans?.length === 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
@@ -272,13 +361,14 @@ export default function ExplorePlansPage() {
                   />
                 ))}
               </div>
-            ) : accountState?.plans?.length === 0 ? (
+            ) : availablePlans.length === 0 ? (
               <Card className="rounded-3xl p-10 text-center shadow-sm">
                 <Crown className="mx-auto h-10 w-10 text-primary/50" />
-                <h2 className="mt-4 font-extrabold">Plans are not available</h2>
+                <h2 className="mt-4 font-extrabold">{accountState.error ? "Plans could not be loaded" : "Plans are not available"}</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Please try again when the subscription service is available.
+                  {accountState.error ? "Check your connection and try again." : "Please try again when the subscription service is available."}
                 </p>
+                {accountState.error && <Button className="mt-5" onClick={loadPlans}>Retry</Button>}
               </Card>
             ) : (
               <>
@@ -289,6 +379,7 @@ export default function ExplorePlansPage() {
                       currency={currency}
                       selected={false}
                       current
+                      trialEligible={trialEligible}
                       onSelect={() => toast.info("This is your current plan.")}
                     />
                   </div>
@@ -300,7 +391,7 @@ export default function ExplorePlansPage() {
                   </div>
                 )}
                 <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
-                  {(activeSubscription ? otherPlans : accountState?.plans)?.map((plan: any) => {
+                  {(activeSubscription ? otherPlans : availablePlans)?.map((plan: any) => {
                     const selected = plan?.id === selectedPlanId;
 
                     return (
@@ -309,7 +400,8 @@ export default function ExplorePlansPage() {
                         plan={plan}
                         currency={currency}
                         selected={selected}
-                        onSelect={() => setSelectedPlanId(plan?.id)}
+                        trialEligible={trialEligible}
+                        onSelect={() => { setSelectedPlanId(plan?.id); checkoutRequestId.current = null; }}
                       />
                     );
                   })}
@@ -318,7 +410,7 @@ export default function ExplorePlansPage() {
             )}
           </section>
 
-          {accountState?.plans?.length > 0 && (
+          {availablePlans.length > 0 && (
             <section className="mt-8 flex flex-col gap-5 rounded-2xl sm:flex-row sm:items-center sm:justify-between">
               <p className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
                 <LockKeyhole className="mt-0.5 h-5 w-5 shrink-0" />
@@ -329,23 +421,26 @@ export default function ExplorePlansPage() {
               <Button
                 type="button"
                 className="default w-full !px-20 sm:w-auto"
-                disabled={!selectedPlan}
+                disabled={!selectedPlan || hasBlockingSubscription}
                 onClick={subscribe}
               >
-                {activeSubscription ? "Extend Current" : "Subscribe"}
+                {activeSubscription ? "Subscription active" : hasBlockingSubscription ? "Subscription needs attention" : "Subscribe"}
               </Button>
             </section>
           )}
         </div>
 
-        {selectedPlan && (
+        {selectedPlan && selectedPlanPrice !== null && (
           <StripeCheckoutModal
             open={checkoutOpen}
-            onOpenChange={setCheckoutOpen}
+            onOpenChange={(open) => {
+              setCheckoutOpen(open);
+              if (!open) checkoutRequestId.current = null;
+            }}
             planId={selectedPlan.id}
-            customerId={account?.activeSubscription?.customerId || user_data?.user?.id || ''}
-            amount={getPlanPrice(selectedPlan, currency)}
+            amount={selectedPlanPrice}
             currency={currency}
+            checkoutRequestId={checkoutRequestId.current ?? createCheckoutRequestId()}
           />
         )}
       </main>

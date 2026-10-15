@@ -1,6 +1,7 @@
 export type LegalPageType = "terms" | "privacy" | "subscription";
 
 export interface IAccountPlan {
+  tag: string;
   id: string;
   name: string;
   code: string;
@@ -8,6 +9,7 @@ export interface IAccountPlan {
   durationUnit: string;
   priceUSD: number;
   priceGBP: number;
+  availableCurrencies?: Array<"USD" | "GBP">;
   trialDays: number;
   isPopular: boolean;
   isBestValue: boolean;
@@ -28,6 +30,8 @@ export interface IAccountSubscription {
   transactionId?: string;
   platform?: string;
   trialDays?: number;
+  trialStartDate?: string;
+  trialEndDate?: string;
   isActive?: boolean;
 }
 

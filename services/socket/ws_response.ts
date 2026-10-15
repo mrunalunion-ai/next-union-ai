@@ -228,11 +228,16 @@ export const ws_response = (
           dispatch(setAccountPlans(plans.map((plan: any) => ({
             id: String(plan.id ?? ""),
             name: String(plan.name ?? ""),
+            tag: String(plan.tag ?? ""),
             code: String(plan.code ?? ""),
             duration: Number(plan.duration ?? 0),
             durationUnit: String(plan.durationUnit ?? "MONTH"),
             priceUSD: Number(plan.priceUSD ?? 0),
             priceGBP: Number(plan.priceGBP ?? 0),
+            availableCurrencies: [
+              ...(plan.stripePriceIdUSD ? ["USD" as const] : []),
+              ...(plan.stripePriceIdGBP ? ["GBP" as const] : []),
+            ],
             trialDays: Number(plan.trialDays ?? 0),
             isPopular: String(plan.tag ?? "").toLowerCase() === "most popular",
             isBestValue: String(plan.tag ?? "").toLowerCase() === "best value",
