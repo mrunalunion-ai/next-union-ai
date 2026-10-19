@@ -370,6 +370,7 @@ export const ws_response = (
               recommendations: dashboard.recommendations || [],
               recommendationCount: dashboard.recommendationCount,
               pendingTaskCount: dashboard.pendingTaskCount,
+              isLastWeekData: dashboard.isLastWeekData 
             }),
           );
         }

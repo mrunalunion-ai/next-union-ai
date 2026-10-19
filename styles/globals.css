@@ -393,7 +393,76 @@
   }
 }
 
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
 
+.sand-top {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: sand-empty 3s ease-in-out infinite;
+}
+
+.sand-bottom {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: sand-fill 3s ease-in-out infinite;
+}
+
+.sand-stream {
+  animation: sand-flow 3s ease-in-out infinite;
+}
+
+@keyframes sand-empty {
+  0%, 5% {
+    transform: scaleY(1);
+  }
+
+  45%, 50% {
+    transform: scaleY(0);
+  }
+
+  95%, 100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes sand-fill {
+  0%, 5% {
+    transform: scaleY(0);
+  }
+
+  45%, 50% {
+    transform: scaleY(1);
+  }
+
+  95%, 100% {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes sand-flow {
+  0%, 5%, 50%, 55%, 100% {
+    opacity: 0;
+  }
+
+  15%, 40% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sand-top,
+  .sand-bottom,
+  .sand-stream {
+    animation: none;
+  }
+}
 
 
 

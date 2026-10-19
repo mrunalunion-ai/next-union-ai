@@ -322,15 +322,3 @@ export function InsightsSkeleton() {
     </div>
   );
 }
-
-export function InsightsEmptyState() {
-  return (
-    <Card className="rounded-3xl border-border/70 bg-surface p-10 text-center shadow-sm">
-      <Sparkles className="mx-auto h-10 w-10 text-primary/60" />
-      <h2 className="mt-4 text-lg font-extrabold">Not enough data yet</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-        Complete more weekly check-ins together to unlock relationship insights.
-      </p>
-    </Card>
-  );
-}

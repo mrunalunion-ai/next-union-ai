@@ -150,6 +150,7 @@ export default function DashboardPage() {
 
   const dashboard = insights?.dashboard;
   const unionScore = Math.min(Math.max(Math.round(dashboard?.overallScore ?? 0), 0), 1000);
+  const isLastWeekData = dashboard?.isLastWeekData === true;
   const unionScorePercent = unionScore / 10;
   const unionScoreColor = scoreColor(unionScorePercent);
   const mine =
@@ -165,12 +166,10 @@ export default function DashboardPage() {
   const hasDashboardData = Boolean(
     dashboard &&
     typeof dashboard?.overallScore === "number" &&
-    userSubmitted &&
-    partnerSubmitted &&
-    hasActiveSubscription,
+    (isLastWeekData || (hasActiveSubscription && userSubmitted && partnerSubmitted)),
   );
   const dashboardRecommendations = dashboard?.recommendations?.slice(0, 3) ?? [];
-  const dashboardUserName = mine?.name || userName;
+  const dashboardUserName = mine?.id === userId ? "You" : mine?.name || userName;
   const dashboardPartnerName = dashboardPartner?.name || partnerName;
   const statusLabel = (dashboard?.relationshipStatus || "Growing connection")
     ?.toLowerCase()
@@ -298,6 +297,18 @@ export default function DashboardPage() {
                     {statusLabel}
                   </div>
                   <p className="mt-3 text-sm text-muted-foreground">Score shown here is out of 1000</p>
+                  {isLastWeekData && (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Your score is based on last week’s check-in.{" "}
+                      <Link
+                        href={APP_URL.LINKS.WEEKLY_CHECK_IN}
+                        className="font-bold text-primary hover:underline"
+                      >
+                        Complete this week’s check-in
+                      </Link>{" "}
+                      to update your score.
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
@@ -360,7 +371,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="mt-2 text-sm font-bold">{hasDashboardData ? dashboardUserName : "You"}</p>
                   <p className={`mt-2 flex items-center justify-center gap-1 text-xs font-semibold ${userSubmitted ? "text-green-500" : "text-amber-600"}`}>
-                    <Check className="h-3.5 w-3.5 bg-green-500 rounded-full text-white" />
+                    <Check className={`h-3.5 w-3.5 ${userSubmitted ? "bg-green-500" : "bg-amber-600"} rounded-full text-white`} />
                     {userSubmitted ? "Checked in" : "Waiting for check-in"}
                   </p>
                 </div>
@@ -369,8 +380,8 @@ export default function DashboardPage() {
                   {userSubmitted && partnerSubmitted ? (
                     <UnionGrowthIcon />
                   ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-500">
-                      <Heart className="h-7 w-7 fill-current" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-red-500">
+                      <Heart className="h-6 w-6 fill-current animate-[heartbeat_1.8s_ease-in-out_infinite]" />
                     </div>
                   )}
                 </div>
@@ -391,7 +402,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="mt-2 truncate text-sm font-bold">{dashboardPartnerName}</p>
                   <p className={`mt-2 flex items-center justify-center gap-1 text-xs font-semibold ${partnerSubmitted ? "text-green-500" : "text-amber-600"}`}>
-                    <Check className="h-3.5 w-3.5 bg-green-500 rounded-full text-white" />
+                    <Check className={`h-3.5 w-3.5 ${userSubmitted ? "bg-green-500" : "bg-amber-600"} rounded-full text-white`} />
                     {partnerSubmitted ? "Checked in" : "Waiting for check-in"}
                   </p>
                 </div>

@@ -15,7 +15,6 @@ import {
   AlignmentCards,
   CoachCard,
   DimensionsCard,
-  InsightsEmptyState,
   InsightsSkeleton,
   ScoreTrendCard,
 } from "./components/insight-cards";
@@ -54,9 +53,11 @@ export default function InsightsPage() {
   ).slice(0, 3);
   const currentScore =
     insights?.trend?.at(-1)?.overallScore ?? latest?.overallScore ?? 0;
+  const isLastWeekData = insights?.dashboard?.isLastWeekData === true;
   const isWaitingForCheckIns = Boolean(
     insights?.dashboard?.user1 &&
-    insights?.dashboard.user2 &&
+    insights?.dashboard?.user2 &&
+    !isLastWeekData &&
     (!insights?.dashboard?.user1?.checkedIn ||
       !insights?.dashboard?.user2?.checkedIn),
   );
@@ -101,8 +102,6 @@ export default function InsightsPage() {
                 <Link href="/weekly-check-in">Complete Weekly Check-in</Link>
               </Button>
             </Card>
-          ) : !latest ? (
-            <InsightsEmptyState />
           ) : (
             <div className="space-y-6">
               <div className="grid min-w-0 grid-cols-1 items-stretch gap-6 lg:grid-cols-2">

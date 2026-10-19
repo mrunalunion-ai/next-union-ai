@@ -46,6 +46,7 @@ export interface IInsightDashboard {
   recommendations: ICoachRecommendation[];
   recommendationCount?: number;
   pendingTaskCount?: number;
+  isLastWeekData?: boolean;
 }
 
 export interface IInsightsState {
