@@ -3,6 +3,7 @@
 import {
   CalendarDays,
   Check,
+  Eye,
   Pencil,
   Trash2,
   UserRound,
@@ -18,6 +19,8 @@ interface TaskCardProps {
   onToggle: (task: ITask) => void;
   onEdit: (task: ITask) => void;
   onDelete: (task: ITask) => void;
+  onView: (task: ITask) => void;
+  isOwner: boolean;
 }
 
 const priorityStyles = {
@@ -46,12 +49,11 @@ export function TaskCard({
   onToggle,
   onEdit,
   onDelete,
+  onView,
+  isOwner,
 }: TaskCardProps) {
-  const canManage =
-    !currentUserId ||
-    task.createdByUserId === currentUserId ||
-    task.assignedToUserId === currentUserId;
-
+  const isCreatedByUser = currentUserId ? task.createdByUserId === currentUserId : false;
+  const isAssignedToUser = currentUserId ? task.assignedToUserId === currentUserId : false;
   const isCompleted = task.status === "completed";
   const isOverdue = task.status === "overdue";
 
@@ -74,7 +76,7 @@ export function TaskCard({
           }
           title={isCompleted ? "Mark task as pending" : "Mark task complete"}
           aria-pressed={isCompleted}
-          disabled={!canManage || isOverdue}
+           disabled={isOverdue}
           onClick={() => onToggle(task)}
           className={`absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border-2 transition-all ${
             isCompleted
@@ -120,39 +122,52 @@ export function TaskCard({
             </span>
           </span>
 
-          {/* Assigned User */}
-          <span className="inline-flex items-center gap-1">
-            <UserRound className="h-3.5 w-3.5 shrink-0" />
-            {task.assignedTo === "partner" ? "Partner" : "Me"}
-          </span>
+           {/* Assigned User */}
+           <span className="inline-flex items-center gap-1">
+             <UserRound className="h-3.5 w-3.5 shrink-0" />
+             {isCreatedByUser ? "Assigned by me" : "Assigned by partner"}
+           </span>
         </div>
 
         {/* Actions */}
-        {canManage && (
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`Edit Task`}
-              title={`Edit Task`}
-              className="h-8 w-8"
-              onClick={() => onEdit(task)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`View Task`}
+            title={`View Task`}
+            className="h-8 w-8"
+            onClick={() => onView(task)}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`Delete Task`}
-              title={`Delete Task`}
-              className="h-8 w-8"
-              onClick={() => onDelete(task)}
-            >
-              <Trash2 className="h-4 w-4 text-red-600" />
-            </Button>
-          </div>
-        )}
+          {isOwner && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Edit Task`}
+                title={`Edit Task`}
+                className="h-8 w-8"
+                onClick={() => onEdit(task)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Delete Task`}
+                title={`Delete Task`}
+                className="h-8 w-8"
+                onClick={() => onDelete(task)}
+              >
+                <Trash2 className="h-4 w-4 text-red-600" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </Card>
   );

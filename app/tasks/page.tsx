@@ -9,7 +9,7 @@ import {
 import { toast } from "react-toastify";
 
 import { TaskCard } from "@/app/tasks/components/task-card";
-import { TaskFormValues, TaskModal } from "@/app/tasks/components/task-modal";
+import { TaskFormValues, TaskModal, TaskViewModal } from "@/app/tasks/components/task-modal";
 import { Popup } from "@/components/common/popup";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,9 @@ export default function TasksPage() {
   const { user_data, tasks } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const [modalTask, setModalTask] = useState<ITask | null | undefined>(undefined);
+  const [viewTask, setViewTask] = useState<ITask | null>(null);
   const [deleteTask, setDeleteTask] = useState<ITask | null>(null);
+  const [confirmToggleTask, setConfirmToggleTask] = useState<ITask | null>(null);
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
   const userId = user_data?.user?.id;
 
@@ -160,6 +162,13 @@ export default function TasksPage() {
     });
   };
 
+  const handleConfirmToggle = () => {
+    if (!confirmToggleTask || !isConnected) return;
+
+    toggleTask(confirmToggleTask);
+    setConfirmToggleTask(null);
+  };
+
   return (
     <DashboardLayout>
       <main className="min-h-full px-4 py-6 text-foreground sm:px-6 lg:px-10">
@@ -238,9 +247,11 @@ export default function TasksPage() {
                     key={task?.id}
                     task={task}
                     currentUserId={userId}
-                    onToggle={toggleTask}
+                    onToggle={() => setConfirmToggleTask(task)}
                     onEdit={setModalTask}
                     onDelete={setDeleteTask}
+                    onView={() => setViewTask(task)}
+                    isOwner={task.createdByUserId === userId}
                   />
                 ))}
               </div>
@@ -258,14 +269,32 @@ export default function TasksPage() {
         />
       )}
 
+      {viewTask && (
+        <TaskViewModal
+          task={viewTask}
+          onClose={() => setViewTask(null)} saving={false} onSave={function (values: TaskFormValues): void {
+            throw new Error("Function not implemented.");
+          }} />
+      )}
+
       <Popup
         open={Boolean(deleteTask)}
         onOpenChange={(open) => !open && setDeleteTask(null)}
-        variant="logout"
+        variant="danger"
         title="Delete task?"
         description="This task will be removed from your shared task list."
         confirmText="Delete"
         onConfirm={confirmDelete}
+      />
+
+      <Popup
+        open={Boolean(confirmToggleTask)}
+        onOpenChange={(open) => !open && setConfirmToggleTask(null)}
+        variant="warning"
+        title="Mark task as completed?"
+        description="Are you sure you want to mark this task as completed?"
+        confirmText="Confirm"
+        onConfirm={handleConfirmToggle}
       />
     </DashboardLayout>
   );

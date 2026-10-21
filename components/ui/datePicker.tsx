@@ -419,7 +419,6 @@ function DatePickerCalendar({
           focus:ring-primary/20
           hover:bg-accent
           disabled:cursor-not-allowed
-          disabled:opacity-50
           ${error ? "border-red-500" : "border-input"}
           ${inputClassName}
         `}

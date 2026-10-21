@@ -182,3 +182,134 @@ export function TaskModal({
     </div>
   );
 }
+
+export function TaskViewModal({
+  task,
+  onClose,
+}: TaskModalProps) {
+  const form = useForm<TaskFormValues>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: getDefaultValues(task),
+    mode: "onChange",
+  });
+  const {
+    control,
+    register,
+    reset,
+    formState: { errors, isValid },
+  } = form;
+
+  useEffect(() => {
+    reset(getDefaultValues(task));
+  }, [reset, task]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-modal-title"
+        className="max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto scrollbar-hidden rounded-3xl border border-border bg-surface p-6 shadow-2xl sm:p-8"
+      >
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div>
+            <h2 id="task-modal-title" className="text-xl font-extrabold">
+              {task ? "Update Relationship Task" : "Add Relationship Task"}
+            </h2>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Close task form"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <form
+          className="space-y-5"
+          noValidate
+        >
+          <InputField<TaskFormValues>
+            name="title"
+            label="Task Title"
+            required
+            register={register}
+            error={errors.title}
+            readOnly
+            placeholder="e.g. Plan a date night"
+            labelClassName="auth-field-label"
+            inputClassName="auth-input"
+          />
+
+          <InputField<TaskFormValues>
+            name="description"
+            label="Description"
+            required
+            register={register}
+            error={errors.description}
+            useFor="textarea"
+            rows={4}
+            readOnly
+            placeholder="What specifically needs to be done?"
+            labelClassName="auth-field-label"
+            inputClassName="auth-input"
+          />
+
+          <div className="grid gap-5 sm:grid-cols-2 grid-col-1">
+            <DropdownSelect
+              name="assignedTo"
+              label="Assign to"
+              control={control}
+              options={assigneeOptions}
+              defaultValue="assignee"
+              readonly
+              placeholder="Select assignee"
+              labelClassName="auth-field-label"
+              formClassName="mt-1 h-11 rounded-[10px] border-input"
+              errors={errors.assignedTo}
+            />
+
+            <DropdownSelect
+              name="priority"
+              label="Priority"
+              control={control}
+              options={priorityOptions}
+              readonly
+              defaultValue="priority"
+              placeholder="Select priority"
+              labelClassName="auth-field-label"
+              formClassName="mt-1 h-11 rounded-[10px] border-input"
+              errors={errors.priority}
+            />
+          </div>
+
+          <DatePicker<TaskFormValues>
+            name="dueDate"
+            control={control}
+            label="Due date"
+            error={errors.dueDate}
+            required
+            readOnly
+            labelClassName="auth-field-label"
+            inputClassName="auth-input"
+            format="YYYY-MM-DD"
+          />
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

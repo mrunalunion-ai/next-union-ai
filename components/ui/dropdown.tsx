@@ -27,6 +27,7 @@ interface DropdownProps {
     defaultValue?: string;
     multiselect?: boolean;
     disabled?: boolean;
+    readonly?: boolean;
     formClassName?: string;
     placeholder?: string;
     labelClassName?: string;
@@ -65,6 +66,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
     payload,
     multiselect = false,
     disabled = false,
+    readonly = false,
     control,
     rules,
     isCreatable = false,
@@ -91,7 +93,6 @@ const DropdownSelect: React.FC<DropdownProps> = ({
         options || [],
     );
     const { sendMessage } = useWebSocket();
-    const [readonly, setReadonly] = useState(true);
     useEffect(() => {
         setDropdownOptions((options ?? []) as Option[]);
     }, [options]);
@@ -295,14 +296,6 @@ const DropdownSelect: React.FC<DropdownProps> = ({
         }
     };
 
-    const callOnFocus = () => {
-        setReadonly(false);
-    };
-
-    const callOnBlur = () => {
-        setReadonly(true);
-    };
-
     const RenderSelect = ({
         field,
     }: {
@@ -315,7 +308,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                     {isCreatable ? (
                         <CreatableSelect
                             classNamePrefix="select-form"
-                            isDisabled={disabled}
+                            isDisabled={disabled || readonly}
                             value={selectedValue}
                             onChange={(selectedOption, actionMeta) =>
                                 handleSelectChange(selectedOption, actionMeta, field)
@@ -330,8 +323,6 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                             }
                             noOptionsMessage={() => noOptionsPlaceholder}
                             className={`${className} text-sm select-form-containers `}
-                            onFocus={callOnFocus}
-                            onBlur={callOnBlur}
                             inputValue={searchInput}
                             isSearchable
                             components={{ IndicatorSeparator: null }}
@@ -343,7 +334,7 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                     ) : (
                         <Select
                             classNamePrefix="select-form"
-                            isDisabled={disabled}
+                            isDisabled={disabled || readonly}
                             isMulti={multiselect}
                             value={selectedValue}
                             classNames={classNames}
@@ -360,8 +351,6 @@ const DropdownSelect: React.FC<DropdownProps> = ({
                             }
                             noOptionsMessage={() => noOptionsPlaceholder}
                             className={`${className} text-sm select-form-containers shadow-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20`}
-                            onFocus={callOnFocus}
-                            onBlur={callOnBlur}
                             inputValue={searchInput}
                             components={{ IndicatorSeparator: null }}
                             isSearchable
