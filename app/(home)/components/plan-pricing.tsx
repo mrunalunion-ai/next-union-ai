@@ -58,7 +58,7 @@ export function PlanPricing({ plans, features }: { plans: PublicPlan[]; features
           Every plan includes the same relationship tools. Choose a duration and view prices in your currency.
         </p>
 
-        <div className="mt-6 inline-flex rounded-full border border-border/80 bg-white p-1 shadow-sm" role="group" aria-label="Choose price currency">
+        <div className="mt-6 inline-flex rounded-full border border-border/80 bg-card p-1 shadow-sm" role="group" aria-label="Choose price currency">
           {(["USD", "GBP"] as const).map((option) => (
             <button
               key={option}
@@ -99,14 +99,14 @@ export function PlanPricing({ plans, features }: { plans: PublicPlan[]; features
       )}
 
       {features.length > 0 && (
-        <div className="mt-8 rounded-3xl border border-border/70 bg-white p-5 shadow-sm sm:p-7">
+        <div className="mt-8 rounded-3xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm sm:p-7">
           <div className="text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Shared across all plans</p>
             <h3 className="mt-2 text-lg font-bold">Everything you need to grow together</h3>
           </div>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
-              <li key={feature.id} className="flex items-start gap-3 rounded-xl bg-muted/30 px-4 py-3 text-sm text-foreground/85">
+              <li key={feature.id} className="flex items-start gap-3 rounded-xl bg-muted px-4 py-3 text-sm text-foreground">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600"><Check className="h-3.5 w-3.5" /></span>
                 <span>{feature.name}</span>
               </li>
