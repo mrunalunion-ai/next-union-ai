@@ -46,18 +46,18 @@ export default function CodeCreate() {
     };
 
     const shareText = `Join me on Union AI! My Union Code is: ${UNIONCODE} 
-    ${`${API_BASE_URL}/invite?code=${UNIONCODE}`}
+    ${`${API_BASE_URL}/invite?code=${encodeURIComponent(UNIONCODE ?? "")}`}
     Download the app and enter this code to connect.`;
 
-    const webLink = `${API_BASE_URL}/invite?code=${UNIONCODE}`;
+    const webLink = `${API_BASE_URL}/invite?code=${encodeURIComponent(UNIONCODE ?? "")}`;
     const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     const emailSubject = encodeURIComponent("Join me on Union AI");
     const emailBody = encodeURIComponent(shareText);
     const emailLink = `mailto:?subject=${emailSubject}&body=${emailBody}`;
 
     const copyLink = async () => {
-        await navigator.clipboard?.writeText(shareText);
-        toast.success("Share text copied to clipboard.");
+        await navigator.clipboard?.writeText(webLink);
+        toast.success("Invite link copied to clipboard.");
         setShowSharePopup(false);
     };
 

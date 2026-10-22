@@ -357,7 +357,7 @@ export default function RelationshipDetailsContent() {
                       required
                       useFor="textarea"
                       rows={4}
-                      placeholder="Tell us a bit about yourself..."
+                      placeholder="Tell us a little about your relationship..."
                       register={register}
                       error={errors.summary?.message}
                       labelClassName="auth-field-label"

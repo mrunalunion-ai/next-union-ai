@@ -50,10 +50,10 @@ export function Footer() {
         <div className="sm:col-span-2 lg:col-span-1">
           <Link
             href={APP_URL.LINKS.HOME}
-            className="inline-flex items-center gap-2.5"
+            className="inline-flex items-center gap-2"
             aria-label={`${APP_NAME} home`}
           >
-            <div className="mx-auto flex h-14 w-14 items-center justify-center sm:h-16 sm:w-16">
+            <div className="flex justify-start items-start">
               <Image
                 width={56}
                 height={56}
@@ -69,11 +69,11 @@ export function Footer() {
                 alt="UnionAI"
               />
           </Link>
-          <p className="mt-4 max-w-sm text-xs leading-6 text-white/60 sm:text-sm">
+          <p className="max-w-sm text-xs leading-6 text-white/60 sm:text-sm">
             Union AI empowers modern couples to master emotional connection and resolution through real-time communication analysis.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             {appLinks.map(({ label, href, image }) => (
               <a
                 key={label}

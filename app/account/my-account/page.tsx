@@ -82,6 +82,17 @@ export default function MyAccountPage() {
   }) ?? [];
   const languages = mainReducer?.loveLanguageList?.data ?? [];
 
+  const summaryValue = useWatch({ control: relationshipForm.control, name: "summary" });
+  const wordCount = summaryValue ? summaryValue.trim().split(/\s+/).filter(Boolean).length : 0;
+  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const words = value.trim().split(/\s+/).filter(Boolean);
+    if (words.length > 100) {
+      e.target.value = words.slice(0, 100).join(" ");
+    }
+    relationshipForm.setValue("summary", e.target.value, { shouldDirty: true, shouldValidate: true });
+  };
+
   useEffect(() => {
     if (!isConnected) return;
 
@@ -373,7 +384,7 @@ export default function MyAccountPage() {
                         Add a profile image <span className="font-normal text-muted-foreground">(optional)</span>
                       </p>
                       <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        JPG, JPEG, or PNG up to 5MB.
+                        JPG, JPEG, PNG, etc.
                       </p>
                       <label
                         htmlFor="profile-image-input"
@@ -534,16 +545,25 @@ export default function MyAccountPage() {
                 onSubmit={relationshipForm.handleSubmit(submitRelationship)}
                 noValidate
               >
-                <InputField<AccountRelationshipFormValues>
-                  name="summary"
-                  label="Short summary of your relationship"
-                  register={relationshipForm.register}
-                  error={relationshipForm.formState.errors.summary?.message}
-                  useFor="textarea"
-                  rows={4}
-                  required
-                  placeholder="Tell us a little about your relationship"
-                />
+                <div>
+                  <InputField<AccountRelationshipFormValues>
+                    name="summary"
+                    label="Short summary of your relationship"
+                    required
+                    useFor="textarea"
+                    rows={4}
+                    placeholder="Tell us a little about your relationship..."
+                    register={relationshipForm.register}
+                    error={relationshipForm.formState.errors.summary?.message}
+                    labelClassName="auth-field-label"
+                    inputClassName="auth-input"
+                    maxLength={1000}
+                    onChange={handleSummaryChange}
+                  />
+                  <div className="mt-1 text-right text-xs text-muted-foreground">
+                    {wordCount}/100
+                  </div>
+                </div>
 
                 <div>
                   <div className="mb-1 flex items-center justify-between gap-3">

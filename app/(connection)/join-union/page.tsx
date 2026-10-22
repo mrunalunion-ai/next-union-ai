@@ -3,7 +3,7 @@
 import { Key, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
@@ -18,7 +18,9 @@ import { useWebSocket } from "@/services/socket/WebSocketContext";
 function JoinUnionContent() {
   const router = useRouter();
   const { user_data } = usePosterReducers();
-  const { lastEvent, sendMessage } = useWebSocket();
+  const { isConnected, lastEvent, sendMessage } = useWebSocket();
+  const [inviteCode, setInviteCode] = useState("");
+  const requestedInviteCode = useRef<string | null>(null);
   const [confirmation, setConfirmation] = useState<"send" | "cancel" | "notPartner" | null>(null);
 
   const currentUser = user_data?.user;
@@ -30,8 +32,29 @@ function JoinUnionContent() {
   const partnerInitial = partnerName
     ? partnerName?.charAt(0)?.toUpperCase()
     : "?";
-  const unionCode = relationship?.unionCode ?? "";
+  const unionCode = relationship?.unionCode ?? inviteCode;
   const unionCodeDigits = unionCode?.replace(/^UNION-/, "");
+
+  useEffect(() => {
+    const codeFromUrl = new URLSearchParams(window.location.search).get("code")?.trim();
+    if (!codeFromUrl) return;
+
+    const normalizedCode = codeFromUrl.toUpperCase().startsWith("UNION-")
+      ? codeFromUrl.toUpperCase()
+      : `UNION-${codeFromUrl.replace(/\D/g, "")}`;
+    setInviteCode(normalizedCode);
+  }, []);
+
+  useEffect(() => {
+    if (!isConnected || !inviteCode || requestedInviteCode.current === inviteCode) return;
+
+    requestedInviteCode.current = inviteCode;
+    sendMessage("action", {
+      type: "userService",
+      action: "get",
+      payload: { unionCode: inviteCode },
+    });
+  }, [inviteCode, isConnected, sendMessage]);
 
   const sendRequest = () => {
     sendMessage("action", {

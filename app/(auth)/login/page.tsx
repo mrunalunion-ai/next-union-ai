@@ -56,11 +56,22 @@ export default function LoginPage() {
         }),
       );
       toast.success(response.message || "Welcome back.");
-      const route = onboardingRoutes[user?.onboardingStep as OnboardingStep];
-      if (route) {
-        router.push(route);
+      const requestedReturnTo =
+        new URLSearchParams(window.location.search).get("returnTo") ||
+        window.sessionStorage.getItem("unionai_invite_return_to");
+      const safeReturnTo =
+        requestedReturnTo?.startsWith("/") &&
+        !requestedReturnTo.startsWith("//") &&
+        !requestedReturnTo.startsWith("/\\")
+          ? requestedReturnTo
+          : null;
+
+      if (safeReturnTo) {
+        window.sessionStorage.removeItem("unionai_invite_return_to");
+        router.push(safeReturnTo);
       } else {
-        router.push(APP_URL.LINKS.DASHBOARD);
+        const route = onboardingRoutes[user?.onboardingStep as OnboardingStep];
+        router.push(route || APP_URL.LINKS.DASHBOARD);
       }
     } catch (error) {
       toast.error(errorMessage(error));
