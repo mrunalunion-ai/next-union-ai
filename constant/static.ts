@@ -47,6 +47,7 @@ export const APP_URL = {
     LOGOUT: '/api/auth/logout',
     UPLOAD_FILE: '/api/upload',
     LEGAL_PAGE: '/api/legal-page',
+    SUBSCRIPTION_PLAN_LIST: '/api/plans/list'
   },
   IMAGES: {
     LOGO: '/assets/images/logo.svg',

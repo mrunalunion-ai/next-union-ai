@@ -149,7 +149,7 @@ export function Header({ variant = "auth" }: HeaderProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/70 backdrop-blur-xl">
+      <header className={`${isMarketing ? "fixed inset-x-0 top-0 bg-background/85" : "sticky top-0"} z-50 border-b border-border/70 backdrop-blur-xl`}>
         <div className={`mx-auto flex min-h-16 w-full min-w-0 items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6 lg:px-8 ${isDashboard ? "justify-between lg:justify-end" : "justify-between"}`}>
           <Link
             href={APP_URL.LINKS.HOME}
