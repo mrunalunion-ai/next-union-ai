@@ -265,6 +265,15 @@ function CreateUnionContent() {
                     label="Enter Partner's Relationship Code"
                     placeholder="123456"
                     register={registerJoin}
+                    onChange={(event: any) => {
+                      const value = event.currentTarget.value.replace(/\s/g, "");
+                      if (value !== event.currentTarget.value) {
+                        joinForm.setValue("unionCode", value, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }
+                    }}
                     error={joinErrors.unionCode?.message}
                     required
                     autoComplete="off"

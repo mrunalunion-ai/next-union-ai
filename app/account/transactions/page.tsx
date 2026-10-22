@@ -23,11 +23,6 @@ function formatAmount(amount: number, currency?: string) {
   return `${symbol}${Number(amount || 0).toFixed(2)}`;
 }
 
-function shortenTransactionId(value: string) {
-  if (!value) return "—";
-  return value.length > 22 ? `${value.slice(0, 18)}…${value.slice(-4)}` : value;
-}
-
 export default function TransactionsPage() {
   const dispatch = useAppDispatch();
   const { user_data, account } = usePosterReducers();
@@ -76,7 +71,7 @@ export default function TransactionsPage() {
             <div className="">
               {transactions?.map((transaction: any) => {
                 const isPaid = transaction?.status?.toLowerCase() === "success";
-                const transactionId = transaction?.transactionId || "";
+                const transactionId = transaction?.transactionId || "-";
 
                 return (
                   <Card
@@ -117,7 +112,7 @@ export default function TransactionsPage() {
                     <div className="mt-3 flex min-w-0 items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-2">
                       <span className="shrink-0 text-[11px] text-muted-foreground">Transaction ID</span>
                       <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-                        {shortenTransactionId(transactionId)}
+                        {transactionId}
                       </span>
                       <button
                         type="button"
