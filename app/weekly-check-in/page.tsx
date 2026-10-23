@@ -283,6 +283,7 @@ export default function WeeklyCheckInPage() {
                       updateComment(event.target.value)}
                     labelClassName="auth-field-label"
                     inputClassName="auth-input"
+                    maxWords={100}
                   />
                 </div>
                 <div className="mt-5 flex gap-5">

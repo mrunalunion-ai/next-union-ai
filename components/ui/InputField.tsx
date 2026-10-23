@@ -9,6 +9,7 @@ import {
     type FieldValues,
     type Path,
     type UseFormRegister,
+    type UseFormWatch,
 } from "react-hook-form";
 
 interface InputFieldProps<T extends FieldValues> {
@@ -18,6 +19,7 @@ interface InputFieldProps<T extends FieldValues> {
     placeholder?: string;
     value?: string | number | readonly string[];
     register?: UseFormRegister<T>;
+    watch?: UseFormWatch<T>;
     control?: Control<T>;
 
     error?: string | FieldError;
@@ -31,6 +33,7 @@ interface InputFieldProps<T extends FieldValues> {
 
     id?: string;
     maxLength?: number;
+    maxWords?: number;
     autoComplete?: string;
 
     className?: string;
@@ -57,6 +60,7 @@ export default function InputField<T extends FieldValues>({
     type = "text",
     placeholder,
     register,
+    watch,
     control,
     error,
     required = false,
@@ -67,6 +71,7 @@ export default function InputField<T extends FieldValues>({
     id,
     value,
     maxLength,
+    maxWords,
     autoComplete,
     className = "",
     inputClassName = "",
@@ -82,6 +87,7 @@ export default function InputField<T extends FieldValues>({
     onEnterClick,
 }: InputFieldProps<T>) {
     const [showPassword, setShowPassword] = useState(false);
+    const [textareaWordCount, setTextareaWordCount] = useState(0);
 
     const inputId = id ?? String(name);
 
@@ -94,6 +100,15 @@ export default function InputField<T extends FieldValues>({
                 ? "text"
                 : "password"
             : type;
+    const watchedTextareaValue = watch?.(name);
+    const textareaValue = typeof watchedTextareaValue === "string"
+        ? watchedTextareaValue
+        : typeof value === "string"
+            ? value
+            : undefined;
+    const displayedWordCount = textareaValue === undefined
+        ? textareaWordCount
+        : textareaValue.trim().split(/\s+/).filter(Boolean).length;
 
     const baseClassName = `
         w-full
@@ -284,6 +299,15 @@ export default function InputField<T extends FieldValues>({
                     `}
                     {...registeredField}
                     onChange={(event) => {
+                        if (maxWords !== undefined) {
+                            const words = event.target.value.trim().split(/\s+/).filter(Boolean);
+                            if (words.length > maxWords) {
+                                event.target.value = words.slice(0, maxWords).join(" ");
+                            }
+                            setTextareaWordCount(
+                                event.target.value.trim().split(/\s+/).filter(Boolean).length,
+                            );
+                        }
                         registeredField?.onChange(event);
                         (
                             onChange as
@@ -381,6 +405,11 @@ export default function InputField<T extends FieldValues>({
             {helperText && (
                 <p className="mt-1 text-xs text-muted-foreground">
                     {helperText}
+                </p>
+            )}
+            {useFor === "textarea" && maxWords !== undefined && (
+                <p className="mt-1 text-right text-xs text-muted-foreground">
+                    {displayedWordCount}/{maxWords}
                 </p>
             )}
         </div>

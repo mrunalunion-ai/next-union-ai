@@ -2,6 +2,7 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
   getMessaging,
   getToken,
+  deleteToken,
   onMessage,
   isSupported,
 } from "firebase/messaging";
@@ -50,24 +51,18 @@ function logConfigDiagnostics() {
 
 export async function ensureFirebase(): Promise<boolean> {
   if (typeof window === "undefined") {
-    console.log("[firebase] Skipping init: window is undefined (SSR/build)");
     return false;
   }
   if (app && messaging) {
-    console.log("[firebase] Already initialized");
     return true;
   }
   logConfigDiagnostics();
   try {
-    console.log("[firebase] initializeApp() with projectId:", firebaseConfig.projectId);
     app = initializeApp(firebaseConfig);
-    console.log("[firebase] app initialized, name:", app.name);
 
     const supported = await isSupported();
-    console.log("[firebase] messaging.isSupported() =>", supported);
     if (supported === true) {
       messaging = getMessaging(app);
-      console.log("[firebase] getMessaging() OK");
     }
     return !!messaging;
   } catch (error: any) {
@@ -79,24 +74,16 @@ export async function ensureFirebase(): Promise<boolean> {
 }
 
 export async function getFcmToken(): Promise<string | null> {
-  console.log("[firebase] getFcmToken() called");
   try {
     const ok = await ensureFirebase();
     if (!ok || !messaging) {
-      console.log("[firebase] Aborting getFcmToken: Firebase messaging not ready");
       return null;
     }
 
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-    console.log(
-      "[firebase] NEXT_PUBLIC_FIREBASE_VAPID_KEY configured:",
-      Boolean(vapidKey),
-      vapidKey ? `${String(vapidKey).slice(0, 8)}…` : "(none — getToken will likely fail on web)",
-    );
 
     const permission =
       typeof Notification !== "undefined" ? Notification.permission : "unsupported";
-    console.log("[firebase] Notification.permission =>", permission);
     if (permission === "denied") {
       console.warn(
         "[firebase] Permission denied. Enable notifications for this site in the browser settings.",
@@ -104,15 +91,9 @@ export async function getFcmToken(): Promise<string | null> {
       return null;
     }
 
-    console.log("[firebase] Calling getToken()...");
     const token = await getToken(
       messaging,
       vapidKey ? { vapidKey } : undefined,
-    );
-    console.log(
-      "[firebase] ✅ getToken() returned, length:",
-      token?.length ?? 0,
-      token ? `${token.slice(0, 16)}…` : "",
     );
     return token || null;
   } catch (error: any) {
@@ -125,30 +106,33 @@ export async function getFcmToken(): Promise<string | null> {
   }
 }
 
+export async function deleteFcmToken(): Promise<boolean> {
+  try {
+    const ok = await ensureFirebase();
+    if (!ok || !messaging) return false;
+    return await deleteToken(messaging);
+  } catch (error: any) {
+    console.error("[firebase] Failed to delete FCM token:", error?.code, error?.message || error);
+    return false;
+  }
+}
+
 export function onForegroundMessage(
   handler: (payload: any) => void,
 ): () => void {
   let unsubscribe: (() => void) | null = null;
-  console.log("[firebase] onForegroundMessage: subscribing…");
   ensureFirebase()
     .then((ok) => {
       if (!ok || !messaging) {
-        console.log(
-          "[firebase] onForegroundMessage: not subscribing (Firebase not ready)",
-        );
         return;
       }
       unsubscribe = onMessage(messaging, handler);
-      console.log(
-        "[firebase] onForegroundMessage: subscribed — foreground pushes will toast",
-      );
     })
     .catch((error) => {
       console.error("[firebase] onForegroundMessage setup failed:", error);
     });
   return () => {
     if (unsubscribe) {
-      console.log("[firebase] onForegroundMessage: unsubscribed");
       unsubscribe();
     }
   };

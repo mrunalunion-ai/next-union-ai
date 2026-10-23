@@ -51,11 +51,19 @@ export function ScoreTrendCard({
   const getX = (index: number) =>
     trend.length === 1
       ? plotLeft + plotWidth / 2
-      : plotLeft + (index / (trend.length - 1)) * plotWidth;
+      : trend.length === 2
+        ? plotLeft + (0.25 + index * 0.5) * plotWidth
+        : plotLeft + (index / (trend.length - 1)) * plotWidth;
   const getY = (score: number) =>
     plotTop + plotHeight - (Math.max(0, Math.min(score, maxScore)) / maxScore) * plotHeight;
   const points = trend.map((point, index) => `${getX(index)},${getY(point.overallScore)}`).join(" ");
   const yAxisValues = [1000, 750, 500, 250, 0];
+
+  const statusLabel = (status || "Growing connection")
+    ?.toLowerCase()
+    ?.replace(/_/g, " ")
+    ?.replace(/\b\w/g, (letter: any) => letter?.toUpperCase());
+
 
   return (
     <Card className="rounded-3xl border-border/70 bg-surface p-5 shadow-sm sm:p-6">
@@ -72,7 +80,7 @@ export function ScoreTrendCard({
         <span className="shrink-0 rounded-lg bg-primary/10 px-2 py-1.5 text-right text-[10px] font-bold leading-3 text-primary sm:px-3 sm:py-2 sm:text-xs sm:leading-4">
           Current: {formatScore(currentScore)} / 1000
           <span className="block max-w-[92px] text-[9px] font-semibold uppercase leading-3 text-primary/80 sm:max-w-none sm:text-[10px]">
-            {status || "stable"}
+            {statusLabel}
           </span>
         </span>
       </div>

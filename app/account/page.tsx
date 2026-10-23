@@ -32,6 +32,7 @@ import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { formatDate } from "@/utils/common";
+import { deleteFcmToken, getFcmToken } from "@/services/firebase/firebase";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -58,10 +59,8 @@ export default function AccountPage() {
 
   useEffect(() => {
     setMounted(true);
-    setNotificationsEnabled(
-      localStorage.getItem("unionai_notifications_enabled") !== "false",
-    );
-  }, []);
+    setNotificationsEnabled(user?.isNotify !== false);
+  }, [user?.isNotify]);
 
 
   useEffect(() => {
@@ -107,6 +106,33 @@ export default function AccountPage() {
       type: "userService",
       action: "deleteAccount",
       payload: {},
+    });
+  };
+
+  const updateNotificationPreference = async () => {
+    const nextValue = !notificationsEnabled;
+    setNotificationsEnabled(nextValue);
+
+    const userId = user?.id;
+    if (!userId || !isConnected) return;
+
+    if (!nextValue) {
+      await deleteFcmToken();
+      localStorage.removeItem("unionai_fcm_token");
+      sendMessage("action", {
+        type: "userService",
+        action: "update",
+        payload: { id: userId, isNotify: false, fcmTokens: [] },
+      });
+      return;
+    }
+
+    const fcmToken = await getFcmToken();
+    if (fcmToken) localStorage.setItem("unionai_fcm_token", fcmToken);
+    sendMessage("action", {
+      type: "userService",
+      action: "update",
+      payload: { id: userId, isNotify: true, fcmTokens: fcmToken ? [fcmToken] : [] },
     });
   };
 
@@ -224,16 +250,7 @@ export default function AccountPage() {
                 >
                   <Toggle
                     checked={notificationsEnabled}
-                    onChange={() => {
-                      const nextValue = !notificationsEnabled;
-
-                      setNotificationsEnabled(nextValue);
-
-                      localStorage.setItem(
-                        "unionai_notifications_enabled",
-                        String(nextValue),
-                      );
-                    }}
+                    onChange={updateNotificationPreference}
                   />
                 </SettingRow>
               </div>

@@ -146,6 +146,7 @@ export default function CheckInCompletedPage() {
               }
               labelClassName="auth-field-label"
               inputClassName="auth-input"
+              maxWords={100}
             />
           </div>
 

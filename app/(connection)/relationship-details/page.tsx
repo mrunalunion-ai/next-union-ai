@@ -54,16 +54,6 @@ export default function RelationshipDetailsContent() {
     formState: { errors, isValid, isSubmitting },
   } = form;
   const watchedLanguages = useWatch({ control, name: "loveLanguages" });
-  const summaryValue = useWatch({ control, name: "summary" });
-  const wordCount = summaryValue ? summaryValue.trim().split(/\s+/).filter(Boolean).length : 0;
-  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    const words = value.trim().split(/\s+/).filter(Boolean);
-    if (words.length > 100) {
-      e.target.value = words.slice(0, 100).join(" ");
-    }
-    form.setValue("summary", e.target.value, { shouldDirty: true, shouldValidate: true });
-  };
   const selectedLanguages = Array.isArray(watchedLanguages)
     ? watchedLanguages
     : [];
@@ -359,15 +349,13 @@ export default function RelationshipDetailsContent() {
                       rows={4}
                       placeholder="Tell us a little about your relationship..."
                       register={register}
+                      watch={form.watch}
                       error={errors.summary?.message}
                       labelClassName="auth-field-label"
                       inputClassName="auth-input"
                       maxLength={1000}
-                      onChange={handleSummaryChange}
+                      maxWords={100}
                     />
-                    <div className="mt-1 text-right text-xs text-muted-foreground">
-                      {wordCount}/100
-                    </div>
                   </div>
                   <input type="hidden" {...register("loveLanguages")} />
                   <div>

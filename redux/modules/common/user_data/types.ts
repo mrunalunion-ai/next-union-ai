@@ -17,6 +17,7 @@ export interface IUser {
   summary: string;
   userType: string;
   active: boolean;
+  isNotify?: boolean;
   onboardingStep: string;
   deletedAt: string | null;
   createdAt: string;

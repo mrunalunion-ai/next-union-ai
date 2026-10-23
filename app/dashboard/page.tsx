@@ -292,7 +292,7 @@ export default function DashboardPage() {
               )}
               {hasDashboardData ? (
                 <>
-                  <div className={`mx-auto mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold ${unionScoreColor.bg} ${unionScoreColor.text}`}>
+                  <div className={`mx-auto mt-3 inline-flex items-center uppercase gap-2 rounded-full px-3 py-1.5 text-sm font-bold ${unionScoreColor.bg} ${unionScoreColor.text}`}>
                     <span className={`h-2.5 w-2.5 rounded-full ${unionScoreColor?.dot}`} />
                     {statusLabel}
                   </div>

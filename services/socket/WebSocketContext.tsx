@@ -62,7 +62,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
   const sendMessage = useCallback((event: string, data?: any) => {
     if (singletonSocket && singletonSocket.connected) {
-      console.log('Send:', event, data);
       singletonSocket.emit(event, data);
     } else {
       console.log("⚠️ Socket not connected. Cannot send:", event, data);
@@ -75,7 +74,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
 
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!baseUrl) {
-      console.log("⚠️ NEXT_PUBLIC_ENDPOINT_API_URL is not set");
       return;
     }
 
@@ -150,22 +148,6 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const eventType =
       lastEvent.event === "data" ? lastEvent.data?.type : lastEvent.event;
     const request = lastEvent.data?.request;
-
-    if (
-      request?.type === "userService" &&
-      request?.action === "update" &&
-      request?.payload?.fcmToken
-    ) {
-      const accepted = lastEvent.data?.status === true;
-      console.log(
-        `[PUSH] fcmToken registration ${accepted ? "✅ accepted by server" : "❌ rejected by server"}:`,
-        {
-          msg: lastEvent.data?.msg,
-          errors: lastEvent.data?.errors,
-          userId: request?.payload?.id,
-        },
-      );
-    }
 
     const directAccountEvents = new Set([
       "ws_send_request_event",
@@ -255,47 +237,43 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     const userId = user_data?.user?.id;
     if (!userId) return;
 
-    console.log("[PUSH] FCM registration effect running:", {
-      isConnected,
-      hasAccessToken: Boolean(accessToken),
-      userId,
-      hasForegroundListener: true,
-    });
-
     let active = true;
     const unsubscribe = onForegroundMessage((payload) => {
-      console.log("[PUSH] 📩 Foreground message received:", payload);
-      if (localStorage.getItem("unionai_notifications_enabled") === "false") {
-        console.log("[PUSH] Foreground message ignored: notifications disabled");
+      if (user_data?.user?.isNotify === false) {
         return;
       }
       const { title, body } = payload?.notification || {};
       if (title || body) toast.info(body || title);
     });
 
+    if (user_data?.user?.isNotify === false) {
+      return () => {
+        active = false;
+        unsubscribe();
+      };
+    }
+
     getFcmToken().then((fcmToken) => {
-      if (!active) return;
+      if (
+        !active ||
+        user_data?.user?.isNotify === false
+      ) return;
       if (!fcmToken) {
         console.warn(
           "[PUSH] ❌ No FCM token obtained — nothing to register. Check the [firebase] logs above (config/VAPID/permission).",
         );
         return;
       }
-      console.log("[PUSH] Registering fcmToken with backend…", {
-        userId,
-        action: "userService/update",
-        fcmToken: `${fcmToken.slice(0, 16)}…`,
-      });
+      
       const previousToken = localStorage.getItem("unionai_fcm_token");
       if (previousToken === fcmToken) {
-        console.log("[PUSH] FCM token unchanged, skipping update");
         return;
       }
       localStorage.setItem("unionai_fcm_token", fcmToken);
       sendMessage("action", {
         type: "userService",
         action: "update",
-        payload: { id: userId, fcmToken },
+        payload: { id: userId, fcmTokens: [fcmToken], isNotify: true },
       });
     });
 
@@ -303,7 +281,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       active = false;
       unsubscribe();
     };
-  }, [accessToken, isConnected, sendMessage, user_data?.user?.id]);
+  }, [accessToken, isConnected, sendMessage, user_data?.user?.id, user_data?.user?.isNotify]);
 
   return (
     <WebSocketContext.Provider

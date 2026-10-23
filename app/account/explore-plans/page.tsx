@@ -424,7 +424,7 @@ export default function ExplorePlansPage() {
                 disabled={!selectedPlan || hasBlockingSubscription}
                 onClick={subscribe}
               >
-                {activeSubscription ? "Subscription active" : hasBlockingSubscription ? "Subscription needs attention" : "Subscribe"}
+                Subscribe
               </Button>
             </section>
           )}

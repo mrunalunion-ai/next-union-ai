@@ -82,16 +82,6 @@ export default function MyAccountPage() {
   }) ?? [];
   const languages = mainReducer?.loveLanguageList?.data ?? [];
 
-  const summaryValue = useWatch({ control: relationshipForm.control, name: "summary" });
-  const wordCount = summaryValue ? summaryValue.trim().split(/\s+/).filter(Boolean).length : 0;
-  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    const words = value.trim().split(/\s+/).filter(Boolean);
-    if (words.length > 100) {
-      e.target.value = words.slice(0, 100).join(" ");
-    }
-    relationshipForm.setValue("summary", e.target.value, { shouldDirty: true, shouldValidate: true });
-  };
 
   useEffect(() => {
     if (!isConnected) return;
@@ -554,15 +544,13 @@ export default function MyAccountPage() {
                     rows={4}
                     placeholder="Tell us a little about your relationship..."
                     register={relationshipForm.register}
+                    watch={relationshipForm.watch}
                     error={relationshipForm.formState.errors.summary?.message}
                     labelClassName="auth-field-label"
                     inputClassName="auth-input"
                     maxLength={1000}
-                    onChange={handleSummaryChange}
+                    maxWords={100}
                   />
-                  <div className="mt-1 text-right text-xs text-muted-foreground">
-                    {wordCount}/100
-                  </div>
                 </div>
 
                 <div>

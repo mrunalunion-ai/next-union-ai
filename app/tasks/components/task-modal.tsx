@@ -125,6 +125,8 @@ export function TaskModal({
             placeholder="What specifically needs to be done?"
             labelClassName="auth-field-label"
             inputClassName="auth-input"
+            watch={form.watch}
+            maxWords={100}
           />
 
           <div className="grid gap-5 sm:grid-cols-2 grid-col-1">
@@ -256,6 +258,8 @@ export function TaskViewModal({
             placeholder="What specifically needs to be done?"
             labelClassName="auth-field-label"
             inputClassName="auth-input"
+            watch={form.watch}
+            maxWords={100}
           />
 
           <div className="grid gap-5 sm:grid-cols-2 grid-col-1">
