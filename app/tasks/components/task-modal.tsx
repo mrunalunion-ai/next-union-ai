@@ -100,7 +100,7 @@ export function TaskModal({
 
         <form
           onSubmit={handleSubmit(submit)}
-          className="space-y-5"
+          className="space-y-3"
           noValidate
         >
           <InputField<TaskFormValues>
@@ -129,7 +129,7 @@ export function TaskModal({
             maxWords={100}
           />
 
-          <div className="grid gap-5 sm:grid-cols-2 grid-col-1">
+          <div className="grid gap-3 sm:grid-cols-2 grid-col-1">
             <DropdownSelect
               name="assignedTo"
               label="Assign to"
@@ -231,7 +231,7 @@ export function TaskViewModal({
         </div>
 
         <form
-          className="space-y-5"
+          className="space-y-3"
           noValidate
         >
           <InputField<TaskFormValues>
@@ -262,7 +262,7 @@ export function TaskViewModal({
             maxWords={100}
           />
 
-          <div className="grid gap-5 sm:grid-cols-2 grid-col-1">
+          <div className="grid gap-3 sm:grid-cols-2 grid-col-1">
             <DropdownSelect
               name="assignedTo"
               label="Assign to"

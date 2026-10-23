@@ -142,7 +142,7 @@ export default function InputField<T extends FieldValues>({
         if (!label && !rightLabel) return null;
 
         return (
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-1 flex items-center justify-between">
                 {label && (
                     <label
                         htmlFor={inputId}
@@ -294,7 +294,7 @@ export default function InputField<T extends FieldValues>({
                         ${baseClassName}
                         min-h-[100px]
                         px-4
-                        py-1
+                        py-2
                         resize-y
                     `}
                     {...registeredField}

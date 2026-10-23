@@ -66,6 +66,8 @@ export default function TasksPage() {
   const [confirmToggleTask, setConfirmToggleTask] = useState<ITask | null>(null);
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
   const userId = user_data?.user?.id;
+  const partner = user_data?.user?.relationships?.[0]?.partner;
+  const partnerName = `${partner?.firstName ?? ""}`.trim();
 
   const loadTasks = useCallback((filter?: TaskFilter) => {
     if (!isConnected) return;
@@ -89,8 +91,8 @@ export default function TasksPage() {
   }, [dispatch, isConnected, sendMessage]);
 
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    loadTasks(tasks?.activeFilter);
+  }, [loadTasks, tasks?.activeFilter]);
 
   useEffect(() => {
     const message = parseMessage(lastEvent?.data);
@@ -247,11 +249,13 @@ export default function TasksPage() {
                     key={task?.id}
                     task={task}
                     currentUserId={userId}
+                    partnerName={partnerName}
                     onToggle={() => setConfirmToggleTask(task)}
                     onEdit={setModalTask}
                     onDelete={setDeleteTask}
                     onView={() => setViewTask(task)}
                     isOwner={task.createdByUserId === userId}
+                    isCompletedTab={tasks?.activeFilter === "completed"}
                   />
                 ))}
               </div>
