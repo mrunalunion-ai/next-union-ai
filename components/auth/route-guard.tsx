@@ -36,7 +36,9 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     (onboardingStep && onboardingRoutes[onboardingStep]) ||
     APP_URL.LINKS.DASHBOARD;
 
-  const isPublic = PUBLIC_ROUTES.some((route) => pathname === route);
+  const isPublic = PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 
   let redirectTo: string | null = null;
   if (hydrated) {
