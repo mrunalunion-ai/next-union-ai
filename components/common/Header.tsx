@@ -8,6 +8,7 @@ import { useAppDispatch } from "@/redux/hooks";
 import { logoutUser } from "@/redux/modules/common/user_data/action";
 import { setReduxClear } from "@/redux/modules/main/action";
 import { postData } from "@/services/rest/fetchData";
+import { persistor } from "@/redux/store";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { onboardingRoutes, type OnboardingStep } from "@/utils/common";
 import {
@@ -138,8 +139,9 @@ export function Header({ variant = "auth" }: HeaderProps) {
     } catch {
       toast.error("Could not complete logout. Please try again.");
     } finally {
-      sessionStorage.clear();
       localStorage.clear();
+      sessionStorage.clear();
+      await persistor.purge();
       dispatch(logoutUser());
       dispatch(setReduxClear());
       setProfileOpen(false);
@@ -164,8 +166,9 @@ export function Header({ variant = "auth" }: HeaderProps) {
       lastEvent?.data?.request?.action === "deleteAccount" &&
       lastEvent?.data?.status === true
     ) {
-      sessionStorage.clear();
       localStorage.clear();
+      sessionStorage.clear();
+      persistor.purge();
       dispatch(logoutUser());
       dispatch(setReduxClear());
       router.replace(APP_URL.LINKS.LOGIN);
