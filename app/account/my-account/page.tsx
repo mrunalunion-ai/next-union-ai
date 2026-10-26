@@ -1,14 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Heart, ImagePlus, X } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { Check, Heart } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 
 import { countryOptions, genderOptions, phoneCodeOptions } from "@/app/(auth)/register/page";
 import { AccountPageHeader } from "@/components/account/account-ui";
+import { ProfileImageUpload } from "@/components/account/profile-image-upload";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -163,20 +163,7 @@ export default function MyAccountPage() {
     }
   };
 
-  const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
-      return;
-    }
-
+  const handleImageChange = async (file: File) => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
@@ -186,6 +173,7 @@ export default function MyAccountPage() {
     setIsUploadingImage(false);
 
     if (!uploadedUrl) {
+      setIsUploadingImage(false);
       toast.error("Failed to upload image");
       return;
     }
@@ -339,61 +327,16 @@ export default function MyAccountPage() {
                 <div className="uppercase text-sm font-semibold">
                   Personal Information
                 </div>
-                <div className="relative rounded-xl border border-dashed border-primary/30 bg-primary/[0.03] p-4 sm:p-5">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                    <div className="relative shrink-0 self-center sm:self-auto">
-                      <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-primary/15 bg-primary/10 shadow-sm">
-                        {displayImage ? (
-                          <Image
-                            src={displayImage}
-                            alt="Profile"
-                            width={80}
-                            height={80}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-primary">
-                            {(user?.firstName?.[0] || "") + (user?.lastName?.[0] || "")}
-                          </div>
-                        )}
-                      </div>
-                      {displayImage && !isUploadingImage && (
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          aria-label="Remove profile image"
-                          className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface bg-destructive text-destructive-foreground shadow-sm transition hover:scale-105"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1 text-center sm:text-left">
-                      <p className="text-sm font-semibold text-foreground">
-                        Add a profile image <span className="font-normal text-muted-foreground">(optional)</span>
-                      </p>
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                        JPG, JPEG, PNG, etc.
-                      </p>
-                      <label
-                        htmlFor="profile-image-input"
-                        className={`mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-primary/30 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/10 ${isUploadingImage ? "pointer-events-none opacity-60" : ""}`}
-                      >
-                        <ImagePlus className="h-4 w-4" />
-                        {isUploadingImage ? "Uploading…" : displayImage ? "Change image" : "Choose image"}
-                      </label>
-                      <input
-                        id="profile-image-input"
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={handleImageChange}
-                        disabled={isUploadingImage}
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <ProfileImageUpload
+                  imageUrl={displayImage}
+                  initials={`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`}
+                  isUploading={isUploadingImage}
+                  onFileChange={handleImageChange}
+                  onRemove={removeImage}
+                  inputId="account-profile-image"
+                  acceptedTypes={["image/jpeg", "image/png"]}
+                  maxSizeMB={2}
+                />
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <InputField<AccountPersonalFormValues>
