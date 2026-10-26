@@ -8,6 +8,9 @@ const selectPosterReducers = createSelector(
     ...combinedReducer?.usePosterReducers,
     access_token: combinedReducer?.user_data?.access_token,
     user_data: combinedReducer?.user_data,
+    hydrated:
+      (combinedReducer as { _persist?: { rehydrated?: boolean } } | undefined)
+        ?._persist?.rehydrated === true,
     user: combinedReducer?.user_data?.user,
     ui : combinedReducer?.uiReducer,
     mainReducer : combinedReducer?.mainReducer,

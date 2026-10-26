@@ -2,7 +2,6 @@
 
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
-import RouteGuard from "@/components/auth/route-guard";
 import { Button } from "@/components/ui/button";
 import DatePicker from "@/components/ui/datePicker";
 import DropdownSelect from "@/components/ui/dropdown";
@@ -115,7 +114,6 @@ function CreateUnionContent() {
   }, [lastEvent]);
 
   return (
-    <RouteGuard>
       <AuthLayout>
         <div className="h-full overflow-y-auto scrollbar-hidden">
           <div className="mx-auto w-full max-w-[900px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
@@ -301,7 +299,6 @@ function CreateUnionContent() {
           </div>
         </div>
       </AuthLayout>
-    </RouteGuard>
   );
 }
 

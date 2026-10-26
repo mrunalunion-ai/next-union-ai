@@ -19,8 +19,9 @@ import {
   Menu,
   Moon,
   Sun,
+  Trash2,
   User,
-  X,
+  X
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -58,6 +59,7 @@ export function Header({ variant = "auth" }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const isMarketing = variant === "marketing";
   const isDashboard = variant === "dashboard";
@@ -147,6 +149,29 @@ export function Header({ variant = "auth" }: HeaderProps) {
     }
   };
 
+  const deleteAccount = () => {
+    if (!isConnected) return;
+    sendMessage("action", {
+      type: "userService",
+      action: "deleteAccount",
+      payload: {},
+    });
+  };
+
+  useEffect(() => {
+    if (
+      lastEvent?.data?.request?.type === "userService" &&
+      lastEvent?.data?.request?.action === "deleteAccount" &&
+      lastEvent?.data?.status === true
+    ) {
+      sessionStorage.clear();
+      localStorage.clear();
+      dispatch(logoutUser());
+      dispatch(setReduxClear());
+      router.replace(APP_URL.LINKS.LOGIN);
+    }
+  }, [dispatch, lastEvent, router]);
+
   return (
     <>
       <header className={`${isMarketing ? "fixed inset-x-0 top-0 bg-background/85" : "sticky top-0"} z-50 border-b border-border/70 backdrop-blur-xl`}>
@@ -213,7 +238,7 @@ export function Header({ variant = "auth" }: HeaderProps) {
                   <span className="hidden max-w-[120px] truncate text-sm font-semibold sm:block">{displayName}</span>
                   <ChevronDown className={`hidden h-4 w-4 text-muted-foreground transition-transform sm:block ${profileOpen ? "rotate-180" : ""}`} />
                 </button>
-                {profileOpen && <ProfileMenu user={user} displayName={displayName} onLogout={() => setIsLogoutOpen(true)} onClose={() => setProfileOpen(false)} />}
+                {profileOpen && <ProfileMenu user={user} displayName={displayName} onLogout={() => setIsLogoutOpen(true)} onDeleteAccount={() => setDeleteOpen(true)} onClose={() => setProfileOpen(false)} />}
               </div>
             ) : null}
 
@@ -231,11 +256,20 @@ export function Header({ variant = "auth" }: HeaderProps) {
 
       {showNotifications && <NotificationDrawer open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />}
       <Popup open={isLogoutOpen} onOpenChange={setIsLogoutOpen} variant="logout" title="Logout?" description="Are you sure you want to log out of your account?" confirmText="Logout" onConfirm={handleLogout} />
+      <Popup
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        variant="danger"
+        title="Delete account?"
+        description="Deleting your account will permanently erase all your data. This action cannot be undone."
+        confirmText="Delete account"
+        onConfirm={deleteAccount}
+      />
     </>
   );
 }
 
-function ProfileMenu({ user, displayName, onLogout, onClose }: { user?: any; displayName: string; onLogout: () => void; onClose: () => void }) {
+function ProfileMenu({ user, displayName, onLogout, onDeleteAccount, onClose }: { user?: any; displayName: string; onLogout: () => void; onDeleteAccount: () => void; onClose: () => void }) {
   const connected = user?.onboardingStep === "connected";
   const href = connected ? APP_URL.LINKS.ACCOUNT : onboardingRoutes[user?.onboardingStep as OnboardingStep];
   return (
@@ -243,9 +277,11 @@ function ProfileMenu({ user, displayName, onLogout, onClose }: { user?: any; dis
       <div className="mb-1.5 flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2.5"><span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{getInitials(user?.firstName, user?.lastName)}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{displayName}</p><p className="truncate text-[11px] text-muted-foreground">{user?.email || "Subscriber"}</p></div></div>
       {connected && <Link href={APP_URL.LINKS.DASHBOARD} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted"><LayoutDashboard className="h-4 w-4 text-primary" />Dashboard</Link>}
       <Link href={href || APP_URL.LINKS.ACCOUNT} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted">{connected ? <User className="h-4 w-4 text-primary" /> : <LayoutDashboard className="h-4 w-4 text-primary" />}{connected ? "Profile" : "Complete Connection"}</Link>
+      <button type="button" onClick={onDeleteAccount} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10"><Trash2 className="h-4 w-4" />Delete Account</button>
       <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10"><LogOut className="h-4 w-4" />Logout</button>
     </div>
   );
+
 }
 
 function MobileMarketingMenu({ onClose, isAuthenticated }: { onClose: () => void; isAuthenticated: boolean }) {

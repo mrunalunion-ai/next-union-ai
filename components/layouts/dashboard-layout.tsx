@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-import RouteGuard from "@/components/auth/route-guard";
 import { Popup } from "@/components/common/popup";
 import { APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
@@ -47,7 +46,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <RouteGuard>
+    <>
       <div className="flex h-screen overflow-hidden text-foreground">
         <div className="h-full shrink-0">
           <DashboardSidebar onLogout={() => setIsLogoutOpen(true)} />
@@ -71,6 +70,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         confirmText="Logout"
         onConfirm={handleLogout}
       />
-    </RouteGuard>
+    </>
   );
 }

@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
-import RouteGuard from "@/components/auth/route-guard";
 import { Popup } from "@/components/common/popup";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/ui/InputField";
@@ -90,7 +89,6 @@ function JoinUnionContent() {
   }, [lastEvent]);
 
   return (
-    <RouteGuard>
       <AuthLayout>
         <div className="h-full overflow-y-auto scrollbar-hidden">
           <div className="mx-auto w-full max-w-[600px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
@@ -267,7 +265,6 @@ function JoinUnionContent() {
           }}
         />
       </AuthLayout >
-    </RouteGuard >
   );
 }
 

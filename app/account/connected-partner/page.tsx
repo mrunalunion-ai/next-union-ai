@@ -15,7 +15,7 @@ import { Popup } from "@/components/common/popup";
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { API_BASE_URL } from "@/constant/static";
+import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import {
@@ -26,12 +26,14 @@ import {
 import { ILoveLanguage } from "@/redux/modules/main/types";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
 import { formatDateDDMMYYYY } from "@/utils/common";
+import { logoutUser } from "@/redux/modules/common/user_data/action";
+import { useRouter } from "next/navigation";
 
 function InfoRow({ label, value }: { label: string; value?: string | number }) {
   return (
     <div className="grid grid-cols-[minmax(8.5rem,1fr)_minmax(0,1.7fr)] gap-4 text-sm sm:grid-cols-[11.5rem_minmax(0,1fr)]">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 break-words font-medium text-foreground">
+      <dd className={`min-w-0 break-words font-medium text-foreground ${label === 'Gender' && "capitalize"}`}>
         {value === undefined || value === null || value === "" ? "—" : value}
       </dd>
     </div>
@@ -58,11 +60,12 @@ function SectionCard({
 export default function ConnectedPartnerPage() {
   const dispatch = useAppDispatch();
   const { user_data, account } = usePosterReducers();
-  const { isConnected, sendMessage } = useWebSocket();
+  const { isConnected, sendMessage, lastEvent } = useWebSocket();
   const accountState = account ?? initialAccountState;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const relationship = user_data?.user?.relationships?.[0];
   const partner = accountState?.partner ?? relationship?.partner;
+  const router = useRouter();
 
   useEffect(() => {
     if (!isConnected) return;
@@ -90,6 +93,16 @@ export default function ConnectedPartnerPage() {
     setConfirmOpen(false);
   };
 
+  useEffect(() => {
+    if (
+      lastEvent?.data?.request?.type === "userService" &&
+      lastEvent?.data?.request?.action === "deleteConnection" &&
+      lastEvent?.data?.status === true
+    ) {
+      router.replace(APP_URL.LINKS.CREATE_UNION);
+    }
+  }, [dispatch, lastEvent, router]);
+
   const partnerName = `${partner?.firstName ?? ""} ${partner?.lastName ?? ""}`.trim();
   const initials = partnerName
     .split(" ")
@@ -100,7 +113,7 @@ export default function ConnectedPartnerPage() {
     .toUpperCase();
   const loveLanguages = partner?.loveLanguages ?? [];
   const phoneNumber = partner?.mobileNumber
-    ? `${partner?.phoneDialingCode ?? ""}${partner?.mobileNumber}`
+    ? `${partner?.phoneDialingCode ?? ""}${" "}${partner?.mobileNumber}`
     : undefined;
   const hasChildren = Boolean(relationship?.children);
   const relationType = relationship?.relationStatus?.title;
@@ -231,15 +244,13 @@ export default function ConnectedPartnerPage() {
               </div>
 
               <div>
-                <Card className="flex h-full flex-col justify-center gap-7 rounded-3xl border-border/70 bg-surface p-6 text-center shadow-sm sm:p-8">
+                <Card className="flex h-full flex-col justify-start gap-7 rounded-3xl border-border/70 bg-surface p-6 text-center shadow-sm sm:p-8">
                   {/* Header */}
-                  <div className="relative flex min-h-[48px] items-center justify-center">
-                    <LockKeyhole className="absolute left-0 h-5 w-5 text-primary" />
+                  <div className="flex items-center justify-center gap-3">
+                    <LockKeyhole className="h-5 w-5 shrink-0 text-primary" />
 
-                    <h2 className="max-w-[180px] text-sm font-medium uppercase leading-5 tracking-wide text-foreground">
-                      Your Union Code
-                      <br />
-                      Connection
+                    <h2 className="whitespace-nowrap text-sm font-medium uppercase leading-5 tracking-wide text-foreground">
+                      Your Union Code Connection
                     </h2>
                   </div>
 

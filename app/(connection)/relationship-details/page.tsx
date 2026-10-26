@@ -9,7 +9,6 @@ import { useForm, useWatch } from "react-hook-form";
 import AuthLayout from "@/components/auth/auth-layout";
 import { ProfileImageUpload } from "@/components/account/profile-image-upload";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
-import RouteGuard from "@/components/auth/route-guard";
 import { Button } from "@/components/ui/button";
 import InputField from "@/components/ui/InputField";
 import { API_BASE_URL, APP_URL } from "@/constant/static";
@@ -239,7 +238,6 @@ export default function RelationshipDetailsContent() {
   }, [lastEvent]);
 
   return (
-    <RouteGuard>
       <AuthLayout>
         <div className="h-full overflow-y-auto scrollbar-hidden">
           <div className="mx-auto w-full max-w-[900px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
@@ -434,7 +432,6 @@ export default function RelationshipDetailsContent() {
           </div>
         </div>
       </AuthLayout>
-    </RouteGuard>
   );
 }
 

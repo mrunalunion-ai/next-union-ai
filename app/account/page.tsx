@@ -62,26 +62,6 @@ export default function AccountPage() {
     setNotificationsEnabled(user?.isNotify !== false);
   }, [user?.isNotify]);
 
-
-  useEffect(() => {
-    if (!hasObservedSocketEvent.current) {
-      hasObservedSocketEvent.current = true;
-      return;
-    }
-
-    if (
-      lastEvent?.data?.request?.type === "userService" &&
-      lastEvent?.data?.request?.action === "deleteAccount" &&
-      lastEvent?.data?.status === true
-    ) {
-      sessionStorage.clear();
-      localStorage.clear();
-      dispatch(logoutUser());
-      dispatch(setReduxClear());
-      router.replace(APP_URL.LINKS.LOGIN);
-    }
-  }, [dispatch, lastEvent, router]);
-
   const handleLogout = async () => {
     try {
       const fcmToken = localStorage.getItem("unionai_fcm_token") ?? undefined;
@@ -108,6 +88,25 @@ export default function AccountPage() {
       payload: {},
     });
   };
+
+    useEffect(() => {
+    if (!hasObservedSocketEvent.current) {
+      hasObservedSocketEvent.current = true;
+      return;
+    }
+
+    if (
+      lastEvent?.data?.request?.type === "userService" &&
+      lastEvent?.data?.request?.action === "deleteAccount" &&
+      lastEvent?.data?.status === true
+    ) {
+      sessionStorage.clear();
+      localStorage.clear();
+      dispatch(logoutUser());
+      dispatch(setReduxClear());
+      router.replace(APP_URL.LINKS.LOGIN);
+    }
+  }, [dispatch, lastEvent, router]);
 
   const updateNotificationPreference = async () => {
     const nextValue = !notificationsEnabled;

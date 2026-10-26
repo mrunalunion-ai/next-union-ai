@@ -2,7 +2,6 @@
 
 import AuthLayout from "@/components/auth/auth-layout";
 import { RegistrationStepIndicator } from "@/components/auth/registration-step-indicator";
-import RouteGuard from "@/components/auth/route-guard";
 import { ShareUnionCodeDialog } from "@/components/auth/share-union-code-dialog";
 import { Popup } from "@/components/common/popup";
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,8 @@ export default function CodeCreate() {
     }, [isConnected]);
 
     const copyCode = async () => {
-        await navigator.clipboard?.writeText(UNIONCODE);
+        const codeOnly = (UNIONCODE ?? "").replace(/^UNION-/i, "");
+        await navigator.clipboard?.writeText(codeOnly);
         toast.success("Union Code copied.");
     };
 
@@ -136,7 +136,7 @@ export default function CodeCreate() {
     }, [lastEvent]);
 
     return (
-        <RouteGuard>
+        <>
             <AuthLayout>
                 <div className="h-full overflow-y-auto scrollbar-hidden">
                     <div className="mx-auto w-full max-w-[600px] px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
@@ -309,7 +309,7 @@ export default function CodeCreate() {
                 openEmail={openEmail}
                 nativeShare={nativeShare}
             />
-        </RouteGuard >
+        </>
     );
 }
 

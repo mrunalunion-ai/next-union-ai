@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 import AuthLayout from "@/components/auth/auth-layout";
-import RouteGuard from "@/components/auth/route-guard";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL, APP_URL } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
@@ -38,7 +37,6 @@ export default function ConnectedPage() {
         : "?";
 
     return (
-        <RouteGuard>
             <AuthLayout>
                 <div className="h-full overflow-y-auto scrollbar-hidden">
                     <div className="mx-auto min-h-full w-full max-w-2xl items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -117,6 +115,5 @@ export default function ConnectedPage() {
                     </div>
                 </div>
             </AuthLayout>
-        </RouteGuard>
     );
 }
