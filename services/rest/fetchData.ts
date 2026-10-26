@@ -27,7 +27,6 @@ export const AuthReq = async (
 
     return data;
   } catch (error) {
-    console.error("AuthReq Error:", error);
     toast.error(error as any);
     return error;
   }
@@ -68,8 +67,6 @@ export const fetchData = async <T = any>(
 
     if (axiosError.request) {
       toast.error("No response received from server.");
-      console.error("No response received:", axiosError.request);
-
       throw new Error("No response received from server.");
     }
 
@@ -77,8 +74,6 @@ export const fetchData = async <T = any>(
       axiosError.message || "Request failed";
 
     toast.error(errorMessage);
-    console.error("Request failed:", errorMessage);
-
     throw new Error(errorMessage);
   }
 };
@@ -109,7 +104,6 @@ export const postData = async <T = any>(
       data_req
     );
   } catch (error) {
-    console.error("postData Error:", error);
     throw error;
   }
 };

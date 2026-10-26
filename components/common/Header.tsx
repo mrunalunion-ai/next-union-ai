@@ -44,6 +44,9 @@ const NAV_LINKS = [
   { label: "FAQ", href: "#faq" },
 ];
 
+let headerDeleteAccountRequestPending = false;
+const handledDeleteAccountEvents = new WeakSet<object>();
+
 export function getInitials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "U";
 }
@@ -132,6 +135,14 @@ export function Header({ variant = "auth" }: HeaderProps) {
     };
   }, []);
 
+  const clearSession = async () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    await persistor.purge();
+    dispatch(logoutUser());
+    dispatch(setReduxClear());
+  };
+
   const handleLogout = async () => {
     try {
       const response = await postData(APP_URL.ENDPOINT_URL.LOGOUT, {}, user_data?.access_token);
@@ -139,20 +150,19 @@ export function Header({ variant = "auth" }: HeaderProps) {
     } catch {
       toast.error("Could not complete logout. Please try again.");
     } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      await persistor.purge();
-      dispatch(logoutUser());
-      dispatch(setReduxClear());
+      await clearSession();
       setProfileOpen(false);
       setMobileOpen(false);
       setIsLogoutOpen(false);
-      router.replace(APP_URL.LINKS.HOME);
+      router.replace(APP_URL.LINKS.LOGIN);
     }
   };
 
   const deleteAccount = () => {
-    if (!isConnected) return;
+    if (!isConnected) {
+      return;
+    }
+    headerDeleteAccountRequestPending = true;
     sendMessage("action", {
       type: "userService",
       action: "deleteAccount",
@@ -161,19 +171,31 @@ export function Header({ variant = "auth" }: HeaderProps) {
   };
 
   useEffect(() => {
-    if (
+    const deleteAccountResponse =
       lastEvent?.data?.request?.type === "userService" &&
-      lastEvent?.data?.request?.action === "deleteAccount" &&
-      lastEvent?.data?.status === true
-    ) {
-      localStorage.clear();
-      sessionStorage.clear();
-      persistor.purge();
-      dispatch(logoutUser());
-      dispatch(setReduxClear());
-      router.replace(APP_URL.LINKS.LOGIN);
+      lastEvent?.data?.request?.action === "deleteAccount";
+    if (!deleteAccountResponse || isDashboard) return;
+
+    const eventIdentity = lastEvent as object;
+    if (handledDeleteAccountEvents.has(eventIdentity)) return;
+    handledDeleteAccountEvents.add(eventIdentity);
+
+    if (!headerDeleteAccountRequestPending) {
+      return;
     }
-  }, [dispatch, lastEvent, router]);
+    headerDeleteAccountRequestPending = false;
+
+    if (lastEvent?.data?.status === true) {
+      const handleDeleteSuccess = async () => {
+        await clearSession();
+        setProfileOpen(false);
+        setMobileOpen(false);
+        setDeleteOpen(false);
+        router.replace(APP_URL.LINKS.LOGIN);
+      };
+      handleDeleteSuccess();
+    } 
+  }, [dispatch, isDashboard, lastEvent, router]);
 
   return (
     <>

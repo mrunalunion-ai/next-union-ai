@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { PUBLIC_ROUTES } from "@/constant/routeConfig";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { APP_URL } from "@/constant/static";
@@ -15,6 +15,11 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
   const { user_data, access_token, hydrated } = usePosterReducers();
   const isBackNavRef = useRef(false);
 
+  const persistedToken =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("access_token")
+      : null;
+
   useEffect(() => {
     const onPopState = () => {
       isBackNavRef.current = true;
@@ -23,21 +28,23 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  const isAuthenticated =
-    typeof window !== "undefined" &&
-    Boolean(
-      window.localStorage.getItem("access_token") || access_token || user_data?.is_Login,
-    );
+  const isAuthenticated = Boolean(
+    !hydrated ? persistedToken : access_token || user_data?.is_Login,
+  );
 
-  const onboardingStep = user_data?.user?.onboardingStep as
-    | keyof typeof onboardingRoutes
-    | undefined;
-  const onboardingRoute =
-    (onboardingStep && onboardingRoutes[onboardingStep]) ||
-    APP_URL.LINKS.DASHBOARD;
+  const onboardingRoute = useMemo(() => {
+    const step = user_data?.user?.onboardingStep as
+      | keyof typeof onboardingRoutes
+      | undefined;
+    return (step && onboardingRoutes[step]) || APP_URL.LINKS.DASHBOARD;
+  }, [user_data?.user?.onboardingStep]);
 
-  const isPublic = PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  const isPublic = useMemo(
+    () =>
+      PUBLIC_ROUTES.some(
+        (route) => pathname === route || pathname.startsWith(`${route}/`),
+      ),
+    [pathname],
   );
 
   let redirectTo: string | null = null;

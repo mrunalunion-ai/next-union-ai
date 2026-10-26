@@ -39,14 +39,6 @@ function logConfigDiagnostics() {
   if (!projectId) {
     problems.push("projectId is empty");
   }
-  if (problems.length > 0) {
-    console.warn("[firebase] ⚠️ config issues:", problems);
-  } else {
-    console.info(
-      "[firebase] config looks OK:",
-      JSON.stringify({ projectId, messagingSenderId }),
-    );
-  }
 }
 
 export async function ensureFirebase(): Promise<boolean> {
@@ -66,7 +58,6 @@ export async function ensureFirebase(): Promise<boolean> {
     }
     return !!messaging;
   } catch (error: any) {
-    console.error("[firebase] ❌ init failed:", error?.code, error?.message || error);
     app = null;
     messaging = null;
     return false;
@@ -85,9 +76,6 @@ export async function getFcmToken(): Promise<string | null> {
     const permission =
       typeof Notification !== "undefined" ? Notification.permission : "unsupported";
     if (permission === "denied") {
-      console.warn(
-        "[firebase] Permission denied. Enable notifications for this site in the browser settings.",
-      );
       return null;
     }
 
@@ -97,11 +85,6 @@ export async function getFcmToken(): Promise<string | null> {
     );
     return token || null;
   } catch (error: any) {
-    console.error(
-      "[firebase] ❌ getToken() failed:",
-      error?.code,
-      error?.message || error,
-    );
     return null;
   }
 }
@@ -112,7 +95,6 @@ export async function deleteFcmToken(): Promise<boolean> {
     if (!ok || !messaging) return false;
     return await deleteToken(messaging);
   } catch (error: any) {
-    console.error("[firebase] Failed to delete FCM token:", error?.code, error?.message || error);
     return false;
   }
 }

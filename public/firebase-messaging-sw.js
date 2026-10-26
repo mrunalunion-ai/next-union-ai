@@ -35,7 +35,6 @@ function parseData(payload) {
 }
 
 messaging.onBackgroundMessage((payload) => {
-  console.info("[SW] 📬 ",payload)
   const { data, meta } = parseData(payload);
   const notification = payload?.notification || {};
   const messageId = String(
@@ -43,17 +42,9 @@ messaging.onBackgroundMessage((payload) => {
   );
   const now = Date.now();
 
-  console.info("[SW] 📬 background message received", {
-    messageId: messageId || "(none)",
-    title: notification.title || "(no title)",
-    hasNotificationBlock: Boolean(notification.title || notification.body),
-    dataKeys: Object.keys(data),
-  });
-
   if (messageId) {
     const lastSeen = recentMessageIds.get(messageId);
     if (lastSeen && now - lastSeen < DEDUP_WINDOW_MS) {
-      console.info(`[SW] ⏭ skipping duplicate messageId=${messageId}`);
       return;
     }
     recentMessageIds.set(messageId, now);
@@ -62,13 +53,6 @@ messaging.onBackgroundMessage((payload) => {
       recentMessageIds.delete(oldestKey);
     }
   }
-
-  console.info("[SW] 🔔 showing notification:", {
-    messageId: messageId || "(none)",
-    title: notification.title || "UnionAI",
-    icon: `${origin}/assets/images/logo-badge.svg`,
-    tag: messageId || "(none)",
-  });
 
   self.registration.showNotification(notification.title || "UnionAI", {
     body: notification.body || "",

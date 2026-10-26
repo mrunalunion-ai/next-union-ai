@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card";
 import { API_BASE_URL, APP_URL, LEGAL_PAGE_SOURCE } from "@/constant/static";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
+import { persistor } from "@/redux/store";
 import { setAccountSaving } from "@/redux/modules/account";
 import { logoutUser } from "@/redux/modules/common/user_data/action";
 import { setReduxClear } from "@/redux/modules/main/action";
@@ -73,6 +74,7 @@ export default function AccountPage() {
     } finally {
       sessionStorage.clear();
       localStorage.clear();
+      await persistor.purge();
       dispatch(logoutUser());
       dispatch(setReduxClear());
       router.replace(APP_URL.LINKS.LOGIN);
@@ -80,7 +82,10 @@ export default function AccountPage() {
   };
 
   const deleteAccount = () => {
-    if (!isConnected) return;
+    if (!isConnected) {
+      
+      return;
+    }
     dispatch(setAccountSaving(true));
     sendMessage("action", {
       type: "userService",
@@ -95,17 +100,21 @@ export default function AccountPage() {
       return;
     }
 
-    if (
+    const deleteAccountResponse =
       lastEvent?.data?.request?.type === "userService" &&
-      lastEvent?.data?.request?.action === "deleteAccount" &&
-      lastEvent?.data?.status === true
-    ) {
-      sessionStorage.clear();
-      localStorage.clear();
-      dispatch(logoutUser());
-      dispatch(setReduxClear());
-      router.replace(APP_URL.LINKS.LOGIN);
-    }
+      lastEvent?.data?.request?.action === "deleteAccount";
+    
+    if (deleteAccountResponse && lastEvent?.data?.status === true) {
+      const clearDeletedAccountSession = async () => {
+        sessionStorage.clear();
+        localStorage.clear();
+        await persistor.purge();
+        dispatch(logoutUser());
+        dispatch(setReduxClear());
+        router.replace(APP_URL.LINKS.LOGIN);
+      };
+      void clearDeletedAccountSession();
+    } 
   }, [dispatch, lastEvent, router]);
 
   const updateNotificationPreference = async () => {
