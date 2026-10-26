@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
+import { APP_URL } from "@/constant/static";
 
 export default function InviteRedirect() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function InviteRedirect() {
           <p className="mt-3 text-sm text-muted-foreground">
             Ask your partner to share the invite link again.
           </p>
-          <Link className="mt-5 inline-block font-semibold text-primary hover:underline" href="/">
+          <Link className="mt-5 inline-block font-semibold text-primary hover:underline" href={APP_URL.LINKS.HOME}>
             Go to Union AI
           </Link>
         </section>

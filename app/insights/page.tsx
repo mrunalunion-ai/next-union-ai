@@ -4,6 +4,8 @@ import { Hourglass, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect } from "react";
 
+import { APP_URL } from "@/constant/static";
+
 import { DashboardLayout } from "@/components/layouts/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,9 +23,19 @@ import {
 
 export default function InsightsPage() {
   const dispatch = useAppDispatch();
-  const { user_data, insights } = usePosterReducers();
+  const { user_data, insights, account } = usePosterReducers();
   const { isConnected, sendMessage } = useWebSocket();
-  const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
+  const relationship = user_data?.user?.relationships?.[0];
+  const relationshipId = relationship?.id ?? "";
+  const isUser1 = relationship?.user1Id === user_data?.user?.id;
+  const activeSubscription = account?.activeSubscription ?? relationship?.subscription;
+  const hasActiveSubscription = Boolean(
+    activeSubscription &&
+    activeSubscription?.status &&
+    (typeof activeSubscription?.isActive === "boolean"
+      ? activeSubscription?.isActive
+      : activeSubscription?.status?.toUpperCase() !== "EXPIRED"),
+  );
 
   const loadInsights = useCallback(() => {
     if (!relationshipId || !isConnected) return;
@@ -99,8 +111,31 @@ export default function InsightsPage() {
                 Coach recommendations.
               </p>
               <Button asChild className="mt-6 h-11 w-full rounded-xl font-semibold sm:max-w-sm">
-                <Link href="/weekly-check-in">Complete Weekly Check-in</Link>
+                <Link href={APP_URL.LINKS.WEEKLY_CHECK_IN}>Complete Weekly Check-in</Link>
               </Button>
+            </Card>
+          ) : !hasActiveSubscription ? (
+            <Card className="mx-auto rounded-3xl border-border/70 bg-surface p-6 text-center shadow-sm sm:p-8">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                <Hourglass className="h-12 w-12" strokeWidth={1.8} />
+              </div>
+              <h2 className="mt-5 text-lg font-extrabold sm:text-xl">
+                {isUser1
+                  ? "Once you purchase a subscription,"
+                  : "Once your partner purchases a subscription,"}
+                <br />
+                Insights &amp; Trends will appear for both of you.
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+                For insights and trends, you can view graphs of your score trend,
+                core alignment dimensions, strengths, gaps and risks, along with AI
+                Coach recommendations.
+              </p>
+              {isUser1 && (
+                <Button asChild className="mt-6 h-11 w-full rounded-xl font-semibold sm:max-w-sm">
+                  <Link href={APP_URL.LINKS.EXPLORE_PLANS}>Explore Plans</Link>
+                </Button>
+              )}
             </Card>
           ) : (
             <div className="space-y-6">

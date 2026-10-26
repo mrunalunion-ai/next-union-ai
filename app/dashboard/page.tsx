@@ -238,9 +238,6 @@ export default function DashboardPage() {
               Connected with {partnerName}
             </p>
           </div>
-          <div className="hidden h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary sm:flex">
-            <Heart className="h-6 w-6 fill-primary/15" />
-          </div>
         </section>
 
         <div className="grid items-stretch gap-5 xl:grid-cols-[1.05fr_0.95fr]">
@@ -402,7 +399,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="mt-2 truncate text-sm font-bold">{dashboardPartnerName}</p>
                   <p className={`mt-2 flex items-center justify-center gap-1 text-xs font-semibold ${partnerSubmitted ? "text-green-500" : "text-amber-600"}`}>
-                    <Check className={`h-3.5 w-3.5 ${userSubmitted ? "bg-green-500" : "bg-amber-600"} rounded-full text-white`} />
+                    <Check className={`h-3.5 w-3.5 ${partnerSubmitted ? "bg-green-500" : "bg-amber-600"} rounded-full text-white`} />
                     {partnerSubmitted ? "Checked in" : "Waiting for check-in"}
                   </p>
                 </div>

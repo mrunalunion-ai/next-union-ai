@@ -54,6 +54,10 @@ export default function WeeklyCheckInPage() {
   const relationshipId = user_data?.user?.relationships?.[0]?.id ?? "";
   const question = checkin?.questions[checkin?.currentQuestion];
   const answer = checkin?.answers[checkin?.currentQuestion];
+  const totalQuestions = checkin?.questions?.length ?? 0;
+  const answeredCount = Object.keys(checkin?.answers ?? {}).length;
+  const percentComplete =
+    totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   useEffect(() => {
     if (!relationshipId || !isConnected || checkin?.questions?.length > 0) {
@@ -221,20 +225,12 @@ export default function WeeklyCheckInPage() {
                 <span>
                   Question {checkin?.currentQuestion + 1} of {checkin?.questions?.length}
                 </span>
-                <span>
-                  {Math.round(
-                    ((checkin?.currentQuestion + 1) /
-                      checkin?.questions?.length) *
-                    100,
-                  )}% complete
-                </span>
+                <span>{percentComplete}% complete</span>
               </div>
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
-                  style={{
-                    width: `${((checkin?.currentQuestion + 1) / checkin?.questions?.length) * 100}%`,
-                  }}
+                  style={{ width: `${percentComplete}%` }}
                 />
               </div>
 
