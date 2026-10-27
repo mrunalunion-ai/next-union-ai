@@ -76,6 +76,13 @@ export default function MyAccountPage() {
     mode: "onChange",
   });
 
+  const maxDob = new Date();
+  const minDob = new Date(
+    maxDob.getFullYear() - 18,
+    maxDob.getMonth(),
+    maxDob.getDate(),
+  );
+
   const selectedLanguages = useWatch({
     control: relationshipForm.control,
     name: "loveLanguages",
@@ -376,6 +383,8 @@ export default function MyAccountPage() {
                     label="Date of birth"
                     control={personalForm.control}
                     format="YYYY-MM-DD"
+                    minDate={minDob}
+                    maxDate={maxDob}
                     labelClassName="auth-field-label"
                     inputClassName="auth-input"
                   />
