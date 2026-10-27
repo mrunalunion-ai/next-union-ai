@@ -23,7 +23,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 function CreateUnionContent() {
   const router = useRouter();
-  const { mainReducer } = usePosterReducers();
+  const { user_data, mainReducer } = usePosterReducers();
   const { isConnected, lastEvent, sendMessage } = useWebSocket();
   const [mode, setMode] = useState<"create" | "join">("create");
   const pendingAction = useRef<
@@ -50,6 +50,9 @@ function CreateUnionContent() {
     formState: { errors, isValid, isSubmitting },
   } = form;
   const hasChildren = useWatch({ control, name: "hasChildren" });
+  const minStartDate = user_data?.user?.dob
+    ? new Date(user_data.user.dob)
+    : undefined;
   const joinForm = useForm<JoinUnionFormValues>({
     resolver: zodResolver(joinUnionSchema),
     defaultValues: { unionCode: "" },
@@ -187,6 +190,7 @@ function CreateUnionContent() {
                     inputClassName="auth-input"
                     format="YYYY-MM-DD"
                     maxDate={new Date()}
+                    minDate={minStartDate}
                   />
                   <div className="rounded-xl border border-border bg-background p-4">
                     <div className="flex flex-wrap items-center justify-between gap-4">
