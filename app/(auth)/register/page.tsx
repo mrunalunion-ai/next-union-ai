@@ -82,11 +82,7 @@ export default function RegisterPage() {
   const currentStep = 1;
   const router = useRouter();
   const maxDob = new Date();
-  const minDob = new Date(
-    maxDob.getFullYear() - 18,
-    maxDob.getMonth(),
-    maxDob.getDate(),
-  );
+  const minDob = new Date(maxDob.getFullYear() - 18, 0, 1);
   const [isPasswordInfoOpen, setIsPasswordInfoOpen] = useState(false);
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -348,8 +344,9 @@ export default function RegisterPage() {
                   control={control}
                   label="DOB"
                   placeholder="Select date"
-                  minDate={minDob}
-                  maxDate={maxDob}
+                  // minDate={minDob}
+                  // maxDate={maxDob}
+                  defaultDate={minDob}
                   required
                   error={errors.dob?.message}
                   labelClassName="auth-field-label"

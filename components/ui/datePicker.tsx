@@ -28,6 +28,7 @@ interface DatePickerProps<T extends FieldValues> {
 
     minDate?: Date;
     maxDate?: Date;
+    defaultDate?: Date;
 
     className?: string;
     labelClassName?: string;
@@ -139,6 +140,7 @@ export default function DatePicker<T extends FieldValues>({
     readOnly = false,
     minDate,
     maxDate,
+    defaultDate,
     className = "",
     labelClassName = "",
     inputClassName = "",
@@ -178,6 +180,7 @@ export default function DatePicker<T extends FieldValues>({
                         readOnly={readOnly}
                         minDate={minDate}
                         maxDate={maxDate}
+                        defaultDate={defaultDate}
                         format={format}
                         error={!!errorMessage}
                         inputClassName={inputClassName}
@@ -211,6 +214,7 @@ interface DatePickerCalendarProps {
 
     minDate?: Date;
     maxDate?: Date;
+    defaultDate?: Date;
 
     format: "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
 
@@ -228,6 +232,7 @@ function DatePickerCalendar({
     readOnly,
     minDate,
     maxDate,
+    defaultDate,
     format,
     error,
     inputClassName,
@@ -236,9 +241,11 @@ function DatePickerCalendar({
     const triggerRef = useRef<HTMLButtonElement>(null);
     const calendarRef = useRef<HTMLDivElement>(null);
     const selectedDate = parseDate(value);
+    const initialDefault = parseDate(defaultDate) || new Date();
+    const highlightedDate = selectedDate || initialDefault;
 
     const [calendarDate, setCalendarDate] = useState(
-        selectedDate || new Date()
+        selectedDate || initialDefault
     );
 
     const [view, setView] = useState<"calendar" | "month" | "year">(
@@ -616,10 +623,10 @@ function DatePickerCalendar({
                                     }
 
                                     const selected =
-                                        selectedDate &&
+                                        highlightedDate &&
                                         isSameDate(
                                             date,
-                                            selectedDate
+                                            highlightedDate
                                         );
 
                                     const disabledDate =

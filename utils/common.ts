@@ -42,7 +42,7 @@ export const onboardingRoutes: Record<OnboardingStep, string> = {
   accountCreated: APP_URL.LINKS.RELATIONSHIP_DETAILS,
   relationshipDetailsCompleted: APP_URL.LINKS.CREATE_UNION,
   unionCodeCreated: APP_URL.LINKS.CODE_CREATED,
-  unionCodeJoining: APP_URL.LINKS.REGISTER,
+  unionCodeJoining: APP_URL.LINKS.JOIN_UNION,
   partnerVerified: APP_URL.LINKS.JOIN_UNION,
   connectionRequestSent: APP_URL.LINKS.JOIN_UNION,
   connectionRequestReceived: APP_URL.LINKS.CODE_CREATED,

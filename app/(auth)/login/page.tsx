@@ -68,10 +68,10 @@ export default function LoginPage() {
 
       if (safeReturnTo) {
         window.sessionStorage.removeItem("unionai_invite_return_to");
-        router.push(safeReturnTo);
+        router.replace(safeReturnTo);
       } else {
         const route = onboardingRoutes[user?.onboardingStep as OnboardingStep];
-        router.push(route || APP_URL.LINKS.DASHBOARD);
+        router.replace(route || APP_URL.LINKS.DASHBOARD);
       }
     } catch (error) {
       toast.error(errorMessage(error));

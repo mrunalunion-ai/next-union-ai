@@ -8,6 +8,7 @@ import { APP_URL } from "@/constant/static";
 import { onboardingRoutes } from "@/utils/common";
 
 const ONBOARDING_FLOW_ROUTES = new Set(Object.values(onboardingRoutes));
+const SHARED_ROUTES = [APP_URL.LINKS.LEGAL];
 
 export default function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -36,7 +37,14 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
     const step = user_data?.user?.onboardingStep as
       | keyof typeof onboardingRoutes
       | undefined;
-    return (step && onboardingRoutes[step]) || APP_URL.LINKS.DASHBOARD;
+    const route = (step && onboardingRoutes[step]) || APP_URL.LINKS.DASHBOARD;
+    // A malformed or stale onboarding value must never strand an authenticated
+    // user on a public page such as login or registration.
+    return PUBLIC_ROUTES.some(
+      (publicRoute) => route === publicRoute || route.startsWith(`${publicRoute}/`),
+    )
+      ? APP_URL.LINKS.RELATIONSHIP_DETAILS
+      : route;
   }, [user_data?.user?.onboardingStep]);
 
   const isPublic = useMemo(
@@ -46,12 +54,15 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
       ),
     [pathname],
   );
+  const isShared = SHARED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 
   let redirectTo: string | null = null;
   if (hydrated) {
     if (isPublic && isAuthenticated) {
       redirectTo = onboardingRoute;
-    } else if (!isPublic && !isAuthenticated) {
+    } else if (!isPublic && !isShared && !isAuthenticated) {
       redirectTo = APP_URL.LINKS.LOGIN;
     } else if (
       isAuthenticated &&
