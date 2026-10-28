@@ -86,6 +86,8 @@ export const ws_response = (
       "ws_send_request_event",
       "ws_accept_request_event",
       "ws_cancel_request_event",
+      "ws_code_cancel_request",
+      "code_cancel_request",
       "send_request",
       "accept_request",
       "cancel_request",

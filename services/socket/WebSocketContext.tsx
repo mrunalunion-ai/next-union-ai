@@ -153,6 +153,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       "ws_send_request_event",
       "ws_accept_request_event",
       "ws_cancel_request_event",
+      "ws_code_cancel_request",
+      "code_cancel_request",
       "send_request",
       "accept_request",
       "cancel_request",
@@ -178,6 +180,10 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       } else {
         router.replace(APP_URL.LINKS.CODE_CREATED);
       }
+    }
+
+    if (eventType === "code_cancel_request") {
+      router.replace(APP_URL.LINKS.CREATE_UNION);
     }
 
     if (eventType === "connection_deleted") {
@@ -264,7 +270,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
         );
         return;
       }
-      
+
       const previousToken = localStorage.getItem("unionai_fcm_token");
       if (previousToken === fcmToken) {
         return;
