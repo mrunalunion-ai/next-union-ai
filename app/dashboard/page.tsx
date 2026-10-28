@@ -105,12 +105,18 @@ export default function DashboardPage() {
   const partner = relationship?.partner;
   const isUser1 = relationship?.user1Id === user?.id;
   const activeSubscription = account?.activeSubscription ?? relationship?.subscription;
+  const subscriptionEndTime = activeSubscription?.endDate
+    ? new Date(activeSubscription.endDate).getTime()
+    : Number.NaN;
+  const hasValidSubscriptionEnd = Number.isFinite(subscriptionEndTime);
   const subscriptionIsActive = Boolean(
     activeSubscription &&
     activeSubscription?.status &&
-    (typeof activeSubscription?.isActive === "boolean"
-      ? activeSubscription?.isActive
-      : activeSubscription?.status?.toUpperCase() !== "EXPIRED"),
+    (hasValidSubscriptionEnd
+      ? Date.now() < subscriptionEndTime
+      : typeof activeSubscription?.isActive === "boolean"
+        ? activeSubscription?.isActive
+        : activeSubscription?.status?.toUpperCase() !== "EXPIRED"),
   );
   const hasActiveSubscription = Boolean(
     subscriptionIsActive,

@@ -286,23 +286,13 @@ export default function ConnectedPartnerPage() {
             <p>Deleting this connection will:</p>
             <ul className="list-disc space-y-1.5 pl-5">
               <li>
-                Terminate your union relationship immediately with your partner
+                Your relationship with your partner will end immediately, and both of you will lose access to relationship scores.
               </li>
               <li>
-                Cancel your subscription at the end of the current billing period
-                (no new renewal)
+                Your subscription will not renew and will end after the current billing period. No refund will be issued for the remaining period.
               </li>
               <li>
-                No refund will be issued for the remaining billing period
-              </li>
-              <li>
-                Both you and your partner will lose access to relationship scores
-              </li>
-              <li>
-                Your subscription will not transfer to any new connection
-              </li>
-              <li>
-                You will need a new subscription for any future relationship
+                Your subscription cannot be transferred to a new connection. A new subscription is required for any future relationship.
               </li>
             </ul>
             <p>This action cannot be undone.</p>

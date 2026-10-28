@@ -27,6 +27,7 @@ export default function InsightsPage() {
   const { isConnected, sendMessage } = useWebSocket();
   const relationship = user_data?.user?.relationships?.[0];
   const relationshipId = relationship?.id ?? "";
+  const userId = user_data?.user?.id ?? "";
   const isUser1 = relationship?.user1Id === user_data?.user?.id;
   const activeSubscription = account?.activeSubscription ?? relationship?.subscription;
   const hasActiveSubscription = Boolean(
@@ -66,10 +67,20 @@ export default function InsightsPage() {
   const currentScore =
     insights?.trend?.at(-1)?.overallScore ?? latest?.overallScore ?? 0;
   const isLastWeekData = insights?.dashboard?.isLastWeekData === true;
+  const currentUserCheckIn =
+    insights?.dashboard?.user1?.id === userId
+      ? insights?.dashboard?.user1
+      : insights?.dashboard?.user2?.id === userId
+        ? insights?.dashboard?.user2
+        : insights?.dashboard?.user1;
+  const currentUserHasCheckedIn = currentUserCheckIn?.checkedIn === true;
+  const shouldShowExplorePlans =
+    currentUserHasCheckedIn && isUser1 && !hasActiveSubscription;
   const isWaitingForCheckIns = Boolean(
     insights?.dashboard?.user1 &&
     insights?.dashboard?.user2 &&
     !isLastWeekData &&
+    !shouldShowExplorePlans &&
     (!insights?.dashboard?.user1?.checkedIn ||
       !insights?.dashboard?.user2?.checkedIn),
   );
@@ -110,9 +121,11 @@ export default function InsightsPage() {
                 core alignment dimensions, strengths, gaps and risks, along with AI
                 Coach recommendations.
               </p>
-              <Button asChild className="mt-6 h-11 w-full rounded-xl font-semibold sm:max-w-sm">
-                <Link href={APP_URL.LINKS.WEEKLY_CHECK_IN}>Complete Weekly Check-in</Link>
-              </Button>
+              {!currentUserHasCheckedIn && (
+                <Button asChild className="mt-6 h-11 w-full rounded-xl font-semibold sm:max-w-sm">
+                  <Link href={APP_URL.LINKS.WEEKLY_CHECK_IN}>Complete Weekly Check-in</Link>
+                </Button>
+              )}
             </Card>
           ) : !hasActiveSubscription ? (
             <Card className="mx-auto rounded-3xl border-border/70 bg-surface p-6 text-center shadow-sm sm:p-8">
