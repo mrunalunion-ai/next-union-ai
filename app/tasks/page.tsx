@@ -85,14 +85,15 @@ export default function TasksPage() {
           limit: 100,
           active: true,
           filter: taskFilter,
+          ...(relationshipId ? { relationshipId } : {}),
         },
       });
     });
-  }, [dispatch, isConnected, sendMessage]);
+  }, [dispatch, isConnected, relationshipId, sendMessage]);
 
   useEffect(() => {
-    loadTasks(tasks?.activeFilter);
-  }, [loadTasks, tasks?.activeFilter]);
+    loadTasks();
+  }, [loadTasks]);
 
   useEffect(() => {
     const message = parseMessage(lastEvent?.data);
