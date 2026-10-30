@@ -34,6 +34,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { formatDate } from "@/utils/common";
 import { deleteFcmToken, getFcmToken } from "@/services/firebase/firebase";
+import { clearBrowserSessionStorage } from "@/utils/session";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -72,8 +73,7 @@ export default function AccountPage() {
         user_data?.access_token,
       );
     } finally {
-      sessionStorage.clear();
-      localStorage.clear();
+      clearBrowserSessionStorage();
       await persistor.purge();
       dispatch(logoutUser());
       dispatch(setReduxClear());
@@ -106,8 +106,7 @@ export default function AccountPage() {
     
     if (deleteAccountResponse && lastEvent?.data?.status === true) {
       const clearDeletedAccountSession = async () => {
-        sessionStorage.clear();
-        localStorage.clear();
+        clearBrowserSessionStorage();
         await persistor.purge();
         dispatch(logoutUser());
         dispatch(setReduxClear());

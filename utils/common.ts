@@ -16,6 +16,23 @@ export function isBrowser(): boolean {
   return typeof window !== "undefined";
 }
 
+export function hasActiveSubscriptionAccess(subscription?: {
+  status?: string;
+  isActive?: boolean;
+  endDate?: string;
+} | null): boolean {
+  if (!subscription?.status) return false;
+
+  const endTime = subscription.endDate
+    ? new Date(subscription.endDate).getTime()
+    : Number.NaN;
+  if (Number.isFinite(endTime)) return Date.now() < endTime;
+
+  return typeof subscription.isActive === "boolean"
+    ? subscription.isActive
+    : subscription.status.toUpperCase() !== "EXPIRED";
+}
+
 export function formatDateDDMMYYYY(value?: string) {
   if (!value) return "—";
 

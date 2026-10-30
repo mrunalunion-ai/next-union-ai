@@ -46,8 +46,16 @@ import {
   setTasksSaving,
   type TaskFilter,
 } from "@/redux/modules/tasks";
+import { APP_URL } from "@/constant/static";
+import { logoutUser } from "@/redux/modules/common/user_data/action";
+import { setReduxClear } from "@/redux/modules/main/action";
+import { persistor } from "@/redux/store";
+import { postData } from "@/services/rest/fetchData";
+import { clearBrowserSessionStorage } from "@/utils/session";
 
 import { toast } from "react-toastify";
+
+let inactiveLogoutToken: string | null = null;
 
 export const ws_response = (
   { evt }: { evt: { event: string; data: any } },
@@ -121,6 +129,30 @@ export const ws_response = (
           if (ws_onmessage?.status === true) {
             const data = (ws_onmessage?.data?.data || {}) as Record<string, any>;
             const user = data?.user ?? data;
+
+            const accountIsInactive =
+              user?.isActive === false ||
+              data?.isActive === false ||
+              ws_onmessage?.request?.payload?.isActive === false;
+            const accessToken = user_data?.access_token;
+            if (accountIsInactive && accessToken && inactiveLogoutToken !== accessToken) {
+              inactiveLogoutToken = accessToken;
+              try {
+                await postData(APP_URL.ENDPOINT_URL.LOGOUT, {}, accessToken);
+              } catch {
+                // The account may already be inactive server-side. Always end
+                // the local session even if the auth logout endpoint rejects.
+              }
+
+              clearBrowserSessionStorage();
+              await persistor.purge();
+              dispatch(logoutUser());
+              dispatch(setReduxClear());
+              toast.info("This account is inactive. You have been logged out.");
+              navigate.replace(APP_URL.LINKS.LOGIN);
+              return;
+            }
+
             dispatch(updateUserData(user));
             const subscription = (user?.relationships?.[0]?.subscription || {}) as IAccountSubscription;
             dispatch(setActiveSubscription(

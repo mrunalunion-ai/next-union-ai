@@ -24,6 +24,7 @@ import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import { setInsightsLoading } from "@/redux/modules/insights";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
+import { hasActiveSubscriptionAccess } from "@/utils/common";
 
 function getInitials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "U";
@@ -105,22 +106,7 @@ export default function DashboardPage() {
   const partner = relationship?.partner;
   const isUser1 = relationship?.user1Id === user?.id;
   const activeSubscription = account?.activeSubscription ?? relationship?.subscription;
-  const subscriptionEndTime = activeSubscription?.endDate
-    ? new Date(activeSubscription.endDate).getTime()
-    : Number.NaN;
-  const hasValidSubscriptionEnd = Number.isFinite(subscriptionEndTime);
-  const subscriptionIsActive = Boolean(
-    activeSubscription &&
-    activeSubscription?.status &&
-    (hasValidSubscriptionEnd
-      ? Date.now() < subscriptionEndTime
-      : typeof activeSubscription?.isActive === "boolean"
-        ? activeSubscription?.isActive
-        : activeSubscription?.status?.toUpperCase() !== "EXPIRED"),
-  );
-  const hasActiveSubscription = Boolean(
-    subscriptionIsActive,
-  );
+  const hasActiveSubscription = hasActiveSubscriptionAccess(activeSubscription);
   const { isConnected, sendMessage } = useWebSocket();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCheckinReminder, setShowCheckinReminder] = useState(false);
@@ -155,7 +141,9 @@ export default function DashboardPage() {
   const dueDate = displayDate(currentWeek?.end?.toISOString());
 
   const dashboard = insights?.dashboard;
-  const unionScore = Math.min(Math.max(Math.round(dashboard?.overallScore ?? 0), 0), 1000);
+  const latestAnalysis = insights?.analyses?.[0];
+  const scoreValue = dashboard?.overallScore ?? latestAnalysis?.overallScore;
+  const unionScore = Math.min(Math.max(Math.round(scoreValue ?? 0), 0), 1000);
   const isLastWeekData = dashboard?.isLastWeekData === true;
   const unionScorePercent = unionScore / 10;
   const unionScoreColor = scoreColor(unionScorePercent);
@@ -168,16 +156,15 @@ export default function DashboardPage() {
   const dashboardPartner = mine === dashboard?.user1 ? dashboard?.user2 : dashboard?.user1;
   const userSubmitted = mine?.checkedIn === true;
   const partnerSubmitted = dashboardPartner?.checkedIn === true;
-  const showExplorePlans = isUser1 && userSubmitted && partnerSubmitted && !hasActiveSubscription;
+  const showExplorePlans = isUser1 && userSubmitted && !hasActiveSubscription;
   const hasDashboardData = Boolean(
-    dashboard &&
-    typeof dashboard?.overallScore === "number" &&
-    (isLastWeekData || (hasActiveSubscription && userSubmitted && partnerSubmitted)),
+    typeof scoreValue === "number" &&
+    (isLastWeekData || (userSubmitted && partnerSubmitted) || latestAnalysis),
   );
   const dashboardRecommendations = dashboard?.recommendations?.slice(0, 3) ?? [];
   const dashboardUserName = mine?.id === userId ? "You" : mine?.name || userName;
   const dashboardPartnerName = dashboardPartner?.name || partnerName;
-  const statusLabel = (dashboard?.relationshipStatus || "Growing connection")
+  const statusLabel = (dashboard?.relationshipStatus || latestAnalysis?.relationshipStatus || "Growing connection")
     ?.toLowerCase()
     ?.replace(/_/g, " ")
     ?.replace(/\b\w/g, (letter: any) => letter?.toUpperCase());

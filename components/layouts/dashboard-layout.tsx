@@ -12,6 +12,8 @@ import { logoutUser } from "@/redux/modules/common/user_data/action";
 import { setReduxClear } from "@/redux/modules/main/action";
 import { postData } from "@/services/rest/fetchData";
 import { Header } from "@/components/common/Header";
+import { persistor } from "@/redux/store";
+import { clearBrowserSessionStorage } from "@/utils/session";
 
 import { DashboardMobileNav, DashboardSidebar } from "./dashboard-sidebar";
 
@@ -37,8 +39,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     } catch {
       toast.error("Could not complete logout. Please try again.");
     } finally {
-      sessionStorage.clear();
-      localStorage.clear();
+      clearBrowserSessionStorage();
+      await persistor.purge();
       dispatch(logoutUser());
       dispatch(setReduxClear());
       router.replace(APP_URL.LINKS.LOGIN);

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import InputField from "@/components/ui/InputField";
 import { APP_URL } from "@/constant/static";
 import { useAppDispatch } from "@/redux/hooks";
+import { persistor } from "@/redux/store";
 import { setAuthData, setLogin } from "@/redux/modules/common/user_data/action";
 import { AuthReq } from "@/services/rest/fetchData";
 import { onboardingRoutes, OnboardingStep } from "@/utils/common";
@@ -55,6 +56,9 @@ export default function LoginPage() {
           status: "",
         }),
       );
+      // Ensure the new account's Redux auth context is persisted before route
+      // navigation or an immediate browser refresh.
+      await persistor.flush();
       toast.success(response.message || "Welcome back.");
       const requestedReturnTo =
         new URLSearchParams(window.location.search).get("returnTo") ||

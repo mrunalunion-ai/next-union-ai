@@ -13,6 +13,7 @@ import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { useAppDispatch } from "@/redux/hooks";
 import { setInsightsLoading } from "@/redux/modules/insights";
 import { useWebSocket } from "@/services/socket/WebSocketContext";
+import { hasActiveSubscriptionAccess } from "@/utils/common";
 import {
   AlignmentCards,
   CoachCard,
@@ -30,13 +31,7 @@ export default function InsightsPage() {
   const userId = user_data?.user?.id ?? "";
   const isUser1 = relationship?.user1Id === user_data?.user?.id;
   const activeSubscription = account?.activeSubscription ?? relationship?.subscription;
-  const hasActiveSubscription = Boolean(
-    activeSubscription &&
-    activeSubscription?.status &&
-    (typeof activeSubscription?.isActive === "boolean"
-      ? activeSubscription?.isActive
-      : activeSubscription?.status?.toUpperCase() !== "EXPIRED"),
-  );
+  const hasActiveSubscription = hasActiveSubscriptionAccess(activeSubscription);
 
   const loadInsights = useCallback(() => {
     if (!relationshipId || !isConnected) return;
@@ -59,6 +54,11 @@ export default function InsightsPage() {
   }, [loadInsights]);
 
   const latest = insights?.analyses[0];
+  const hasInsightData = Boolean(
+    latest ||
+    insights?.trend?.length ||
+    typeof insights?.dashboard?.overallScore === "number",
+  );
   const recommendations = (
     latest?.recommendations?.length
       ? latest?.recommendations
@@ -108,7 +108,7 @@ export default function InsightsPage() {
                 Try again
               </Button>
             </Card>
-          ) : isWaitingForCheckIns ? (
+          ) : isWaitingForCheckIns && !hasInsightData ? (
             <Card className="mx-auto rounded-3xl border-border/70 bg-surface p-6 text-center shadow-sm sm:p-8">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
                 <Hourglass className="h-12 w-12" strokeWidth={1.8} />
@@ -127,7 +127,7 @@ export default function InsightsPage() {
                 </Button>
               )}
             </Card>
-          ) : !hasActiveSubscription ? (
+          ) : !hasActiveSubscription && !hasInsightData ? (
             <Card className="mx-auto rounded-3xl border-border/70 bg-surface p-6 text-center shadow-sm sm:p-8">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
                 <Hourglass className="h-12 w-12" strokeWidth={1.8} />

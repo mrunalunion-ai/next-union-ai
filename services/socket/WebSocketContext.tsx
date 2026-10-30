@@ -3,14 +3,14 @@
 import { APP_URL } from "@/constant/static";
 import { Popup } from "@/components/common/popup";
 import { usePosterReducers } from "@/redux/getdata/usePostReducer";
-import { logoutUser, setAuthData } from "@/redux/modules/common/user_data/action";
-import { setReduxClear } from "@/redux/modules/main/action";
+import { logoutUser } from "@/redux/modules/common/user_data/action";
 import { useRouter } from "next/navigation";
 import React, {
   createContext,
   ReactNode,
   useCallback,
   useContext,
+  useRef,
   useEffect,
   useState,
 } from "react";
@@ -52,6 +52,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   const router = useRouter();
   const { user_data } = usePosterReducers();
   const accessToken = user_data?.access_token;
+  const accessTokenRef = useRef(accessToken);
+  accessTokenRef.current = accessToken;
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<{
     event: string;
@@ -100,28 +102,25 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
     singletonSocket.on("connect_error", (err) => {
       console.error("🚨 Socket.IO connection error:", err);
       setIsConnected(false);
-      if (
-        err.message === "Unauthorized token" ||
-        err.message?.toLowerCase().includes("unauthorized") ||
-        err.message === "Authentication failed"
-      ) {
-        dispatch(logoutUser());
-        localStorage.clear();
-        dispatch(setAuthData({} as any));
-        dispatch(setReduxClear());
-        router.replace(APP_URL.LINKS.LOGIN);
-      }
+      // A transient connection error must never destroy an otherwise valid
+      // session (e.g. on refresh/reconnect). Only a genuine server-issued
+      // "unauthorized" event (handled below) may trigger logout.
     });
 
     singletonSocket.onAny((event, data) => {
       console.log("📥 Received event:", event, data);
 
       if (event === "unauthorized" || data?.type === "unauthorized") {
+        // A disconnected socket from the previous account can still deliver a
+        // queued event. It must not clear the token for a newly logged-in user.
+        if (accessTokenRef.current !== accessToken) {
+          console.warn("Ignoring unauthorized event from a stale socket session.");
+          return;
+        }
+
         dispatch(logoutUser());
-        localStorage.clear();
+        localStorage.removeItem("access_token");
         sessionStorage.clear();
-        dispatch(setAuthData({} as any));
-        dispatch(setReduxClear());
         router.replace(APP_URL.LINKS.LOGIN);
         return;
       }
@@ -248,8 +247,22 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       if (user_data?.user?.isNotify === false) {
         return;
       }
-      const { title, body } = payload?.notification || {};
-      if (title || body) toast.info(body || title);
+      const notification = payload?.notification || {};
+      const data = payload?.data || {};
+      const title = notification.title || data.title || data.senderName || "UnionAI";
+      const body = notification.body || data.body || data.message || notification.title || "";
+      if (title || body) {
+        toast.info(body || title);
+        // Fallback: surface a native browser notification when permitted, in
+        // case the in-app toast container is unavailable in this context.
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          try {
+            new Notification(title, { body: body || title });
+          } catch {
+            // ignore native notification failures
+          }
+        }
+      }
     });
 
     if (user_data?.user?.isNotify === false) {

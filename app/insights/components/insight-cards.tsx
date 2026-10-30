@@ -8,7 +8,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Card } from "@/components/ui/card";
 import {
@@ -17,6 +17,7 @@ import {
   IInsightText,
   IInsightTrendPoint,
 } from "@/redux/modules/insights";
+import { formatDateDDMMYYYY } from "@/utils/common";
 
 function scoreColor(score: number) {
   if (score > 75) return "bg-[#9B67F9]";
@@ -39,21 +40,16 @@ export function ScoreTrendCard({
   status: string;
 }) {
   const [activePoint, setActivePoint] = useState<number | null>(null);
-  const width = 420;
+  const chartScrollRef = useRef<HTMLDivElement>(null);
+  const axisWidth = 52;
+  const chartWidth = trend.length > 5 ? trend.length * 80 : 400;
   const height = 250;
-  const plotLeft = 42;
-  const plotRight = 12;
   const plotTop = 12;
   const plotBottom = 34;
-  const plotWidth = width - plotLeft - plotRight;
   const plotHeight = height - plotTop - plotBottom;
   const maxScore = 1000;
-  const getX = (index: number) =>
-    trend.length === 1
-      ? plotLeft + plotWidth / 2
-      : trend.length === 2
-        ? plotLeft + (0.25 + index * 0.5) * plotWidth
-        : plotLeft + (index / (trend.length - 1)) * plotWidth;
+  const pointSpacing = chartWidth / trend.length;
+  const getX = (index: number) => pointSpacing * (index + 0.5);
   const getY = (score: number) =>
     plotTop + plotHeight - (Math.max(0, Math.min(score, maxScore)) / maxScore) * plotHeight;
   const points = trend.map((point, index) => `${getX(index)},${getY(point.overallScore)}`).join(" ");
@@ -63,6 +59,12 @@ export function ScoreTrendCard({
     ?.toLowerCase()
     ?.replace(/_/g, " ")
     ?.replace(/\b\w/g, (letter: any) => letter?.toUpperCase());
+  const latestTrendDate = trend[trend.length - 1]?.date;
+
+  useEffect(() => {
+    const scroller = chartScrollRef.current;
+    if (scroller) scroller.scrollLeft = scroller.scrollWidth;
+  }, [trend.length, latestTrendDate]);
 
 
   return (
@@ -85,48 +87,50 @@ export function ScoreTrendCard({
         </span>
       </div>
 
-      {trend.length > 0 ? (
-        <div className="mt-5 min-w-0 overflow-hidden rounded-2xl bg-background/70 px-2 pb-2 pt-3 sm:px-3">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            preserveAspectRatio="xMidYMid meet"
-            className="block h-auto max-h-[270px] w-full"
-            role="img"
-            aria-label="Relationship score trend"
-          >
-            {yAxisValues.map((value) => {
-              const y = getY(value);
-              return (
-                <g key={value}>
-                  <line
-                    x1={plotLeft}
-                    x2={width - plotRight}
-                    y1={y}
-                    y2={y}
-                    stroke="currentColor"
-                    className="text-border/70"
-                    strokeDasharray="5 6"
-                  />
-                  <text
-                    x={plotLeft - 8}
-                    y={y + 4}
-                    textAnchor="end"
-                    className="fill-muted-foreground"
-                    fontSize="11"
-                  >
-                    {value}
-                  </text>
-                </g>
-              );
-            })}
-            <line
-              x1={plotLeft}
-              x2={width - plotRight}
-              y1={plotTop + plotHeight}
-              y2={plotTop + plotHeight}
-              stroke="currentColor"
-              className="text-border"
-            />
+      {trend?.length > 0 ? (
+        <div className="relative mt-5 min-w-0 rounded-2xl bg-background/70 px-2 pb-2 pt-3 sm:px-3">
+          {trend.length > 5 && (
+            <p className="mb-1 text-center text-[10px] text-muted-foreground">Scroll horizontally to explore earlier weeks</p>
+          )}
+          <div className="flex min-w-0">
+            <svg
+              viewBox={`0 0 ${axisWidth} ${height}`}
+              className="h-[250px] w-[52px] shrink-0"
+              aria-hidden="true"
+            >
+              {yAxisValues.map((value) => {
+                const y = getY(value);
+                return (
+                  <g key={value}>
+                    <text x={axisWidth - 5} y={y + 4} textAnchor="end" className="fill-muted-foreground" fontSize="11">{value}</text>
+                    <line x1={axisWidth - 1} x2={axisWidth} y1={y} y2={y} stroke="currentColor" className="text-border/70" />
+                  </g>
+                );
+              })}
+            </svg>
+            <div
+              ref={chartScrollRef}
+              onScroll={() => setActivePoint(null)}
+              className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain scroll-smooth"
+              role="region"
+              aria-label="Scrollable relationship score trend"
+              tabIndex={0}
+            >
+            <svg
+              viewBox={`0 0 ${chartWidth} ${height}`}
+              className={`block h-[250px] ${trend.length > 5 ? "max-w-none" : "w-full"}`}
+              style={trend.length > 5 ? { width: `${chartWidth}px` } : undefined}
+              preserveAspectRatio={trend.length > 5 ? "xMinYMin meet" : "none"}
+              role="img"
+              aria-label="Relationship score trend"
+            >
+              {yAxisValues.map((value) => {
+                const y = getY(value);
+                return (
+                  <line key={value} x1={0} x2={chartWidth} y1={y} y2={y} stroke="currentColor" className="text-border/70" strokeDasharray="5 6" />
+                );
+              })}
+              <line x1={0} x2={chartWidth} y1={plotTop + plotHeight} y2={plotTop + plotHeight} stroke="currentColor" className="text-border" />
             {trend.length > 1 && (
               <polyline
                 fill="none"
@@ -135,14 +139,15 @@ export function ScoreTrendCard({
                 className="text-primary"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="4"
+                strokeWidth="3"
               />
             )}
             {trend.map((point, index) => {
               const x = getX(index);
               const y = getY(point.overallScore);
-              const tooltipX = Math.min(Math.max(x - 40, 2), width - 82);
+              const tooltipX = Math.min(Math.max(x - 40, 2), chartWidth - 82);
               const tooltipY = Math.max(y - 34, 2);
+              const isSkipped = point.status?.toUpperCase() === "SKIPPED";
               return (
                 <g
                   key={`${point.label}-${index}`}
@@ -154,13 +159,37 @@ export function ScoreTrendCard({
                   <circle
                     cx={x}
                     cy={y}
-                    r="6"
+                    r="4"
                     className="fill-background stroke-primary"
                     strokeWidth="3"
                     tabIndex={0}
                   />
-                  <title>{`${point.label}: ${formatScore(point.overallScore)} / 1000`}</title>
-                  {activePoint === index && (
+                  <title>{isSkipped ? `${point.label}: Check-in missed` : `${point.label}: ${formatScore(point.overallScore)} / 1000`}</title>
+                  {isSkipped ? (
+                    <g
+                      className="pointer-events-none"
+                      transform={`rotate(-45 ${x} ${plotTop + plotHeight - 34})`}
+                    >
+                      <rect
+                        x={x - 38}
+                        y={plotTop + plotHeight - 44}
+                        width="76"
+                        height="18"
+                        rx="9"
+                        className="fill-amber-50 stroke-amber-300"
+                      />
+                      <text
+                        x={x}
+                        y={plotTop + plotHeight - 32}
+                        textAnchor="middle"
+                        className="fill-amber-800"
+                        fontSize="8"
+                        fontWeight="700"
+                      >
+                        Check-in missing
+                      </text>
+                    </g>
+                  ) : activePoint === index && (
                     <g className="pointer-events-none">
                       <rect
                         x={tooltipX}
@@ -184,17 +213,28 @@ export function ScoreTrendCard({
                   )}
                   <text
                     x={x}
-                    y={height - 10}
+                    y={height - 22}
                     textAnchor="middle"
                     className="fill-muted-foreground"
                     fontSize="11"
                   >
                     {point.label}
                   </text>
+                  <text
+                    x={x}
+                    y={height - 8}
+                    textAnchor="middle"
+                    className="fill-muted-foreground"
+                    fontSize="10"
+                  >
+                    ({formatDateDDMMYYYY(point.date)})
+                  </text>
                 </g>
               );
             })}
           </svg>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="mt-6 flex h-44 items-center justify-center rounded-2xl bg-background/70 text-sm text-muted-foreground">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { OtpInput } from "@/components/ui/otpInput";
 import { APP_URL } from "@/constant/static";
 import { useAppDispatch } from "@/redux/hooks";
+import { persistor } from "@/redux/store";
 import { setAuthData, setLogin } from "@/redux/modules/common/user_data/action";
 import { AuthReq } from "@/services/rest/fetchData";
 import { otpSchema, type OtpFormValues } from "@/utils/schema";
@@ -104,6 +105,7 @@ export default function EmailVerificationPage() {
             status: "",
           }),
         );
+        await persistor.flush();
       }
       sessionStorage.removeItem("unionai_signup_payload");
       sessionStorage.removeItem("unionai_signup_email");

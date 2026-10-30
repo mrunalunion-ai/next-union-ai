@@ -37,6 +37,12 @@ function parseData(payload) {
 messaging.onBackgroundMessage((payload) => {
   const { data, meta } = parseData(payload);
   const notification = payload?.notification || {};
+  if (payload?.notification) {
+    // FCM automatically displays notification payloads while the app is in
+    // the background. Calling showNotification here would display a duplicate.
+    return;
+  }
+
   const messageId = String(
     meta.notificationId || data.messageId || payload.messageId || "",
   );
@@ -54,8 +60,22 @@ messaging.onBackgroundMessage((payload) => {
     }
   }
 
-  self.registration.showNotification(notification.title || "UnionAI", {
-    body: notification.body || "",
+  const title =
+    notification.title || data.title || meta.title || data.senderName || "UnionAI";
+  const body =
+    notification.body ||
+    data.body ||
+    meta.body ||
+    data.message ||
+    meta.message ||
+    "You have a new notification.";
+
+  console.info("[FCM SW] Showing data message", {
+    title,
+    notificationType: data.notificationType || meta.notificationType,
+  });
+  self.registration.showNotification(title, {
+    body,
     icon: `${origin}/assets/images/logo-badge.svg`,
     badge: `${origin}/assets/images/logo-badge.svg`,
     tag: messageId || undefined,

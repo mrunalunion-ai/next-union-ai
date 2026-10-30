@@ -8,6 +8,7 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -56,6 +57,7 @@ export function TaskCard({
   isOwner,
   isCompletedTab = false,
 }: TaskCardProps) {
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const isAssignedToUser = currentUserId ? task.assignedToUserId === currentUserId : false;
   const isSelfAssigned = Boolean(
     task.createdByUserId &&
@@ -116,9 +118,21 @@ export function TaskCard({
 
         {/* Description */}
         {task.description && (
-          <p className="mt-1.5 truncate text-xs leading-5 text-muted-foreground">
-            {task.description}
-          </p>
+          <div className="mt-1.5">
+            <p className={`text-xs leading-5 text-muted-foreground ${descriptionExpanded ? "" : "line-clamp-2"}`}>
+              {task.description}
+            </p>
+            {task.description.length > 120 && (
+              <button
+                type="button"
+                aria-expanded={descriptionExpanded}
+                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+                className="mt-1 text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {descriptionExpanded ? "Show less" : "Show more"}
+              </button>
+            )}
+          </div>
         )}
       </div>
 

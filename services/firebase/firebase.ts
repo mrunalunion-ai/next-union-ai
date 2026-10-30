@@ -1,4 +1,4 @@
-import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import {
   getMessaging,
   getToken,
@@ -33,11 +33,22 @@ function logConfigDiagnostics() {
       `messagingSenderId (${messagingSenderId}) does not match the project number in appId (${appIdProject})`,
     );
   }
-  if (appId && !/^[0-9a-f]+$/i.test(appId?.split(":")?.[2] ?? "")) {
-    problems.push(`appId web segment is not hex: "${appId}"`);
+  const appIdSegments = appId?.split(":") ?? [];
+  const appIdWebSegment = appIdSegments[2];
+  const appIdHexSegment = appIdSegments[3];
+  if (
+    appId &&
+    (appIdSegments[0] !== "1" ||
+      appIdWebSegment !== "web" ||
+      !/^[0-9a-f]+$/i.test(appIdHexSegment ?? ""))
+  ) {
+    problems.push(`appId does not match the expected Firebase web format: "${appId}"`);
   }
   if (!projectId) {
     problems.push("projectId is empty");
+  }
+  if (problems.length) {
+    console.warn("[firebase] Configuration diagnostics:", problems);
   }
 }
 
@@ -50,7 +61,7 @@ export async function ensureFirebase(): Promise<boolean> {
   }
   logConfigDiagnostics();
   try {
-    app = initializeApp(firebaseConfig);
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
     const supported = await isSupported();
     if (supported === true) {
@@ -58,6 +69,7 @@ export async function ensureFirebase(): Promise<boolean> {
     }
     return !!messaging;
   } catch (error: any) {
+    console.error("[firebase] Messaging initialization failed:", error);
     app = null;
     messaging = null;
     return false;
@@ -76,15 +88,24 @@ export async function getFcmToken(): Promise<string | null> {
     const permission =
       typeof Notification !== "undefined" ? Notification.permission : "unsupported";
     if (permission === "denied") {
+      console.warn("[firebase] Notification permission is denied.");
       return null;
     }
 
-    const token = await getToken(
-      messaging,
-      vapidKey ? { vapidKey } : undefined,
+    if (!("serviceWorker" in navigator)) {
+      console.warn("[firebase] Service workers are unavailable in this browser.");
+      return null;
+    }
+    const serviceWorkerRegistration = await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js",
     );
+    const token = await getToken(messaging, {
+      serviceWorkerRegistration,
+      ...(vapidKey ? { vapidKey } : {}),
+    });
     return token || null;
   } catch (error: any) {
+    console.error("[firebase] FCM token registration failed:", error);
     return null;
   }
 }
@@ -95,6 +116,7 @@ export async function deleteFcmToken(): Promise<boolean> {
     if (!ok || !messaging) return false;
     return await deleteToken(messaging);
   } catch (error: any) {
+    console.error("[firebase] FCM token deletion failed:", error);
     return false;
   }
 }
@@ -103,9 +125,10 @@ export function onForegroundMessage(
   handler: (payload: any) => void,
 ): () => void {
   let unsubscribe: (() => void) | null = null;
+  let active = true;
   ensureFirebase()
     .then((ok) => {
-      if (!ok || !messaging) {
+      if (!active || !ok || !messaging) {
         return;
       }
       unsubscribe = onMessage(messaging, handler);
@@ -114,6 +137,7 @@ export function onForegroundMessage(
       console.error("[firebase] onForegroundMessage setup failed:", error);
     });
   return () => {
+    active = false;
     if (unsubscribe) {
       unsubscribe();
     }

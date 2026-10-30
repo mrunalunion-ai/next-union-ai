@@ -7,17 +7,44 @@ import { usePosterReducers } from "@/redux/getdata/usePostReducer";
 import { APP_URL } from "@/constant/static";
 import { onboardingRoutes } from "@/utils/common";
 
-const ONBOARDING_FLOW_ROUTES = new Set(Object.values(onboardingRoutes));
-const SHARED_ROUTES = [APP_URL.LINKS.LEGAL];
+// Connection onboarding flow in forward order. Browser back-navigation may
+// never move a user to an earlier step than the one they are currently on.
+const CONNECTION_FLOW = [
+  APP_URL.LINKS.REGISTER,
+  APP_URL.LINKS.EMAIL_VERIFICATION,
+  APP_URL.LINKS.RELATIONSHIP_DETAILS,
+  APP_URL.LINKS.CREATE_UNION,
+  APP_URL.LINKS.CODE_CREATED,
+  APP_URL.LINKS.JOIN_UNION,
+  APP_URL.LINKS.CONNECTED,
+  APP_URL.LINKS.DASHBOARD,
+];
+
+// Public pages that an authenticated user must never see.
+const AUTH_BLOCKED_PUBLIC = [
+  APP_URL.LINKS.LOGIN,
+  APP_URL.LINKS.REGISTER,
+  APP_URL.LINKS.EMAIL_VERIFICATION,
+  APP_URL.LINKS.FORGOT_PASSWORD,
+  APP_URL.LINKS.OTP_VERIFICATION,
+  APP_URL.LINKS.RESET_PASSWORD,
+];
+
+// Routes that are only accessible once the user is fully connected.
 const CONNECTED_ONLY_ROUTES = [
   APP_URL.LINKS.DASHBOARD,
-  APP_URL.LINKS.WEEKLY_CHECK_IN,
-  APP_URL.LINKS.CHECK_IN_COMPLETED,
   APP_URL.LINKS.TASKS,
   APP_URL.LINKS.INSIGHTS,
-  APP_URL.LINKS.NOTIFICATIONS,
   APP_URL.LINKS.ACCOUNT,
 ];
+
+// Forgot-password flow in forward order.
+const FORGOT_FLOW = [
+  APP_URL.LINKS.FORGOT_PASSWORD,
+  APP_URL.LINKS.OTP_VERIFICATION,
+  APP_URL.LINKS.RESET_PASSWORD,
+];
+const FORGOT_MAX_STEP_KEY = "unionai_forgot_max_step";
 
 function matchesRoute(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
@@ -27,47 +54,58 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const pathname = usePathname();
   const { user_data, access_token, hydrated } = usePosterReducers();
-  const isBackNavRef = useRef(false);
-  const onboardingStep = user_data?.user?.onboardingStep;
+  const backDestinationRef = useRef<string | null>(null);
 
   const persistedToken =
     typeof window !== "undefined"
       ? window.localStorage.getItem("access_token")
       : null;
 
+  // A session is only valid when BOTH a token and hydrated user context exist.
+  // An orphan token (token present but no user data) indicates a stale/corrupt
+  // session from switching accounts; treat it as logged out.
+  const hasToken = Boolean(persistedToken || access_token);
+  const hasUserContext = Boolean(user_data?.user?.id);
+  const invalidSession = hydrated && hasToken && !hasUserContext;
+
+  const isAuthenticated = Boolean(
+    hasToken && (hasUserContext || !hydrated),
+  );
+
+  const onboardingStep = user_data?.user?.onboardingStep as
+    | keyof typeof onboardingRoutes
+    | undefined;
+
+  // The page the user is currently allowed to be on, according to their step.
+  const currentStepRoute = useMemo(() => {
+    const route =
+      (onboardingStep && onboardingRoutes[onboardingStep]) ||
+      APP_URL.LINKS.RELATIONSHIP_DETAILS;
+    return route;
+  }, [onboardingStep]);
+
+  const currentConnectionIndex = CONNECTION_FLOW.indexOf(currentStepRoute);
+
+  // Remember where browser back/forward is headed, and record forgot-password
+  // progress so those steps can never be re-entered via the back button.
   useEffect(() => {
     const onPopState = () => {
-      isBackNavRef.current = true;
-      console.debug("[RouteGuard] Browser back/forward detected", {
-        destination: window.location.pathname,
-        guardedPath: pathname,
-        onboardingStep: user_data?.user?.onboardingStep ?? null,
-        hasAccessToken: Boolean(
-          window.localStorage.getItem("access_token") || access_token,
-        ),
-      });
+      backDestinationRef.current = window.location.pathname;
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [access_token, pathname, user_data?.user?.onboardingStep]);
+  }, []);
 
-  const isAuthenticated = Boolean(
-    !hydrated ? persistedToken : access_token || user_data?.is_Login,
-  );
-
-  const onboardingRoute = useMemo(() => {
-    const step = user_data?.user?.onboardingStep as
-      | keyof typeof onboardingRoutes
-      | undefined;
-    const route = (step && onboardingRoutes[step]) || APP_URL.LINKS.RELATIONSHIP_DETAILS;
-    // A malformed or stale onboarding value must never strand an authenticated
-    // user on a public page such as login or registration.
-    return PUBLIC_ROUTES.some(
-      (publicRoute) => route === publicRoute || route.startsWith(`${publicRoute}/`),
-    )
-      ? APP_URL.LINKS.RELATIONSHIP_DETAILS
-      : route;
-  }, [onboardingStep]);
+  // Track the furthest forgot-password step reached in this session.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const idx = FORGOT_FLOW.indexOf(pathname);
+    if (idx === -1) return;
+    const stored = Number(window.sessionStorage.getItem(FORGOT_MAX_STEP_KEY) ?? -1);
+    if (idx > stored) {
+      window.sessionStorage.setItem(FORGOT_MAX_STEP_KEY, String(idx));
+    }
+  }, [pathname]);
 
   const isPublic = useMemo(
     () =>
@@ -76,61 +114,90 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
       ),
     [pathname],
   );
-  const isShared = SHARED_ROUTES.some(
-    (route) => matchesRoute(pathname, route),
+
+  const isAuthBlockedPublic = AUTH_BLOCKED_PUBLIC.some((route) =>
+    matchesRoute(pathname, route),
   );
+
+  const isConnectionRoute =
+    CONNECTION_FLOW.indexOf(pathname) !== -1 ||
+    CONNECTION_FLOW.some(
+      (route) => route !== pathname && pathname.startsWith(`${route}/`),
+    );
+
+  const isConnectionFlowBackRoute =
+    isConnectionRoute &&
+    currentConnectionIndex !== -1 &&
+    CONNECTION_FLOW.indexOf(pathname) < currentConnectionIndex;
+
+  // Connected-only routes are reachable only when the user is fully connected.
+  const isConnected = onboardingStep === "connected";
   const isConnectedOnlyRoute = CONNECTED_ONLY_ROUTES.some((route) =>
     matchesRoute(pathname, route),
   );
 
   let redirectTo: string | null = null;
-  if (hydrated) {
-    if (isPublic && isAuthenticated) {
-      redirectTo = onboardingRoute;
-    } else if (!isPublic && !isShared && !isAuthenticated) {
-      redirectTo = APP_URL.LINKS.LOGIN;
-    } else if (
-      isAuthenticated &&
-      !isShared &&
-      isConnectedOnlyRoute &&
-      onboardingStep !== "connected"
-    ) {
-      redirectTo = onboardingRoute;
-    } else if (
-      isAuthenticated &&
-      isBackNavRef.current &&
-      onboardingStep === "connected" &&
-      ONBOARDING_FLOW_ROUTES.has(pathname) &&
-      pathname !== APP_URL.LINKS.DASHBOARD
-    ) {
-      redirectTo = APP_URL.LINKS.DASHBOARD;
+
+  if (hydrated && invalidSession) {
+    // Orphan token with no user context: clear the stale token and force a
+    // clean login so a refresh does not recreate the broken session.
+    redirectTo = APP_URL.LINKS.LOGIN;
+  } else if (hydrated) {
+    if (isAuthenticated) {
+      // Connected-only routes are accessible only when fully connected.
+      if (isConnectedOnlyRoute && !isConnected) {
+        redirectTo = currentStepRoute;
+      }
+      // Authenticated users never see public auth pages.
+      else if (isAuthBlockedPublic) {
+        redirectTo = currentStepRoute;
+      }
+      // Never go backward through the connection flow.
+      else if (isConnectionFlowBackRoute) {
+        redirectTo = currentStepRoute;
+      }
+      // Blocked unauthorized back-navigation into forgot-password steps.
+      else if (backDestinationRef.current) {
+        const dest = backDestinationRef.current;
+        const destIdx = FORGOT_FLOW.indexOf(dest);
+        const maxIdx = Number(
+          window.sessionStorage.getItem(FORGOT_MAX_STEP_KEY) ?? -1,
+        );
+        if (destIdx !== -1 && maxIdx !== -1 && destIdx < maxIdx) {
+          redirectTo = FORGOT_FLOW[maxIdx];
+        }
+      }
+    } else {
+      // Unauthenticated users cannot open protected routes.
+      if (!isPublic) {
+        redirectTo = APP_URL.LINKS.LOGIN;
+      }
+      // Forgot-password flow: no back-navigation to earlier steps.
+      else if (backDestinationRef.current) {
+        const dest = backDestinationRef.current;
+        const destIdx = FORGOT_FLOW.indexOf(dest);
+        const maxIdx = Number(
+          window.sessionStorage.getItem(FORGOT_MAX_STEP_KEY) ?? -1,
+        );
+        if (destIdx !== -1 && maxIdx !== -1 && destIdx < maxIdx) {
+          redirectTo = FORGOT_FLOW[maxIdx];
+        }
+      }
     }
   }
   if (redirectTo === pathname) redirectTo = null;
 
   useEffect(() => {
     if (!redirectTo) return;
-    console.debug("[RouteGuard] Redirecting route", {
-      from: pathname,
-      to: redirectTo,
-      onboardingStep: onboardingStep ?? null,
-      isAuthenticated,
-      isBackNavigation: isBackNavRef.current,
-      reason: isPublic && isAuthenticated
-        ? "authenticated-user-on-public-route"
-        : !isPublic && !isShared && !isAuthenticated
-          ? "unauthenticated-user-on-protected-route"
-          : isConnectedOnlyRoute && onboardingStep !== "connected"
-            ? "onboarding-not-connected"
-          : onboardingStep === "connected"
-            ? "connected-user-back-navigation"
-            : "other-route-guard-rule",
-    });
+    if (invalidSession) {
+      window.localStorage.removeItem("access_token");
+    }
     router.replace(redirectTo);
-  }, [redirectTo, router, pathname, onboardingStep, isAuthenticated, isPublic, isShared]);
+  }, [redirectTo, router, invalidSession]);
 
+  // Clear the recorded back-destination once navigation settles.
   useEffect(() => {
-    isBackNavRef.current = false;
+    backDestinationRef.current = null;
   }, [pathname]);
 
   if (!hydrated || redirectTo) {

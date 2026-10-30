@@ -30,6 +30,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { clearBrowserSessionStorage } from "@/utils/session";
 
 type HeaderVariant = "marketing" | "auth" | "dashboard";
 
@@ -136,8 +137,7 @@ export function Header({ variant = "auth" }: HeaderProps) {
   }, []);
 
   const clearSession = async () => {
-    localStorage.clear();
-    sessionStorage.clear();
+    clearBrowserSessionStorage();
     await persistor.purge();
     dispatch(logoutUser());
     dispatch(setReduxClear());
@@ -302,7 +302,7 @@ function ProfileMenu({ user, displayName, onLogout, onDeleteAccount, onClose }: 
       <div className="mb-1.5 flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2.5"><span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-primary text-sm font-bold text-white">{getInitials(user?.firstName, user?.lastName)}</span><div className="min-w-0"><p className="truncate text-sm font-semibold">{displayName}</p><p className="truncate text-[11px] text-muted-foreground">{user?.email || "Subscriber"}</p></div></div>
       {connected && <Link href={APP_URL.LINKS.DASHBOARD} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted"><LayoutDashboard className="h-4 w-4 text-primary" />Dashboard</Link>}
       <Link href={href || APP_URL.LINKS.ACCOUNT} onClick={onClose} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted">{connected ? <User className="h-4 w-4 text-primary" /> : <LayoutDashboard className="h-4 w-4 text-primary" />}{connected ? "Profile" : "Complete Connection"}</Link>
-      <button type="button" onClick={onDeleteAccount} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10"><Trash2 className="h-4 w-4" />Delete Account</button>
+      {!connected && <button type="button" onClick={onDeleteAccount} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10"><Trash2 className="h-4 w-4" />Delete Account</button>}
       <button type="button" onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10"><LogOut className="h-4 w-4" />Logout</button>
     </div>
   );

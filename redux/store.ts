@@ -11,8 +11,9 @@ import { insightsReducer } from "./modules/insights";
 import { notificationsReducer } from "./modules/notifications";
 import { accountReducer } from "./modules/account";
 import { paymentReducer } from "./modules/payment";
+import { ActionTypes as UserActionTypes } from "./modules/common/user_data/action";
 
-const combinedReducer = combineReducers({
+const appReducer = combineReducers({
   user_data: userDataReducers,
   usePosterReducers: posterReducer,
   uiReducer: uiReducer,
@@ -25,6 +26,12 @@ const combinedReducer = combineReducers({
   payment: paymentReducer,
 });
 
+const resetOnLogoutReducer: typeof appReducer = (state, action) =>
+  appReducer(
+    action.type === UserActionTypes.ADMIN_LOGOUT ? undefined : state,
+    action,
+  );
+
 const BUILD_ID =
   process.env.NEXT_PUBLIC_BUILD_ID ||
   process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
@@ -36,15 +43,22 @@ if (typeof window !== 'undefined') {
   const lastBuild = window.localStorage.getItem(BUILD_KEY);
   if (lastBuild !== BUILD_ID) {
     window.localStorage.setItem(BUILD_KEY, BUILD_ID);
-    window.localStorage.removeItem(`persist:chathub-store`);
+    // Keep the persisted auth context when an authenticated user refreshes
+    // after a deployment. The route guard needs this context to validate the
+    // access token and must not discard a newly signed-in account.
+    if (!window.localStorage.getItem("access_token")) {
+      window.localStorage.removeItem("persist:chathub-store");
+    }
   }
 }
 
+const persistedAppReducer = persistReducer(
+  { key: "chathub-store", storage, blacklist: ["uiReducer"] },
+  resetOnLogoutReducer,
+);
+
 const rootReducer = combineReducers({
-  combinedReducer: persistReducer(
-    { key: "chathub-store", storage, blacklist: ["uiReducer"] },
-    combinedReducer
-  ),
+  combinedReducer: persistedAppReducer,
 });
 
 export function makeStore() {

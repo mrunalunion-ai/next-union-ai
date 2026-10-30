@@ -3,6 +3,8 @@ export interface IInsightTrendPoint {
   weekNumber: number;
   periodStart: string;
   overallScore: number;
+  status?: string;
+  date: string;
 }
 
 export interface IInsightText {

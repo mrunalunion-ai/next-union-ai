@@ -161,6 +161,7 @@ export function TaskModal({
             label="Due date"
             error={errors.dueDate}
             required
+            minDate={new Date()}
             labelClassName="auth-field-label"
             inputClassName="auth-input"
             format="YYYY-MM-DD"
