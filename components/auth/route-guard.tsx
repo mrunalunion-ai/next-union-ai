@@ -132,6 +132,8 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
 
   // Connected-only routes are reachable only when the user is fully connected.
   const isConnected = onboardingStep === "connected";
+  const isConnectedSuccessRoute =
+    pathname === APP_URL.LINKS.CONNECTED && isConnected;
   const isConnectedOnlyRoute = CONNECTED_ONLY_ROUTES.some((route) =>
     matchesRoute(pathname, route),
   );
@@ -153,7 +155,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
         redirectTo = currentStepRoute;
       }
       // Never go backward through the connection flow.
-      else if (isConnectionFlowBackRoute) {
+      else if (isConnectionFlowBackRoute && !isConnectedSuccessRoute) {
         redirectTo = currentStepRoute;
       }
       // Blocked unauthorized back-navigation into forgot-password steps.
