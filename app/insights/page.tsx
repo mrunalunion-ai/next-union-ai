@@ -65,7 +65,7 @@ export default function InsightsPage() {
       : insights?.dashboard?.recommendations ?? []
   ).slice(0, 3);
   const currentScore =
-    insights?.trend?.at(-1)?.overallScore ?? latest?.overallScore ?? 0;
+    latest?.overallScore ?? insights?.trend?.at(-1)?.overallScore ?? 0;
   const isLastWeekData = insights?.dashboard?.isLastWeekData === true;
   const currentUserCheckIn =
     insights?.dashboard?.user1?.id === userId
